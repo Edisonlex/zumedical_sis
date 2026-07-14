@@ -1,0 +1,53 @@
+
+ZUMEDICAL — Reporte de Entrenamiento del Modelo de Riesgo Prenatal v2
+======================================================================
+Algoritmo        : Random Forest (n=300, max_depth=12) + Calibración Isotónica
+Dataset principal: Maternal Health and High-Risk Pregnancy Dataset
+Dataset secundario: Maternal Health Risk Data Set UCI
+Total registros  : 1408
+Features         : 17
+
+MÉTRICAS DE EVALUACIÓN (Test 20%)
+-----------------------------------
+Accuracy   : 0.9610 (96.10%)
+Precision  : 0.9643
+Recall     : 0.9610
+F1 Score   : 0.9616
+CV F1 (5k) : 0.9581 ± 0.0123
+
+CLASIFICACIÓN POR CLASE:
+              precision    recall  f1-score   support
+
+        Bajo       0.99      0.94      0.96       158
+       Medio       0.81      1.00      0.89        21
+        Alto       0.96      0.98      0.97       103
+
+    accuracy                           0.96       282
+   macro avg       0.92      0.97      0.94       282
+weighted avg       0.96      0.96      0.96       282
+
+
+MATRIZ DE CONFUSIÓN (filas=real, columnas=predicho):
+Clases: ['Bajo', 'Medio', 'Alto']
+[[149   5   4]
+ [  0  21   0]
+ [  2   0 101]]
+
+IMPORTANCIA DE VARIABLES:
+age                    NaN
+systolic_bp            NaN
+diastolic_bp           NaN
+glucose                NaN
+body_temp              NaN
+heart_rate             NaN
+bmi                    NaN
+prev_complications     NaN
+diabetes_preexisting   NaN
+diabetes_gestacional   NaN
+pulse_pressure         NaN
+hipertension_flag      NaN
+diabetes_flag          NaN
+edad_avanzada          NaN
+glucosa_cat            NaN
+map_arterial           NaN
+riesgo_combinado       NaN

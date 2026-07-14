@@ -1,0 +1,474 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel Clínico IA — {{ paciente.get_full_name }} — Zumedical</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --mg: #b03580; --mg-l: #cc4d99; --mg-d: #8a2563;
+      --mg-bg: #fbf0f7; --mg-border: #e8aad4;
+      --text: #2a1020; --muted: #8a6070;
+      --white: #fff; --bg: #fdf5fa;
+      --green: #2e7d52; --green-bg: #edfaf3; --green-border: #a8dfc0;
+      --yellow: #b45309; --yellow-bg: #fffbeb; --yellow-border: #fcd34d;
+      --red: #b91c1c; --red-bg: #fef2f2; --red-border: #fca5a5;
+      --blue: #0c4a6e; --blue-bg: #f0f9ff; --blue-border: #bae6fd;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: "DM Sans", sans-serif; background: var(--bg); min-height: 100vh; }
+    @keyframes pageIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes slideIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+    .container { max-width: 1100px; margin: 0 auto; padding: 2rem; animation: pageIn .4s ease; }
+
+    /* TOPBAR */
+    .topbar { background: linear-gradient(135deg,var(--mg-d),var(--mg-l)); padding: 1rem 2.5rem; display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; }
+    .topbar-brand { display:flex; align-items:center; gap:.75rem; }
+    .topbar-logo { width:36px; height:36px; background:white; border-radius:50%; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+    .topbar-logo img { width:32px; height:32px; object-fit:contain; }
+    .topbar-title { font-family:"Cormorant Garamond",serif; font-size:1.35rem; font-weight:600; color:white; }
+    .topbar-sub { font-size:.78rem; color:rgba(255,255,255,.7); }
+    .btn-back { background:rgba(255,255,255,.15); color:white; border:1px solid rgba(255,255,255,.3); padding:.5rem 1.1rem; border-radius:8px; text-decoration:none; font-size:.85rem; font-weight:500; transition:all .2s; white-space:nowrap; }
+    .btn-back:hover { background:rgba(255,255,255,.25); }
+
+    /* ALERTA CRÍTICA */
+    .alerta-critica { background:#fff1f2; border:2px solid #fca5a5; border-radius:14px; padding:1.1rem 1.5rem; margin-bottom:1.5rem; display:flex; align-items:flex-start; gap:.85rem; animation:slideIn .3s ease; }
+    .alerta-critica-icon { font-size:1.6rem; flex-shrink:0; line-height:1; }
+    .alerta-critica-text { font-size:.9rem; color:#7f1d1d; font-weight:500; line-height:1.5; }
+
+    /* FICHA PACIENTE */
+    .ficha-card { background:var(--white); border-radius:16px; border:1px solid var(--mg-border); overflow:hidden; margin-bottom:1.75rem; box-shadow:0 2px 12px rgba(176,53,128,.06); }
+    .ficha-header { background:linear-gradient(135deg,var(--mg-d),var(--mg)); padding:1.4rem 2rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem; }
+    .ficha-paciente { display:flex; align-items:center; gap:1rem; }
+    .ficha-avatar { width:52px; height:52px; border-radius:50%; background:rgba(255,255,255,.2); border:2px solid rgba(255,255,255,.4); display:flex; align-items:center; justify-content:center; font-size:1.2rem; font-weight:600; color:white; text-transform:uppercase; flex-shrink:0; }
+    .ficha-nombre h2 { font-family:"Cormorant Garamond",serif; font-size:1.55rem; font-weight:700; color:white; }
+    .ficha-nombre p { font-size:.8rem; color:rgba(255,255,255,.75); margin-top:.15rem; }
+    .tendencia-badge { display:flex; align-items:center; gap:.5rem; padding:.45rem 1rem; border-radius:20px; font-size:.84rem; font-weight:600; }
+    .tendencia-mejorando { background:var(--green-bg); color:var(--green); border:1px solid var(--green-border); }
+    .tendencia-empeorando { background:var(--red-bg); color:var(--red); border:1px solid var(--red-border); }
+    .tendencia-estable { background:var(--yellow-bg); color:var(--yellow); border:1px solid var(--yellow-border); }
+    .ficha-stats { display:grid; grid-template-columns:repeat(4,1fr); }
+    .stat-item { padding:1rem 1.4rem; border-right:1px solid var(--mg-border); }
+    .stat-item:last-child { border-right:none; }
+    .stat-label { font-size:.7rem; font-weight:500; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; margin-bottom:.25rem; }
+    .stat-val { font-family:"Cormorant Garamond",serif; font-size:1.55rem; font-weight:700; color:var(--text); line-height:1; }
+    .stat-val small { font-family:"DM Sans",sans-serif; font-size:.78rem; font-weight:400; color:var(--muted); margin-left:.2rem; }
+    .delta-chip { display:inline-flex; align-items:center; gap:.25rem; font-size:.75rem; font-weight:600; padding:.15rem .5rem; border-radius:20px; margin-top:.3rem; }
+    .delta-up { background:var(--red-bg); color:var(--red); }
+    .delta-down { background:var(--green-bg); color:var(--green); }
+    .delta-eq { background:#f3f4f6; color:#6b7280; }
+
+    /* ÚLTIMA PREDICCIÓN */
+    .ultima-card { border-radius:16px; overflow:hidden; margin-bottom:1.75rem; border:1px solid; box-shadow:0 4px 20px rgba(0,0,0,.07); }
+    .ultima-card.bajo { border-color:var(--green-border); }
+    .ultima-card.medio { border-color:var(--yellow-border); }
+    .ultima-card.alto { border-color:var(--red-border); }
+    .ultima-header { padding:1.4rem 2rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem; }
+    .ultima-header.bajo { background:var(--green-bg); }
+    .ultima-header.medio { background:var(--yellow-bg); }
+    .ultima-header.alto { background:var(--red-bg); }
+    .ultima-nivel { display:flex; align-items:center; gap:1rem; }
+    .ultima-icono { font-size:2.2rem; line-height:1; }
+    .ultima-titulo h2 { font-family:"Cormorant Garamond",serif; font-size:1.9rem; font-weight:700; }
+    .ultima-titulo p { font-size:.85rem; color:var(--muted); margin-top:.15rem; }
+    .bajo .ultima-titulo h2 { color:var(--green); }
+    .medio .ultima-titulo h2 { color:var(--yellow); }
+    .alto .ultima-titulo h2 { color:var(--red); }
+    .prob-ring { text-align:center; min-width:100px; }
+    .prob-ring .num { font-family:"Cormorant Garamond",serif; font-size:3.2rem; font-weight:700; line-height:1; }
+    .bajo .prob-ring .num { color:var(--green); }
+    .medio .prob-ring .num { color:var(--yellow); }
+    .alto .prob-ring .num { color:var(--red); }
+    .prob-ring .lbl { font-size:.68rem; text-transform:uppercase; letter-spacing:.1em; color:var(--muted); margin-top:.15rem; }
+    .prob-ring .lbl-note { font-size:.62rem; color:var(--muted); opacity:.8; margin-top:.1rem; }
+
+    /* GRID DATOS CLÍNICOS */
+    .datos-grid { display:grid; grid-template-columns:repeat(6,1fr); border-bottom:1px solid var(--mg-border); background:var(--white); }
+    .dato-cell { padding:.9rem 1.1rem; border-right:1px solid var(--mg-border); }
+    .dato-cell:last-child { border-right:none; }
+    .d-label { font-size:.68rem; font-weight:500; color:var(--muted); text-transform:uppercase; letter-spacing:.07em; margin-bottom:.25rem; }
+    .d-val { font-size:1rem; font-weight:600; color:var(--text); }
+    .d-val.alert-val { color:var(--red); }
+
+    /* NOTA ANTECEDENTE */
+    .nota-antecedente { background:var(--blue-bg); border:1px solid var(--blue-border); border-radius:10px; padding:.85rem 1.1rem; font-size:.82rem; color:var(--blue); line-height:1.5; margin:1rem 2rem; }
+
+    /* BODY SECTIONS */
+    .body-sections { display:grid; grid-template-columns:1fr 1fr; background:var(--white); }
+    .body-section { padding:1.4rem 2rem; border-right:1px solid var(--mg-border); border-top:1px solid var(--mg-border); }
+    .body-section:last-child { border-right:none; }
+    .body-section.full { grid-column:1/-1; border-right:none; }
+    .section-head { font-size:.72rem; font-weight:600; text-transform:uppercase; letter-spacing:.1em; color:var(--muted); margin-bottom:.85rem; padding-bottom:.35rem; border-bottom:1px solid var(--mg-border); }
+
+    /* LISTAS */
+    .factores-list, .complicaciones-list { list-style:none; padding:0; display:flex; flex-direction:column; gap:.4rem; }
+    .factores-list li { padding:.5rem .8rem; border-radius:8px; background:var(--red-bg); border:1px solid var(--red-border); font-size:.83rem; color:var(--text); line-height:1.4; }
+    .complicaciones-list li { padding:.5rem .8rem; border-radius:8px; background:var(--yellow-bg); border:1px solid var(--yellow-border); font-size:.83rem; color:var(--text); }
+
+    /* RECOMENDACIONES AGRUPADAS */
+    .rec-group { margin-bottom:1rem; }
+    .rec-group-title { font-size:.7rem; font-weight:600; text-transform:uppercase; letter-spacing:.09em; margin-bottom:.5rem; display:flex; align-items:center; gap:.4rem; }
+    .rec-group-title.urgencia { color:#7f1d1d; }
+    .rec-group-title.nutricion { color:#14532d; }
+    .rec-group-title.habitos { color:#1e3a5f; }
+    .rec-list { list-style:none; padding:0; display:flex; flex-direction:column; gap:.35rem; }
+    .rec-list li { padding:.45rem .8rem; border-radius:8px; font-size:.83rem; color:var(--text); line-height:1.4; }
+    .rec-list.urgencia li { background:#fff1f2; border:1px solid #fca5a5; }
+    .rec-list.nutricion li { background:var(--green-bg); border:1px solid var(--green-border); }
+    .rec-list.habitos li { background:var(--blue-bg); border:1px solid var(--blue-border); color:var(--blue); }
+    .rec-disclaimer { font-size:.78rem; color:var(--muted); font-style:italic; margin-top:.75rem; padding:.5rem .8rem; background:var(--mg-bg); border-radius:8px; border:1px solid var(--mg-border); }
+
+    /* PROBABILIDADES */
+    .prob-bars { display:flex; flex-direction:column; gap:.5rem; margin-top:.75rem; }
+    .prob-row { display:flex; align-items:center; gap:.75rem; }
+    .prob-lbl { min-width:48px; font-size:.8rem; color:var(--muted); }
+    .prob-track { flex:1; height:8px; background:#f0e0ee; border-radius:4px; overflow:hidden; }
+    .prob-fill { height:100%; border-radius:4px; transition:width .5s ease; }
+    .prob-pct { font-size:.82rem; font-weight:600; min-width:38px; text-align:right; color:var(--text); }
+
+    /* EXPLICACIÓN */
+    .explicacion-box { background:var(--blue-bg); border:1px solid var(--blue-border); border-radius:10px; padding:.9rem 1.1rem; font-size:.83rem; color:var(--blue); line-height:1.6; }
+
+    /* TIMELINE */
+    .evolucion-card { background:var(--white); border-radius:16px; border:1px solid var(--mg-border); padding:1.75rem 2rem; margin-bottom:1.75rem; box-shadow:0 2px 10px rgba(176,53,128,.05); }
+    .evolucion-title { font-family:"Cormorant Garamond",serif; font-size:1.45rem; font-weight:600; color:var(--text); margin-bottom:1.25rem; }
+    .timeline { position:relative; padding-left:2.5rem; }
+    .timeline::before { content:''; position:absolute; left:10px; top:12px; bottom:12px; width:2px; background:var(--mg-border); }
+    .timeline-item { position:relative; margin-bottom:1.1rem; }
+    .timeline-item:last-child { margin-bottom:0; }
+    .timeline-dot { position:absolute; left:-2.5rem; top:.75rem; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.65rem; border:2px solid white; box-shadow:0 0 0 2px var(--mg-border); }
+    .timeline-dot.bajo { background:var(--green); }
+    .timeline-dot.medio { background:#f59e0b; }
+    .timeline-dot.alto { background:var(--red); }
+    .timeline-content { background:var(--mg-bg); border:1px solid var(--mg-border); border-radius:12px; padding:.9rem 1.1rem; transition:all .2s; }
+    .timeline-content:hover { box-shadow:0 4px 12px rgba(176,53,128,.1); }
+    .timeline-header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:.5rem; margin-bottom:.45rem; }
+    .timeline-fecha { font-size:.78rem; color:var(--muted); }
+    .nivel-chip { padding:.22rem .7rem; border-radius:20px; font-size:.75rem; font-weight:600; }
+    .nivel-chip.bajo { background:var(--green-bg); color:var(--green); border:1px solid var(--green-border); }
+    .nivel-chip.medio { background:var(--yellow-bg); color:var(--yellow); border:1px solid var(--yellow-border); }
+    .nivel-chip.alto { background:var(--red-bg); color:var(--red); border:1px solid var(--red-border); }
+    .timeline-datos { display:flex; flex-wrap:wrap; gap:.4rem; margin-top:.4rem; }
+    .timeline-dato { font-size:.78rem; color:var(--text); background:white; padding:.18rem .6rem; border-radius:6px; border:1px solid var(--mg-border); }
+
+    /* EMPTY */
+    .empty-state { text-align:center; padding:3rem; color:var(--muted); }
+    .empty-state .ei { font-size:2.8rem; margin-bottom:.75rem; }
+    .empty-state h3 { font-family:"Cormorant Garamond",serif; font-size:1.35rem; color:var(--text); margin-bottom:.4rem; }
+
+    @media(max-width:900px) {
+      .datos-grid { grid-template-columns:repeat(3,1fr); }
+      .body-sections { grid-template-columns:1fr; }
+      .body-section { border-right:none; }
+      .ficha-stats { grid-template-columns:repeat(2,1fr); }
+    }
+    @media(max-width:600px) {
+      .container { padding:1.1rem; }
+      .topbar { padding:1rem 1.1rem; }
+      .datos-grid { grid-template-columns:repeat(2,1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="topbar-logo"><img src="{% static 'img/Logo.png' %}" alt="Zumedical"/></div>
+    <div>
+      <div class="topbar-title">Zumedical</div>
+      <div class="topbar-sub">Panel Clínico IA — Predicciones de Riesgo</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;">
+    <a href="{% url 'pacientes_medico' %}" class="btn-back">← Pacientes</a>
+    <a href="{% url 'historial_prenatal' %}" class="btn-back">📋 Historial</a>
+    <a href="{% url 'registrar_control' %}" class="btn-back" style="background:rgba(255,255,255,.25);">+ Nuevo Control</a>
+  </div>
+</div>
+
+<div class="container">
+
+{% if messages %}{% for message in messages %}
+<div style="background:{% if message.tags == 'success' %}var(--green-bg){% else %}var(--red-bg){% endif %};border:1px solid {% if message.tags == 'success' %}var(--green-border){% else %}var(--red-border){% endif %};color:{% if message.tags == 'success' %}var(--green){% else %}var(--red){% endif %};border-radius:12px;padding:1rem 1.5rem;margin-bottom:1.25rem;font-size:.88rem;font-weight:500;animation:slideIn .3s ease;">
+  {% if message.tags == 'success' %}✅{% else %}⚠️{% endif %} {{ message }}
+</div>
+{% endfor %}{% endif %}
+
+<!-- ═══ FICHA PACIENTE ═══ -->
+<div class="ficha-card">
+  <div class="ficha-header">
+    <div class="ficha-paciente">
+      <div class="ficha-avatar">{{ paciente.first_name|slice:":1" }}{{ paciente.last_name|slice:":1" }}</div>
+      <div class="ficha-nombre">
+        <h2>{{ paciente.get_full_name }}</h2>
+        <p>{{ paciente.email }} · Paciente prenatal</p>
+      </div>
+    </div>
+    {% if tendencia != 'sin_datos' %}
+    <div class="tendencia-badge tendencia-{{ tendencia }}">
+      {% if tendencia == 'mejorando' %}📉 Tendencia: Mejorando
+      {% elif tendencia == 'empeorando' %}📈 Tendencia: Empeorando
+      {% else %}📊 Tendencia: Estable{% endif %}
+      {% if delta_tendencia is not None %}
+        &nbsp;
+        <span class="delta-chip {% if delta_tendencia > 0 %}delta-up{% elif delta_tendencia < 0 %}delta-down{% else %}delta-eq{% endif %}">
+          {% if delta_tendencia > 0 %}+{% endif %}{{ delta_tendencia }}% respecto al control anterior
+        </span>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="ficha-stats">
+    <div class="stat-item">
+      <div class="stat-label">Total evaluaciones</div>
+      <div class="stat-val">{{ predicciones|length }}<small>registros</small></div>
+    </div>
+    {% if ultima %}
+    <div class="stat-item">
+      <div class="stat-label">Última evaluación</div>
+      <div class="stat-val" style="font-size:1.05rem;">{{ ultima.fecha|date:"d/m/Y" }}</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-label">Nivel actual</div>
+      <div class="stat-val" style="font-size:1.1rem;color:{% if ultima.nivel_riesgo == 'Alto' %}var(--red){% elif ultima.nivel_riesgo == 'Medio' %}var(--yellow){% else %}var(--green){% endif %};">
+        {{ ultima.icono }} {{ ultima.nivel_riesgo }}
+      </div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-label">Semanas actuales</div>
+      <div class="stat-val">{{ ultima.semanas_gestacion }}<small>sem.</small></div>
+    </div>
+    {% else %}
+    <div class="stat-item"><div class="stat-label">Sin datos</div><div class="stat-val" style="color:var(--muted);font-size:1rem;">—</div></div>
+    <div class="stat-item"><div class="stat-label">Sin datos</div><div class="stat-val" style="color:var(--muted);font-size:1rem;">—</div></div>
+    <div class="stat-item"><div class="stat-label">Sin datos</div><div class="stat-val" style="color:var(--muted);font-size:1rem;">—</div></div>
+    {% endif %}
+  </div>
+</div>
+
+{% if predicciones %}
+{% if ultima %}
+{% with d=ultima.datos nivel=ultima.nivel_riesgo|lower %}
+
+<!-- ═══ ALERTA CRÍTICA (crisis hipertensiva) ═══ -->
+{% if d.alerta_critica %}
+<div class="alerta-critica">
+  <div class="alerta-critica-icon">🚨</div>
+  <div class="alerta-critica-text">{{ d.alerta_critica }}</div>
+</div>
+{% endif %}
+
+<!-- ═══ ÚLTIMA PREDICCIÓN ═══ -->
+<div class="ultima-card {{ nivel }}">
+
+  <div class="ultima-header {{ nivel }}">
+    <div class="ultima-nivel">
+      <span class="ultima-icono">{{ ultima.icono }}</span>
+      <div class="ultima-titulo">
+        <h2>Riesgo {{ ultima.nivel_riesgo }}</h2>
+        <p>Última evaluación · {{ ultima.fecha|date:"d/m/Y H:i" }}</p>
+      </div>
+    </div>
+    <div class="prob-ring">
+      <div class="num">{{ ultima.puntuacion_riesgo }}%</div>
+      <div class="lbl">Probabilidad estimada</div>
+      <div class="lbl-note">(clase {{ ultima.nivel_riesgo }} según Random Forest)</div>
+    </div>
+  </div>
+
+  <!-- Datos clínicos -->
+  <div class="datos-grid">
+    <div class="dato-cell">
+      <div class="d-label">Edad</div>
+      <div class="d-val">{{ ultima.edad }} años</div>
+    </div>
+    <div class="dato-cell">
+      <div class="d-label">Semanas</div>
+      <div class="d-val">{{ ultima.semanas_gestacion }} sem.</div>
+    </div>
+    <div class="dato-cell">
+      <div class="d-label">Presión</div>
+      <div class="d-val {% if ultima.presion_sistolica >= 140 %}alert-val{% endif %}">
+        {{ ultima.presion_arterial }} mmHg
+      </div>
+    </div>
+    <div class="dato-cell">
+      <div class="d-label">Glucosa</div>
+      <div class="d-val {% if ultima.glucosa > 126 %}alert-val{% endif %}">
+        {{ ultima.glucosa }} mg/dL
+      </div>
+    </div>
+    <div class="dato-cell">
+      <div class="d-label">IMC</div>
+      <div class="d-val {% if ultima.imc >= 30 %}alert-val{% endif %}">{{ ultima.imc }}</div>
+    </div>
+    <div class="dato-cell">
+      <div class="d-label">FC</div>
+      <div class="d-val">{{ ultima.frecuencia_cardiaca }} lpm</div>
+    </div>
+  </div>
+
+  <!-- Nota de antecedente diabético -->
+  {% if d.nota_antecedente %}
+  <div class="nota-antecedente">{{ d.nota_antecedente }}</div>
+  {% endif %}
+
+  <!-- Secciones: factores, complicaciones, recomendaciones, XAI -->
+  <div class="body-sections">
+
+    <!-- Factores detectados -->
+    <div class="body-section">
+      <div class="section-head">⚠️ Factores detectados</div>
+      {% if d.factores %}
+      <ul class="factores-list">
+        {% for f in d.factores %}<li>{{ f }}</li>{% endfor %}
+      </ul>
+      {% else %}
+      <p style="font-size:.84rem;color:var(--muted);">No se detectaron factores de riesgo significativos.</p>
+      {% endif %}
+    </div>
+
+    <!-- Posibles complicaciones -->
+    <div class="body-section">
+      <div class="section-head">🔬 Posibles complicaciones</div>
+      {% if d.complicaciones %}
+      <ul class="complicaciones-list">
+        {% for c in d.complicaciones %}<li>🔶 {{ c }}</li>{% endfor %}
+      </ul>
+      {% else %}
+      <p style="font-size:.84rem;color:var(--muted);">Sin complicaciones previstas con el perfil actual.</p>
+      {% endif %}
+    </div>
+
+    <!-- Recomendaciones agrupadas -->
+    <div class="body-section">
+      <div class="section-head">💡 Recomendaciones</div>
+
+      {% if d.recomendaciones_grupos %}
+        {% if d.recomendaciones_grupos.urgencia %}
+        <div class="rec-group">
+          <div class="rec-group-title urgencia">🚨 Prioridad / Acción inmediata</div>
+          <ul class="rec-list urgencia">
+            {% for r in d.recomendaciones_grupos.urgencia %}<li>{{ r }}</li>{% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+        {% if d.recomendaciones_grupos.nutricion %}
+        <div class="rec-group">
+          <div class="rec-group-title nutricion">🥗 Nutrición</div>
+          <ul class="rec-list nutricion">
+            {% for r in d.recomendaciones_grupos.nutricion %}<li>{{ r }}</li>{% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+        {% if d.recomendaciones_grupos.habitos %}
+        <div class="rec-group">
+          <div class="rec-group-title habitos">🌿 Hábitos y cuidados</div>
+          <ul class="rec-list habitos">
+            {% for r in d.recomendaciones_grupos.habitos %}<li>{{ r }}</li>{% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+        {% if d.recomendaciones_grupos.disclaimer %}
+        <p class="rec-disclaimer">{{ d.recomendaciones_grupos.disclaimer.0 }}</p>
+        {% endif %}
+      {% else %}
+        {% for r in d.recomendaciones %}
+        <p style="font-size:.83rem;margin-bottom:.35rem;">{{ r }}</p>
+        {% endfor %}
+      {% endif %}
+    </div>
+
+    <!-- XAI + distribución de probabilidades -->
+    <div class="body-section">
+      <div class="section-head">🧠 Explicación del modelo (XAI)</div>
+      {% if d.explicacion %}
+      <div class="explicacion-box">{{ d.explicacion }}</div>
+      {% endif %}
+
+      {% if d.probabilidades %}
+      <div style="margin-top:1rem;">
+        <div class="section-head" style="margin-bottom:.5rem;">Distribución de probabilidades</div>
+        <div class="prob-bars">
+          {% for np, prob in d.probabilidades.items %}
+          <div class="prob-row">
+            <span class="prob-lbl">{{ np }}</span>
+            <div class="prob-track">
+              <div class="prob-fill" style="width:{{ prob }}%;background:{% if np == 'Alto' %}var(--red){% elif np == 'Medio' %}#f59e0b{% else %}var(--green){% endif %};"></div>
+            </div>
+            <span class="prob-pct">{{ prob }}%</span>
+          </div>
+          {% endfor %}
+        </div>
+        <p style="font-size:.72rem;color:var(--muted);margin-top:.6rem;line-height:1.4;">
+          Estos valores son las probabilidades de pertenencia a cada clase que devuelve el Random Forest, no la precisión global del modelo (96.45% según el reporte de entrenamiento).
+        </p>
+      </div>
+      {% endif %}
+    </div>
+
+  </div><!-- /body-sections -->
+</div><!-- /ultima-card -->
+{% endwith %}
+{% endif %}
+
+<!-- ═══ EVOLUCIÓN / TIMELINE ═══ -->
+<div class="evolucion-card">
+  <div class="evolucion-title">📈 Evolución del embarazo</div>
+  <div class="timeline">
+    {% for pred in predicciones %}
+    <div class="timeline-item">
+      <div class="timeline-dot {{ pred.nivel_riesgo|lower }}"></div>
+      <div class="timeline-content">
+        <div class="timeline-header">
+          <span class="timeline-fecha">{{ pred.fecha|date:"d/m/Y H:i" }}</span>
+          <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
+            <span class="nivel-chip {{ pred.nivel_riesgo|lower }}">
+              {{ pred.icono }} {{ pred.nivel_riesgo }} — {{ pred.puntuacion_riesgo }}%
+            </span>
+            {% if forloop.counter0 > 0 %}
+              {% with prev=predicciones|slice:"1:" %}
+              {% endwith %}
+            {% endif %}
+          </div>
+        </div>
+        <div class="timeline-datos">
+          <span class="timeline-dato">📍 PA: {{ pred.presion_arterial }}</span>
+          <span class="timeline-dato">🩸 Glucosa: {{ pred.glucosa }} mg/dL</span>
+          <span class="timeline-dato">⚖️ IMC: {{ pred.imc }}</span>
+          <span class="timeline-dato">🤰 {{ pred.semanas_gestacion }} sem.</span>
+          {% if pred.datos.factores %}
+          <span class="timeline-dato" style="background:var(--red-bg);border-color:var(--red-border);color:var(--red);">
+            ⚠️ {{ pred.datos.factores|length }} factor{% if pred.datos.factores|length != 1 %}es{% endif %}
+          </span>
+          {% endif %}
+          {% if pred.datos.alerta_critica %}
+          <span class="timeline-dato" style="background:#fff1f2;border-color:#fca5a5;color:#7f1d1d;font-weight:600;">
+            🚨 Crisis hipertensiva
+          </span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% else %}
+<!-- Estado vacío -->
+<div class="evolucion-card">
+  <div class="empty-state">
+    <div class="ei">🧬</div>
+    <h3>Sin evaluaciones registradas</h3>
+    <p>Esta paciente aún no tiene evaluaciones de riesgo gestacional con IA.<br>Registra un control prenatal para generar la primera predicción.</p>
+  </div>
+</div>
+{% endif %}
+
+</div><!-- /container -->
+</body>
+</html>

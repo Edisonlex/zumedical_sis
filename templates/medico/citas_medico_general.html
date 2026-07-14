@@ -1,0 +1,519 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zumedical — Mis Citas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        :root{
+            --mg:#B03580;--mg-l:#CC4D99;--mg-d:#8A2563;
+            --mg-bg:#FBF0F7;--mg-border:#E8AAD4;
+            --text:#2A1020;--muted:#8A6070;--white:#fff;--bg:#FDF5FA;
+            --sw:260px;
+            --green:#1a7a4a;--green-bg:#edfaf3;--green-border:#a8dfc0;
+            --amber:#b06a00;--amber-bg:#fff8ed;--amber-border:#f5d08a;
+            --red:#b03030;--red-bg:#fdf0f0;--red-border:#f0b8b8;
+            --blue:#1565c0;--blue-bg:#e3f2fd;--blue-border:#90caf9;
+        }
+        html,body{height:100%}
+        body{font-family:'DM Sans',sans-serif;background:var(--bg);display:flex;opacity:0;animation:fadeIn .4s ease .05s forwards}
+        @keyframes fadeIn{to{opacity:1}}
+        @keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+        /* ── SIDEBAR ── */
+        .sidebar{width:var(--sw);height:100vh;background:linear-gradient(175deg,#8A2563 0%,#B03580 55%,#CC4D99 100%);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:200;box-shadow:4px 0 24px rgba(138,37,99,.22);transition:transform .3s ease;overflow:hidden}
+        .sb-brand{padding:1.75rem 1.5rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:.75rem}
+        .sb-logo{width:42px;height:42px;background:white;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+        .sb-logo img{width:38px;height:38px;object-fit:contain}
+        .sb-brand-text h2{font-family:'Cormorant Garamond',serif;font-size:1.35rem;font-weight:600;color:white;line-height:1}
+        .sb-brand-text span{font-size:.7rem;color:rgba(255,255,255,.65);letter-spacing:.1em;text-transform:uppercase}
+        .sb-user{padding:1rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:.7rem;text-decoration:none;transition:background .2s}
+        .sb-user:hover{background:rgba(255,255,255,.1)}
+        .sb-avatar{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:600;color:white;flex-shrink:0;text-transform:uppercase}
+        .sb-user-info p{font-size:.7rem;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.1rem}
+        .sb-user-info h3{font-size:.88rem;font-weight:500;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}
+        .sb-nav{flex:1;padding:1rem .75rem;overflow-y:auto}
+        .nav-lbl{font-size:.68rem;color:rgba(255,255,255,.45);letter-spacing:.1em;text-transform:uppercase;padding:.5rem .75rem;margin-top:.75rem}
+        .nav-item{display:flex;align-items:center;gap:.7rem;padding:.72rem 1rem;border-radius:10px;color:rgba(255,255,255,.82);text-decoration:none;font-size:.88rem;transition:all .2s;margin-bottom:.2rem}
+        .nav-item:hover,.nav-item.active{background:rgba(255,255,255,.18);color:white}
+        .nav-item i{width:18px;text-align:center;font-size:15px}
+        .nav-badge{margin-left:auto;background:#e74c3c;color:white;font-size:.68rem;font-weight:600;padding:.15rem .5rem;border-radius:999px;min-width:20px;text-align:center}
+        .sb-footer{padding:1rem .75rem;border-top:1px solid rgba(255,255,255,.12)}
+        .btn-logout{display:flex;align-items:center;gap:.7rem;padding:.72rem 1rem;border-radius:10px;color:rgba(255,255,255,.75);text-decoration:none;font-size:.88rem;transition:all .2s}
+        .btn-logout:hover{background:rgba(255,255,255,.15);color:white}
+
+        /* ── MOBILE TOPBAR ── */
+        .mobile-topbar{display:none;align-items:center;justify-content:space-between;padding:1rem 1.25rem;background:linear-gradient(135deg,#8A2563,#CC4D99);position:fixed;top:0;left:0;right:0;z-index:300;height:64px}
+        .mobile-topbar-brand{display:flex;align-items:center;gap:.6rem}
+        .mobile-topbar-logo{width:32px;height:32px;background:white;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+        .mobile-topbar-logo img{width:28px;height:28px;object-fit:contain}
+        .mobile-topbar-brand span{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;color:white}
+        .hamburger{background:rgba(255,255,255,.15);border:none;border-radius:8px;padding:.5rem .65rem;cursor:pointer;display:flex;flex-direction:column;gap:4px}
+        .hamburger span{display:block;width:20px;height:2px;background:white;border-radius:2px;transition:all .3s}
+        .hamburger.open span:nth-child(1){transform:translateY(6px) rotate(45deg)}
+        .hamburger.open span:nth-child(2){opacity:0}
+        .hamburger.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+        .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:150;opacity:0;pointer-events:none;transition:opacity .3s}
+        .sidebar-overlay.active{opacity:1;pointer-events:auto}
+
+        /* ── MAIN ── */
+        .main{margin-left:var(--sw);flex:1;padding:2.5rem;height:100vh;overflow-y:auto}
+
+        /* ── PAGE HEADER ── */
+        .page-header{margin-bottom:1.5rem;animation:slideUp .4s ease .05s both}
+        .page-header h1{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:600;color:var(--text);margin-bottom:.25rem}
+        .page-header p{color:var(--muted);font-size:.88rem}
+
+        /* ── STATS ── */
+        .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.85rem;margin-bottom:1.5rem;animation:slideUp .4s ease .1s both}
+        .stat-card{background:var(--white);border:1px solid var(--mg-border);border-radius:14px;padding:1rem 1.1rem;display:flex;align-items:center;gap:.75rem;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+        .stat-card::after{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,var(--mg-d),var(--mg-l))}
+        .stat-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(176,53,128,.12)}
+        .stat-card.filtro-activo{background:var(--mg-bg);border-color:var(--mg)}
+        .stat-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+        .stat-info p{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.1rem}
+        .stat-info strong{font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:600;color:var(--text);line-height:1}
+        .si-total{background:var(--mg-bg);color:var(--mg)}
+        .si-pend{background:var(--amber-bg);color:var(--amber)}
+        .si-atend{background:var(--green-bg);color:var(--green)}
+        .si-cancel{background:var(--red-bg);color:var(--red)}
+
+        /* ── TOOLBAR ── */
+        .toolbar{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;margin-bottom:1.25rem;background:var(--white);border:1px solid var(--mg-border);border-radius:14px;padding:1rem 1.25rem;animation:slideUp .4s ease .15s both}
+        .search-wrap{position:relative;flex:1;min-width:180px}
+        .search-wrap i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px;pointer-events:none}
+        .search-input{width:100%;padding:.65rem 1rem .65rem 2.2rem;border:1.5px solid var(--mg-border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.88rem;color:var(--text);outline:none;transition:border .2s;background:var(--bg)}
+        .search-input:focus{border-color:var(--mg);background:var(--white)}
+        .date-wrap{position:relative}
+        .date-wrap i{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;pointer-events:none}
+        .date-input{padding:.6rem .75rem .6rem 2rem;border:1.5px solid var(--mg-border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.82rem;color:var(--text);outline:none;background:var(--bg);transition:border .2s}
+        .date-input:focus{border-color:var(--mg)}
+        .btn-clear-date{padding:.6rem .8rem;border:1.5px solid var(--mg-border);border-radius:10px;background:var(--bg);color:var(--muted);font-size:.8rem;cursor:pointer;transition:all .2s;white-space:nowrap}
+        .btn-clear-date:hover{border-color:var(--mg);color:var(--mg)}
+        .results-count{font-size:.8rem;color:var(--muted);white-space:nowrap}
+        .results-count strong{color:var(--text)}
+
+        /* ── GRUPOS MES ── */
+        .mes-grupo{margin-bottom:1.5rem;animation:slideUp .4s ease .2s both}
+        .mes-titulo{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:var(--text);margin-bottom:.65rem;display:flex;align-items:center;gap:.5rem}
+        .mes-count{font-size:.75rem;color:var(--muted);font-family:'DM Sans',sans-serif;font-weight:400;background:var(--mg-bg);color:var(--mg);padding:.15rem .55rem;border-radius:999px}
+
+        /* ── TABLA ── */
+        .table-card{border-radius:14px;border:1px solid var(--mg-border);overflow:hidden}
+        .table-scroll{overflow-x:auto}
+        table{width:100%;border-collapse:collapse;min-width:640px}
+        thead tr{background:var(--mg-bg)}
+        th{padding:.75rem 1.1rem;font-size:.7rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;text-align:left;white-space:nowrap}
+        td{padding:.85rem 1.1rem;font-size:.86rem;color:var(--text);border-top:1px solid rgba(232,170,212,.25);vertical-align:middle}
+        .fila-cita{cursor:pointer;transition:background .15s}
+        .fila-cita:hover td{background:#fdf5fb}
+        .fila-cita.oculta{display:none}
+        .pac-cell{display:flex;align-items:center;gap:.6rem}
+        .pac-av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--mg-d),var(--mg-l));color:white;font-size:.7rem;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;text-transform:uppercase}
+
+        /* ── BADGES ── */
+        .badge{display:inline-flex;align-items:center;gap:.3rem;font-size:.72rem;font-weight:600;padding:.22rem .6rem;border-radius:999px}
+        .badge-pendiente{background:var(--amber-bg);color:var(--amber)}
+        .badge-atendido{background:var(--green-bg);color:var(--green)}
+        .badge-cancelado,.badge-cancelada{background:var(--red-bg);color:var(--red)}
+        .badge-confirmada{background:var(--blue-bg);color:var(--blue)}
+
+        /* ── SELECT ESTADO ── */
+        .select-estado{padding:.32rem .55rem;border:1.5px solid var(--mg-border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.8rem;color:var(--text);background:white;cursor:pointer;transition:border .2s;outline:none}
+        .select-estado:focus{border-color:var(--mg)}
+        .select-estado.saving{opacity:.5;pointer-events:none}
+
+        /* toast */
+        .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--text);color:white;padding:.7rem 1.2rem;border-radius:12px;font-size:.84rem;font-weight:500;z-index:9999;opacity:0;transform:translateY(8px);transition:all .3s;pointer-events:none}
+        .toast.show{opacity:1;transform:translateY(0)}
+        .toast.success{background:var(--green)}
+        .toast.error{background:var(--red)}
+
+        /* ── MODAL ── */
+        .modal-ov{position:fixed;inset:0;background:rgba(42,16,32,.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1.5rem;opacity:0;pointer-events:none;transition:opacity .2s}
+        .modal-ov.open{opacity:1;pointer-events:all}
+        .modal{background:var(--white);border-radius:20px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(138,37,99,.22);transform:translateY(16px) scale(.98);transition:transform .28s cubic-bezier(.34,1.56,.64,1),opacity .2s;opacity:0}
+        .modal-ov.open .modal{transform:translateY(0) scale(1);opacity:1}
+        .modal-head{background:linear-gradient(135deg,var(--mg-d),var(--mg-l));padding:1.4rem 1.5rem;display:flex;align-items:flex-start;justify-content:space-between;gap:1rem}
+        .modal-head-info .modal-tag{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:.35rem}
+        .modal-head-info .modal-pac{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;color:white;line-height:1.2}
+        .modal-head-info .modal-sub{font-size:.82rem;color:rgba(255,255,255,.8);margin-top:.2rem}
+        .modal-close{background:rgba(255,255,255,.2);border:none;border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:white;flex-shrink:0;transition:background .2s}
+        .modal-close:hover{background:rgba(255,255,255,.35)}
+        .modal-body{padding:1.5rem}
+        .modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:.85rem}
+        .modal-field{background:var(--bg);border:1px solid var(--mg-border);border-radius:12px;padding:.85rem 1rem}
+        .modal-field.full{grid-column:1/-1}
+        .modal-field-label{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.3rem;font-weight:500;display:flex;align-items:center;gap:.3rem}
+        .modal-field-label i{color:var(--mg);font-size:11px}
+        .modal-field-val{font-size:.9rem;color:var(--text);font-weight:500}
+        .modal-footer{padding:1rem 1.5rem;border-top:1px solid var(--mg-border);display:flex;justify-content:flex-end}
+        .btn-cerrar{padding:.65rem 1.4rem;background:var(--mg);color:white;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:500;cursor:pointer;transition:opacity .2s}
+        .btn-cerrar:hover{opacity:.88}
+
+        /* ── EMPTY ── */
+        .empty-state{text-align:center;padding:3rem;color:var(--muted)}
+        .empty-state i{font-size:2.2rem;color:var(--mg-border);display:block;margin-bottom:.75rem}
+        .empty-state p{font-size:.9rem}
+
+        /* ── RESPONSIVE ── */
+        @media(max-width:1100px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
+        @media(max-width:768px){
+            body{flex-direction:column}
+            .sidebar{position:fixed;top:64px;left:0;height:calc(100vh - 64px);transform:translateX(-100%);z-index:250}
+            .sidebar.open{transform:translateX(0)}
+            .sidebar-overlay{display:block;z-index:200}
+            .mobile-topbar{display:flex}
+            .main{margin-left:0;padding:1.1rem;padding-top:calc(1.1rem + 64px);height:auto;overflow-y:visible}
+            .stats-grid{grid-template-columns:1fr 1fr;gap:.6rem}
+            .stat-card{padding:.8rem}
+            .toolbar{flex-direction:column;align-items:stretch;gap:.65rem}
+            .search-wrap,.date-wrap{min-width:unset}
+            .results-count{text-align:center}
+            .page-header h1{font-size:1.65rem}
+            .modal-ov{padding:.75rem}
+            .modal-grid{grid-template-columns:1fr}
+            .modal-field.full{grid-column:1}
+        }
+        @media(max-width:480px){
+            .stats-grid{grid-template-columns:1fr 1fr}
+            .stat-info strong{font-size:1.3rem}
+        }
+    </style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- OVERLAY -->
+<div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<!-- MOBILE TOPBAR -->
+<div class="mobile-topbar">
+    <div class="mobile-topbar-brand">
+        <div class="mobile-topbar-logo">
+            <img src="{% static 'img/logo.png' %}" alt="Zumedical">
+        </div>
+        <span>Zumedical</span>
+    </div>
+    <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
+        <span></span><span></span><span></span>
+    </button>
+</div>
+
+<!-- SIDEBAR -->
+{% include 'medico/sidebar_medico.html' %}
+
+<!-- MAIN -->
+<main class="main">
+
+    <div class="page-header">
+        <h1>Mis Citas</h1>
+        <p>Citas médicas programadas y su estado actual</p>
+    </div>
+
+    <!-- STATS CLICABLES -->
+    <div class="stats-grid">
+        <div class="stat-card filtro-activo" onclick="filtrarPorEstado('todos', this)">
+            <div class="stat-icon si-total"><i class="fa-regular fa-calendar"></i></div>
+            <div class="stat-info"><p>Total</p><strong id="cnt-total">0</strong></div>
+        </div>
+        <div class="stat-card" onclick="filtrarPorEstado('pendiente', this)">
+            <div class="stat-icon si-pend"><i class="fa-regular fa-clock"></i></div>
+            <div class="stat-info"><p>Pendientes</p><strong id="cnt-pend">0</strong></div>
+        </div>
+        <div class="stat-card" onclick="filtrarPorEstado('atendido', this)">
+            <div class="stat-icon si-atend"><i class="fa-solid fa-check"></i></div>
+            <div class="stat-info"><p>Atendidas</p><strong id="cnt-atend">0</strong></div>
+        </div>
+        <div class="stat-card" onclick="filtrarPorEstado('cancelado', this)">
+            <div class="stat-icon si-cancel"><i class="fa-solid fa-xmark"></i></div>
+            <div class="stat-info"><p>Canceladas</p><strong id="cnt-cancel">0</strong></div>
+        </div>
+    </div>
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+        <div class="search-wrap">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" class="search-input" id="buscador" placeholder="Buscar por nombre o cédula...">
+        </div>
+        <div class="date-wrap">
+            <i class="fa-regular fa-calendar"></i>
+            <input type="date" class="date-input" id="filtro-fecha">
+        </div>
+        <button class="btn-clear-date" onclick="limpiarFecha()"><i class="fa-solid fa-rotate-left"></i> Limpiar fecha</button>
+        <span class="results-count">Mostrando <strong id="results-count">0</strong> citas</span>
+    </div>
+
+    {% if citas %}
+    {% regroup citas by fecha|date:"Y-m" as citas_por_mes %}
+    {% for grupo in citas_por_mes reversed %}
+    <div class="mes-grupo">
+        <div class="mes-titulo">
+            <i class="fa-regular fa-calendar" style="color:var(--mg);font-size:13px"></i>
+            <span class="mes-es" data-ym="{{ grupo.grouper }}">{{ grupo.grouper }}</span>
+            <span class="mes-count">{{ grupo.list|length }} cita{{ grupo.list|length|pluralize:",s" }}</span>
+        </div>
+        <div class="table-card">
+            <div class="table-scroll">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Paciente</th>
+                        <th>Fecha</th>
+                        <th>Hora</th>
+                        <th>Especialidad</th>
+                        <th>Motivo</th>
+                        <th>Estado</th>
+                        <th>Cambiar estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cita in grupo.list %}
+                    <tr class="fila-cita"
+                        data-estado="{{ cita.estado }}"
+                        data-fecha="{{ cita.fecha|date:'Y-m-d' }}"
+                        data-nombre="{{ cita.paciente.get_full_name|default:cita.paciente.username|lower }}"
+                        data-cedula="{{ cita.paciente.paciente.cedula|default:'' }}"
+                        data-pac="{{ cita.paciente.get_full_name|default:cita.paciente.username }}"
+                        data-ini="{{ cita.paciente.first_name|first|upper }}{{ cita.paciente.last_name|first|upper }}"
+                        data-esp="{{ cita.especialidad|default:'General' }}"
+                        data-fechashow="{{ cita.fecha|date:'d/m/Y' }}"
+                        data-hora="{{ cita.hora|time:'H:i' }}"
+                        data-motivo="{{ cita.motivo|default:'Sin motivo especificado' }}"
+                        data-cita-id="{{ cita.id }}">
+                        <td>
+                            <div class="pac-cell">
+                                <div class="pac-av">{{ cita.paciente.first_name|first }}{{ cita.paciente.last_name|first }}</div>
+                                <strong>{{ cita.paciente.get_full_name|default:cita.paciente.username }}</strong>
+                            </div>
+                        </td>
+                        <td>{{ cita.fecha|date:"d/m/Y" }}</td>
+                        <td><strong>{{ cita.hora|time:"H:i" }}</strong></td>
+                        <td>{{ cita.especialidad|default:"—" }}</td>
+                        <td style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ cita.motivo|default:"—"|truncatechars:28 }}</td>
+                        <td><span class="badge badge-{{ cita.estado }}">
+                            {% if cita.estado == 'pendiente' %}<i class="fa-solid fa-hourglass-half"></i>
+                            {% elif cita.estado == 'atendido' %}<i class="fa-solid fa-check"></i>
+                            {% elif cita.estado == 'cancelado' or cita.estado == 'cancelada' %}<i class="fa-solid fa-xmark"></i>
+                            {% endif %}
+                            {{ cita.get_estado_display|default:cita.estado }}
+                        </span></td>
+                        <td onclick="event.stopPropagation()">
+                            <select class="select-estado" data-cita-id="{{ cita.id }}" onchange="cambiarEstado(this)">
+                                <option value="pendiente" {% if cita.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                                <option value="atendido" {% if cita.estado == 'atendido' %}selected{% endif %}>Atendido</option>
+                                <option value="cancelado" {% if cita.estado == 'cancelado' or cita.estado == 'cancelada' %}selected{% endif %}>Cancelado</option>
+                            </select>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="empty-state">
+        <i class="fa-regular fa-calendar-xmark"></i>
+        <p>No tienes citas asignadas por el momento.</p>
+    </div>
+    {% endif %}
+
+</main>
+
+<!-- MODAL DETALLE CITA -->
+<div class="modal-ov" id="modalOv" onclick="closeModalOut(event)">
+    <div class="modal">
+        <div class="modal-head">
+            <div class="modal-head-info">
+                <div class="modal-tag"><i class="fa-regular fa-calendar-check"></i> &nbsp;Detalle de cita</div>
+                <div class="modal-pac" id="m-pac">—</div>
+                <div class="modal-sub" id="m-esp">—</div>
+            </div>
+            <button class="modal-close" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="modal-grid">
+                <div class="modal-field">
+                    <div class="modal-field-label"><i class="fa-regular fa-calendar"></i> Fecha</div>
+                    <div class="modal-field-val" id="m-fecha">—</div>
+                </div>
+                <div class="modal-field">
+                    <div class="modal-field-label"><i class="fa-regular fa-clock"></i> Hora</div>
+                    <div class="modal-field-val" id="m-hora">—</div>
+                </div>
+                <div class="modal-field">
+                    <div class="modal-field-label"><i class="fa-solid fa-stethoscope"></i> Especialidad</div>
+                    <div class="modal-field-val" id="m-esp2">—</div>
+                </div>
+                <div class="modal-field">
+                    <div class="modal-field-label"><i class="fa-solid fa-circle-dot"></i> Estado</div>
+                    <div class="modal-field-val" id="m-estado">—</div>
+                </div>
+                <div class="modal-field full">
+                    <div class="modal-field-label"><i class="fa-regular fa-comment"></i> Motivo de consulta</div>
+                    <div class="modal-field-val" id="m-motivo">—</div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-cerrar" onclick="closeModal()">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ── HAMBURGUESA ──
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('overlay').classList.toggle('active');
+    document.getElementById('hamburger').classList.toggle('open');
+}
+function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('overlay').classList.remove('active');
+    document.getElementById('hamburger').classList.remove('open');
+}
+
+// ── TOAST ──
+function showToast(msg, tipo) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast ' + (tipo||'');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── FILTROS ──
+let filtroEstado = 'todos';
+let filtroFecha = '';
+let filtroBusq = '';
+
+function aplicarFiltros() {
+    let total=0, pend=0, atend=0, cancel=0, visible=0;
+    document.querySelectorAll('.fila-cita').forEach(f => {
+        const e = f.dataset.estado;
+        total++;
+        if(e==='pendiente') pend++;
+        else if(e==='atendido') atend++;
+        else if(e==='cancelado'||e==='cancelada') cancel++;
+
+        const okE = filtroEstado==='todos' || e===filtroEstado || (filtroEstado==='cancelado' && (e==='cancelado'||e==='cancelada'));
+        const okF = !filtroFecha || f.dataset.fecha===filtroFecha;
+        const okB = !filtroBusq || f.dataset.nombre.includes(filtroBusq) || f.dataset.cedula.includes(filtroBusq);
+        const show = okE && okF && okB;
+        f.classList.toggle('oculta', !show);
+        if(show) visible++;
+    });
+    document.getElementById('cnt-total').textContent  = total;
+    document.getElementById('cnt-pend').textContent   = pend;
+    document.getElementById('cnt-atend').textContent  = atend;
+    document.getElementById('cnt-cancel').textContent = cancel;
+    document.getElementById('results-count').textContent = visible;
+}
+
+function filtrarPorEstado(estado, card) {
+    filtroEstado = estado;
+    document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('filtro-activo'));
+    card.classList.add('filtro-activo');
+    aplicarFiltros();
+}
+
+document.getElementById('buscador').addEventListener('input', function() {
+    filtroBusq = this.value.toLowerCase().trim();
+    aplicarFiltros();
+});
+document.getElementById('filtro-fecha').addEventListener('change', function() {
+    filtroFecha = this.value;
+    aplicarFiltros();
+});
+function limpiarFecha() {
+    document.getElementById('filtro-fecha').value = '';
+    filtroFecha = '';
+    aplicarFiltros();
+}
+
+// ── CAMBIAR ESTADO ──
+function cambiarEstado(select) {
+    const citaId = select.dataset.citaId;
+    const nuevoEstado = select.value;
+    select.classList.add('saving');
+    fetch(`/cambiar-estado/${citaId}/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/x-www-form-urlencoded'},
+        body: `estado=${nuevoEstado}`
+    }).then(r => {
+        select.classList.remove('saving');
+        if (r.ok) {
+            const fila = select.closest('tr');
+            fila.dataset.estado = nuevoEstado;
+            const badge = fila.querySelector('.badge');
+            const iconos = {pendiente:'fa-hourglass-half', atendido:'fa-check', cancelado:'fa-xmark'};
+            const labels = {pendiente:'Pendiente', atendido:'Atendido', cancelado:'Cancelado'};
+            badge.className = `badge badge-${nuevoEstado}`;
+            badge.innerHTML = `<i class="fa-solid ${iconos[nuevoEstado]||'fa-circle'}"></i> ${labels[nuevoEstado]||nuevoEstado}`;
+            aplicarFiltros();
+            showToast('Estado actualizado correctamente', 'success');
+        } else {
+            showToast('Error al actualizar el estado', 'error');
+        }
+    }).catch(() => {
+        select.classList.remove('saving');
+        showToast('Error de conexión', 'error');
+    });
+}
+
+// ── MODAL DETALLE ──
+document.querySelectorAll('.fila-cita').forEach(function(row) {
+    row.addEventListener('click', function(e) {
+        if (e.target.closest('.select-estado')) return;
+        var d = row.dataset;
+        document.getElementById('m-pac').textContent    = d.pac;
+        document.getElementById('m-esp').textContent    = d.esp;
+        document.getElementById('m-fecha').textContent  = d.fechashow;
+        document.getElementById('m-hora').textContent   = d.hora;
+        document.getElementById('m-esp2').textContent   = d.esp;
+        document.getElementById('m-motivo').textContent = d.motivo;
+        var estadoEl = document.getElementById('m-estado');
+        var labels = {pendiente:'Pendiente', atendido:'Atendido', cancelado:'Cancelado', cancelada:'Cancelada', confirmada:'Confirmada'};
+        estadoEl.textContent = labels[d.estado] || d.estado;
+        estadoEl.style.color =
+            d.estado==='atendido'  ? 'var(--green)' :
+            d.estado==='pendiente' ? 'var(--amber)' :
+            (d.estado==='cancelado'||d.estado==='cancelada') ? 'var(--red)' : 'var(--text)';
+        document.getElementById('modalOv').classList.add('open');
+    });
+});
+
+function closeModal() { document.getElementById('modalOv').classList.remove('open'); }
+function closeModalOut(e) { if (e.target===document.getElementById('modalOv')) closeModal(); }
+document.addEventListener('keydown', function(e) { if (e.key==='Escape') closeModal(); });
+
+// ── MESES EN ESPAÑOL ──
+const MESES_ES = {
+    '01':'Enero','02':'Febrero','03':'Marzo','04':'Abril',
+    '05':'Mayo','06':'Junio','07':'Julio','08':'Agosto',
+    '09':'Septiembre','10':'Octubre','11':'Noviembre','12':'Diciembre'
+};
+document.querySelectorAll('.mes-es').forEach(function(el) {
+    const ym = el.dataset.ym; // "2026-07"
+    const partes = ym.split('-');
+    if (partes.length === 2) {
+        el.textContent = (MESES_ES[partes[1]] || ym) + ' ' + partes[0];
+    }
+});
+
+// Inicializar contadores
+aplicarFiltros();
+</script>
+</body>
+</html>

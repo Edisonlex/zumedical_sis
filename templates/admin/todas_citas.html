@@ -1,0 +1,566 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zumedical — Citas</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--mg:#B03580;--mg-l:#CC4D99;--mg-d:#8A2563;--mg-bg:#FBF0F7;--mg-border:#E8AAD4;--text:#2A1020;--muted:#8A6070;--white:#fff;--bg:#FDF5FA;--sw:260px}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);min-height:100vh;display:flex;opacity:0;animation:fadeIn .4s ease .05s forwards}
+@keyframes fadeIn{to{opacity:1}}
+.sidebar{width:var(--sw);height:100vh;background:linear-gradient(175deg,#8A2563 0%,#B03580 55%,#CC4D99 100%);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:200;overflow:hidden;transition:transform .3s ease;box-shadow:4px 0 24px rgba(138,37,99,.2)}
+.sb-brand{padding:1.75rem 1.5rem 1.25rem;border-bottom:1px solid rgba(255,255,255,0.12);display:flex;align-items:center;gap:0.75rem}
+.sb-logo{width:42px;height:42px;background:white;border-radius:50%;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.sb-logo img{width:38px;height:38px;object-fit:contain}
+.sb-brand-text h2{font-family:'Cormorant Garamond',serif;font-size:1.35rem;font-weight:600;color:white;line-height:1}
+.sb-brand-text span{font-size:0.7rem;color:rgba(255,255,255,0.65);letter-spacing:0.1em;text-transform:uppercase}
+.sb-user{padding:1rem 1.5rem;border-bottom:1px solid rgba(255,255,255,0.12);display:flex;align-items:center;gap:0.7rem}
+.sb-avatar{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:500;color:white;flex-shrink:0;text-transform:uppercase}
+.sb-user-info p{font-size:0.72rem;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.1rem}
+.sb-user-info h3{font-size:0.88rem;font-weight:500;color:white}
+.sb-nav{flex:1;padding:1rem 0.75rem;overflow-y:auto}
+.nav-lbl{font-size:0.68rem;color:rgba(255,255,255,0.45);letter-spacing:0.1em;text-transform:uppercase;padding:0.5rem 0.75rem;margin-top:0.75rem}
+.nav-item{display:flex;align-items:center;gap:0.7rem;padding:0.7rem 1rem;border-radius:10px;color:rgba(255,255,255,0.82);text-decoration:none;font-size:0.88rem;transition:all 0.2s;margin-bottom:0.2rem}
+.nav-badge{margin-left:auto;background:rgba(255,255,255,.25);color:white;font-size:.68rem;font-weight:600;padding:.15rem .5rem;border-radius:999px;min-width:20px;text-align:center}
+.nav-badge-alert{background:#e74c3c}
+.nav-item:hover,.nav-item.active{background:rgba(255,255,255,0.18);color:white}
+.nav-item i{width:18px;text-align:center;font-size:15px;flex-shrink:0}
+.sb-footer{padding:1rem 0.75rem;border-top:1px solid rgba(255,255,255,0.12)}
+.btn-logout{display:flex;align-items:center;gap:0.7rem;padding:0.7rem 1rem;border-radius:10px;color:rgba(255,255,255,0.75);text-decoration:none;font-size:0.88rem;transition:all 0.2s}
+.btn-logout:hover{background:rgba(255,255,255,0.15);color:white}
+.btn-logout i{width:17px;text-align:center;font-size:15px}
+
+/* MAIN */
+.mobile-topbar{display:none;align-items:center;justify-content:space-between;padding:1rem 1.25rem;background:linear-gradient(135deg,#8A2563,#CC4D99);position:fixed;top:0;left:0;right:0;z-index:300}
+.mobile-topbar-brand{display:flex;align-items:center;gap:.6rem}
+.mobile-topbar-brand img{width:32px;height:32px;background:white;border-radius:50%;padding:2px;object-fit:contain}
+.mobile-topbar-brand span{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;color:white}
+.hamburger{background:rgba(255,255,255,.15);border:none;border-radius:8px;padding:.5rem .65rem;cursor:pointer;display:flex;flex-direction:column;gap:4px}
+.hamburger span{display:block;width:20px;height:2px;background:white;border-radius:2px;transition:all .3s}
+.hamburger.open span:nth-child(1){transform:translateY(6px) rotate(45deg)}
+.hamburger.open span:nth-child(2){opacity:0}
+.hamburger.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:150;opacity:0;pointer-events:none;transition:opacity .3s}
+.sidebar-overlay.active{opacity:1;pointer-events:auto}
+.main{margin-left:var(--sw);flex:1;padding:2rem 2.5rem;min-height:100vh}
+.page-header{margin-bottom:1.75rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+.page-header h1{font-family:'Cormorant Garamond',serif;font-size:1.9rem;font-weight:600;color:var(--text);margin-bottom:0.15rem}
+.page-header p{color:var(--muted);font-size:0.85rem;font-weight:300}
+.btn-back{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.1rem;background:var(--white);color:var(--mg);border:1.5px solid var(--mg-border);border-radius:9px;text-decoration:none;font-size:0.85rem;font-weight:500;transition:all 0.2s}
+.btn-back:hover{background:var(--mg-bg);border-color:var(--mg)}
+.btn-back svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.75rem}
+.stat-mini{background:var(--white);border:1px solid var(--mg-border);border-radius:12px;padding:1rem 1.25rem;display:flex;align-items:center;gap:0.85rem}
+.stat-mini-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.stat-mini-icon svg{width:18px;height:18px;fill:none;stroke-width:1.8}
+.icon-total{background:#FBF0F7}.icon-total svg{stroke:#8A2563}
+.icon-pendiente{background:#FFF3E0}.icon-pendiente svg{stroke:#E65100}
+.icon-atendido{background:#E8F5E9}.icon-atendido svg{stroke:#2E7D32}
+.icon-cancelado{background:#FFEBEE}.icon-cancelado svg{stroke:#C62828}
+.stat-mini-info p{font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.1rem}
+.stat-mini-info strong{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:600;color:var(--text);line-height:1}
+
+/* TABLE CARD */
+.table-card{background:var(--white);border-radius:16px;border:1px solid var(--mg-border);overflow:hidden;box-shadow:0 2px 12px rgba(176,53,128,0.06)}
+.table-filters{display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;padding:1rem 1.25rem;border-bottom:1px solid var(--mg-border)}
+.search-wrap{position:relative;flex:1;min-width:180px}
+.search-wrap svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:15px;height:15px;stroke:var(--muted);fill:none;stroke-width:1.8}
+.search-wrap input{width:100%;padding:0.55rem 1rem 0.55rem 2.2rem;border:1.5px solid var(--mg-border);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:0.85rem;color:var(--text);outline:none;background:var(--bg);transition:all 0.2s}
+.search-wrap input:focus{border-color:var(--mg);background:var(--white);box-shadow:0 0 0 3px rgba(176,53,128,0.07)}
+.search-wrap input::placeholder{color:#C9A8BF}
+.filter-btn{padding:0.35rem 0.9rem;border-radius:20px;font-size:0.78rem;font-weight:500;cursor:pointer;border:1.5px solid var(--mg-border);background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;transition:all 0.2s}
+.filter-btn.active,.filter-btn:hover{background:var(--mg-bg);border-color:var(--mg);color:var(--mg-d)}
+.filter-btn.f-pendiente.active{background:#FFF3E0;border-color:#FFCC80;color:#E65100}
+.filter-btn.f-atendido.active{background:#E8F5E9;border-color:#A5D6A7;color:#2E7D32}
+.filter-btn.f-cancelado.active{background:#FFEBEE;border-color:#FFCDD2;color:#C62828}
+.count-pill{font-size:0.78rem;color:var(--muted);background:var(--mg-bg);padding:0.3rem 0.8rem;border-radius:20px;border:1px solid var(--mg-border);white-space:nowrap}
+
+.table-wrapper{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:680px}
+thead tr{background:var(--mg-bg)}
+th{padding:0.75rem 1.1rem;text-align:left;font-size:0.68rem;font-weight:600;color:var(--mg-d);text-transform:uppercase;letter-spacing:0.1em;border-bottom:1px solid var(--mg-border);white-space:nowrap}
+td{padding:0.85rem 1.1rem;font-size:0.86rem;color:var(--text);border-bottom:1px solid rgba(232,170,212,0.25);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr{transition:background 0.15s}
+tbody tr:hover{background:#FDF5FA}
+
+/* PACIENTE CELL */
+.pac-cell{display:flex;align-items:center;gap:0.7rem;cursor:pointer}
+.pac-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--mg-d),var(--mg-l));display:flex;align-items:center;justify-content:center;font-size:0.68rem;font-weight:600;color:white;flex-shrink:0;text-transform:uppercase}
+.pac-cell-info strong{display:block;font-size:0.86rem;font-weight:600;color:var(--mg-d);line-height:1.2;transition:color 0.2s}
+.pac-cell:hover .pac-cell-info strong{color:var(--mg);text-decoration:underline}
+.pac-cell-info span{font-size:0.74rem;color:var(--muted)}
+
+/* FECHA HORA */
+.fecha-cell{display:flex;flex-direction:column;gap:0.1rem}
+.fecha-cell strong{font-size:0.86rem;color:var(--text)}
+.fecha-cell span{font-size:0.74rem;color:var(--muted)}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:0.3rem;padding:0.22rem 0.65rem;border-radius:20px;font-size:0.7rem;font-weight:600}
+.badge::before{content:'';width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.badge-pendiente{background:#FFF3E0;color:#E65100;border:1px solid #FFCC80}.badge-pendiente::before{background:#E65100}
+.badge-atendido{background:#E8F5E9;color:#2E7D32;border:1px solid #A5D6A7}.badge-atendido::before{background:#2E7D32}
+.badge-cancelado{background:#FFEBEE;color:#C62828;border:1px solid #FFCDD2}.badge-cancelado::before{background:#C62828}
+
+/* ACCIONES */
+.btn-sm{display:inline-flex;align-items:center;gap:0.28rem;padding:0.3rem 0.7rem;border-radius:7px;font-size:0.74rem;font-weight:500;text-decoration:none;transition:all 0.18s;white-space:nowrap;border:1px solid;cursor:pointer;font-family:'DM Sans',sans-serif}
+.btn-sm svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2.2;flex-shrink:0}
+.btn-danger{background:#FEF0F0;color:#8B2020;border-color:#F5AAAA}
+.btn-danger:hover{background:#D63B3B;color:white;border-color:#D63B3B}
+
+.empty-state{padding:3rem;text-align:center;color:var(--muted)}
+.empty-state svg{width:38px;height:38px;stroke:var(--mg-border);fill:none;stroke-width:1.5;margin:0 auto 0.75rem;display:block}
+
+/* TABS PRENATAL/GENERAL */
+.tipo-tabs{display:flex;gap:.6rem;margin-bottom:1.5rem}
+.tipo-tab{display:inline-flex;align-items:center;gap:.5rem;padding:.55rem 1.2rem;border-radius:50px;font-size:.85rem;font-weight:500;cursor:pointer;border:1.5px solid var(--mg-border);background:var(--white);color:var(--muted);font-family:"DM Sans",sans-serif;transition:all .2s}
+.tipo-tab:hover{border-color:var(--mg);color:var(--mg)}
+.tipo-tab.active{background:linear-gradient(135deg,var(--mg-d),var(--mg-l));color:white;border-color:transparent;box-shadow:0 4px 12px rgba(176,53,128,.25)}
+.tipo-tab .tab-count{background:rgba(255,255,255,.25);color:white;font-size:.72rem;font-weight:600;padding:.1rem .45rem;border-radius:999px;min-width:20px;text-align:center}
+.tipo-tab:not(.active) .tab-count{background:var(--mg-bg);color:var(--mg)}
+
+/* GRUPOS POR MES */
+.mes-group{margin-bottom:1.5rem}
+.mes-header{display:flex;align-items:center;gap:.75rem;padding:.65rem 1.25rem;background:var(--mg-bg);border-bottom:1px solid var(--mg-border)}
+.mes-header svg{width:15px;height:15px;stroke:var(--mg);fill:none;stroke-width:2;flex-shrink:0}
+.mes-header span{font-size:.82rem;font-weight:600;color:var(--mg-d);text-transform:capitalize}
+.mes-badge{background:white;border:1px solid var(--mg-border);color:var(--mg);font-size:.72rem;font-weight:600;padding:.15rem .55rem;border-radius:999px}
+
+
+/* MODAL CITA */
+.modal-overlay{position:fixed;inset:0;background:rgba(42,16,32,0.5);backdrop-filter:blur(4px);z-index:500;display:flex;align-items:center;justify-content:center;padding:1.5rem;opacity:0;pointer-events:none;transition:opacity 0.2s}
+.modal-overlay.visible{opacity:1;pointer-events:all}
+.modal{background:white;border-radius:20px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 60px rgba(42,16,32,0.2);transform:translateY(16px) scale(0.98);transition:transform 0.28s cubic-bezier(0.34,1.56,0.64,1),opacity 0.2s;opacity:0}
+.modal-overlay.visible .modal{transform:translateY(0) scale(1);opacity:1}
+.modal-tira{height:4px;background:linear-gradient(90deg,var(--mg-d),var(--mg-l))}
+.modal-header{padding:1.4rem 1.6rem 1.1rem;display:flex;align-items:center;gap:1rem;border-bottom:1px solid var(--mg-border)}
+.modal-icon{width:48px;height:48px;border-radius:12px;background:var(--mg-bg);border:1px solid var(--mg-border);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.modal-icon svg{width:22px;height:22px;stroke:var(--mg);fill:none;stroke-width:1.8}
+.modal-header-info h2{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;color:var(--text);margin-bottom:0.15rem}
+.modal-header-info p{font-size:0.8rem;color:var(--muted);font-weight:300}
+.modal-close{background:var(--mg-bg);border:1px solid var(--mg-border);border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;margin-left:auto;transition:all 0.2s}
+.modal-close:hover{background:var(--mg);border-color:var(--mg)}
+.modal-close:hover svg{stroke:white}
+.modal-close svg{width:13px;height:13px;stroke:var(--mg);fill:none;stroke-width:2.2;transition:stroke 0.2s}
+.modal-body{padding:1.25rem 1.6rem;display:grid;grid-template-columns:1fr 1fr;gap:0.65rem}
+.modal-item{background:var(--bg);border:1px solid var(--mg-border);border-radius:10px;padding:0.8rem 0.95rem}
+.modal-item-full{grid-column:1/-1}
+.modal-item-label{display:flex;align-items:center;gap:0.3rem;font-size:0.65rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.09em;margin-bottom:0.3rem}
+.modal-item-label svg{width:11px;height:11px;stroke:var(--mg-l);fill:none;stroke-width:2}
+.modal-item-valor{font-size:0.88rem;font-weight:500;color:var(--text)}
+.modal-footer{padding:1rem 1.6rem 1.4rem;display:flex;justify-content:space-between;align-items:center;gap:0.55rem}
+.modal-btn-close{display:inline-flex;align-items:center;padding:0.6rem 1.1rem;background:var(--white);color:var(--muted);border:1.5px solid var(--mg-border);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:0.83rem;cursor:pointer;transition:all 0.2s}
+.modal-btn-close:hover{border-color:var(--mg);color:var(--mg)}
+.modal-btn-delete{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;background:#FEF0F0;color:#8B2020;border:1.5px solid #F5AAAA;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:0.83rem;font-weight:500;text-decoration:none;cursor:pointer;transition:all 0.2s}
+.modal-btn-delete:hover{background:#D63B3B;color:white;border-color:#D63B3B}
+.modal-btn-delete svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2}
+
+@media(max-width:768px){body{flex-direction:column}.sidebar{position:fixed;top:64px;left:0;height:calc(100vh - 64px);transform:translateX(-100%);width:var(--sw)}.sidebar.open{transform:translateX(0)}.sidebar-overlay{display:block;z-index:150}.mobile-topbar{display:flex}.main{margin-left:0;padding:1.25rem;padding-top:calc(1.25rem + 64px)}.stats-row{grid-template-columns:repeat(2,1fr)}.modal-body{grid-template-columns:1fr}.modal-overlay{padding:0.75rem}.modal{max-height:95vh}}
+/* ── TOASTS ── */
+.toast-wrap{position:fixed;top:1.2rem;right:1.2rem;z-index:9999;display:flex;flex-direction:column;gap:.6rem;pointer-events:none}
+.toast{display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;border-radius:12px;font-size:.85rem;font-weight:500;min-width:260px;max-width:360px;box-shadow:0 4px 20px rgba(0,0,0,.13);pointer-events:all;animation:toastIn .3s ease;transition:opacity .3s,transform .3s}
+.toast.out{opacity:0;transform:translateX(110%)}
+.toast-success{background:#fff;border-left:4px solid #1A7A4A;color:#1A7A4A}
+.toast-error{background:#fff;border-left:4px solid #B03030;color:#B03030}
+.toast-warning{background:#fff;border-left:4px solid #92600A;color:#92600A}
+.toast-info{background:#fff;border-left:4px solid var(--mg);color:var(--mg)}
+.toast i{font-size:1rem;flex-shrink:0}
+.toast-msg{flex:1;color:var(--text)}
+.toast-close{background:none;border:none;cursor:pointer;color:var(--muted);font-size:.8rem;padding:.1rem;flex-shrink:0}
+@keyframes toastIn{from{opacity:0;transform:translateX(110%)}to{opacity:1;transform:translateX(0)}}
+@media(max-width:768px){.toast-wrap{top:auto;bottom:1rem;right:.75rem;left:.75rem}.toast{max-width:100%}}
+</style>
+</head>
+<body>
+<div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
+<div class="mobile-topbar">
+    <div class="mobile-topbar-brand">
+        <img src="/static/img/Logo.png" alt="Zumedical">
+        <span>Zumedical</span>
+    </div>
+    <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
+        <span></span><span></span><span></span>
+    </button>
+</div>
+<aside class="sidebar" id="sidebar">
+    <div class="sb-brand">
+        <div class="sb-logo"><img src="/static/img/Logo.png" alt="Zumedical"></div>
+        <div class="sb-brand-text"><h2>Zumedical</h2><span>Administrador</span></div>
+    </div>
+    <div class="sb-user">
+        <div class="sb-avatar">{% if request.user.first_name %}{{ request.user.first_name|slice:":1" }}{{ request.user.last_name|slice:":1" }}{% else %}{{ request.user.username|slice:":1"|upper }}{% endif %}</div>
+        <div class="sb-user-info"><p>Sesión activa</p><h3>{{ request.user.get_full_name|default:request.user.username }}</h3></div>
+    </div>
+    <nav class="sb-nav">
+        <div class="nav-lbl">Panel</div>
+        <a href="{% url 'admin_dashboard' %}" class="nav-item"><i class="fa-solid fa-grid-2"></i> Inicio</a>
+        <div class="nav-lbl">Gestión</div>
+        <a href="{% url 'lista_usuarios' %}" class="nav-item"><i class="fa-solid fa-users"></i> Usuarios</a>
+        <a href="{% url 'lista_medicos' %}" class="nav-item"><i class="fa-solid fa-user-doctor"></i> Médicos</a>
+        <a href="{% url 'lista_pacientes' %}" class="nav-item"><i class="fa-solid fa-hospital-user"></i> Pacientes</a>
+        <a href="{% url 'todas_citas' %}" class="nav-item active">
+            <i class="fa-regular fa-calendar-check"></i> Citas
+            {% if citas_pendientes %}<span class="nav-badge-alert">{{ citas_pendientes }}</span>{% endif %}
+        </a>
+        <a href="{% url 'controles_admin' %}" class="nav-item"><i class="fa-solid fa-heart-pulse"></i> Controles Prenatales</a>
+<div class="nav-lbl">Sistema</div>
+<a href="{% url 'auditoria_admin' %}" class="nav-item"><i class="fa-solid fa-shield-halved"></i> Auditoría</a>
+    </nav>
+    <div class="sb-footer">
+        <a href="{% url 'logout' %}" class="btn-logout"><i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar sesión</a>
+    </div>
+</aside>
+
+<main class="main">
+
+<!-- TOASTS (mensajes Django) -->
+<div class="toast-wrap" id="toastWrap"></div>
+{% if messages %}
+<div id="djangoMessages" style="display:none">
+  {% for message in messages %}
+  <span data-level="{{ message.tags }}">{{ message }}</span>
+  {% endfor %}
+</div>
+{% endif %}
+  <div class="page-header">
+    <div>
+      <h1>Todas las Citas</h1>
+      <p>Supervisión de citas médicas programadas</p>
+    </div>
+    <a href="{% url 'admin_dashboard' %}" class="btn-back">
+      <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>Volver
+    </a>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-mini">
+      <div class="stat-mini-icon icon-total"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+      <div class="stat-mini-info"><p>Total</p><strong>{{ citas_prenatales|length|add:citas_generales|length }}</strong></div>
+    </div>
+    <div class="stat-mini">
+      <div class="stat-mini-icon icon-pendiente"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+      <div class="stat-mini-info"><p>Pendientes</p><strong id="stat-pendiente">—</strong></div>
+    </div>
+    <div class="stat-mini">
+      <div class="stat-mini-icon icon-atendido"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div class="stat-mini-info"><p>Atendidas</p><strong id="stat-atendido">—</strong></div>
+    </div>
+    <div class="stat-mini">
+      <div class="stat-mini-icon icon-cancelado"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
+      <div class="stat-mini-info"><p>Canceladas</p><strong id="stat-cancelado">—</strong></div>
+    </div>
+  </div>
+
+  <!-- TABS PRENATAL / GENERAL -->
+  <div class="tipo-tabs">
+    <button class="tipo-tab active" data-tipo="prenatal">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Prenatales <span class="tab-count" id="count-prenatal">0</span>
+    </button>
+    <button class="tipo-tab" data-tipo="general">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Generales <span class="tab-count" id="count-general">0</span>
+    </button>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="table-card" style="margin-bottom:1.25rem">
+    <div class="table-filters">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="searchInput" placeholder="Buscar paciente, médico...">
+      </div>
+      <button class="filter-btn active" data-filter="">Todas</button>
+      <button class="filter-btn f-pendiente" data-filter="pendiente">Pendiente</button>
+      <button class="filter-btn f-atendido" data-filter="atendido">Atendido</button>
+      <button class="filter-btn f-cancelado" data-filter="cancelado">Cancelado</button>
+      <span class="count-pill" id="countPill">0 citas</span>
+    </div>
+  </div>
+
+  <!-- CONTENEDOR GRUPOS POR MES (se genera en JS) -->
+  <div id="grupos-container"></div>
+
+  <!-- DATA OCULTA: todas las citas como JSON -->
+  <script id="citas-data" type="application/json">
+  [
+    {% for c in citas_prenatales %}
+      {"id":{{ c.id }},"paciente":"{{ c.paciente.get_full_name|default:c.paciente.username|escapejs }}","paciente_ini":"{{ c.paciente.first_name|slice:':1'|upper|escapejs }}{{ c.paciente.last_name|slice:':1'|escapejs }}","medico":"{{ c.medico.get_full_name|default:c.medico.username|escapejs }}","fecha":"{{ c.fecha|date:'Y-m-d' }}","fecha_display":"{{ c.fecha|date:'d/m/Y' }}","hora":"{{ c.hora|time:'H:i' }}","motivo":"{{ c.motivo|default:''|escapejs }}","estado":"{{ c.estado }}","tipo_paciente":"prenatal","delete_url":"{% url 'admin_eliminar_cita' c.id %}"}{% if not forloop.last or citas_generales %},{% endif %}
+    {% endfor %}
+    {% for c in citas_generales %}
+      {"id":{{ c.id }},"paciente":"{{ c.paciente.get_full_name|default:c.paciente.username|escapejs }}","paciente_ini":"{{ c.paciente.first_name|slice:':1'|upper|escapejs }}{{ c.paciente.last_name|slice:':1'|escapejs }}","medico":"{{ c.medico.get_full_name|default:c.medico.username|escapejs }}","fecha":"{{ c.fecha|date:'Y-m-d' }}","fecha_display":"{{ c.fecha|date:'d/m/Y' }}","hora":"{{ c.hora|time:'H:i' }}","motivo":"{{ c.motivo|default:''|escapejs }}","estado":"{{ c.estado }}","tipo_paciente":"general","delete_url":"{% url 'admin_eliminar_cita' c.id %}"}{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ]
+  </script>
+</main>
+
+<!-- MODAL DETALLE CITA -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-tira"></div>
+    <div class="modal-header">
+      <div class="modal-icon">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      </div>
+      <div class="modal-header-info">
+        <h2 id="modal-titulo">Detalle de cita</h2>
+        <p id="modal-subtitulo"></p>
+      </div>
+      <button class="modal-close" id="modal-close-btn">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-item">
+        <div class="modal-item-label"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Paciente</div>
+        <div class="modal-item-valor" id="modal-paciente"></div>
+      </div>
+      <div class="modal-item">
+        <div class="modal-item-label"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Médico</div>
+        <div class="modal-item-valor" id="modal-medico"></div>
+      </div>
+      <div class="modal-item">
+        <div class="modal-item-label"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Fecha</div>
+        <div class="modal-item-valor" id="modal-fecha"></div>
+      </div>
+      <div class="modal-item">
+        <div class="modal-item-label"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Hora</div>
+        <div class="modal-item-valor" id="modal-hora"></div>
+      </div>
+      <div class="modal-item">
+        <div class="modal-item-label"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Estado</div>
+        <div class="modal-item-valor" id="modal-estado"></div>
+      </div>
+      <div class="modal-item modal-item-full">
+        <div class="modal-item-label"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Motivo</div>
+        <div class="modal-item-valor" id="modal-motivo"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <a href="#" class="modal-btn-delete" id="modal-delete-link">
+        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+        Eliminar cita
+      </a>
+      <button class="modal-btn-close" id="modal-footer-close">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Hamburguesa móvil ──
+function toggleSidebar() {
+    const sb = document.getElementById('sidebar');
+    const ov = document.getElementById('overlay');
+    const hb = document.getElementById('hamburger');
+    sb.classList.toggle('open');
+    ov.classList.toggle('active');
+    hb.classList.toggle('open');
+}
+function closeSidebar() {
+    const sb = document.getElementById('sidebar');
+    const ov = document.getElementById('overlay');
+    const hb = document.getElementById('hamburger');
+    sb.classList.remove('open');
+    ov.classList.remove('active');
+    hb.classList.remove('open');
+}
+
+const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+let todasCitas = [];
+try { todasCitas = JSON.parse(document.getElementById('citas-data').textContent); } catch(e) { todasCitas = []; }
+
+let tipoActivo = 'prenatal';
+let estadoActivo = '';
+let searchQuery = '';
+
+function actualizarContadores() {
+    const pre = todasCitas.filter(function(c){ return c.tipo_paciente === 'prenatal'; }).length;
+    const gen = todasCitas.filter(function(c){ return c.tipo_paciente === 'general'; }).length;
+    document.getElementById('count-prenatal').textContent = pre;
+    document.getElementById('count-general').textContent  = gen;
+}
+
+function renderGrupos() {
+    var filtered = todasCitas.filter(function(c) {
+        var matchTipo   = c.tipo_paciente === tipoActivo;
+        var matchEstado = estadoActivo === '' || c.estado === estadoActivo;
+        var matchSearch = searchQuery === '' ||
+            c.paciente.toLowerCase().includes(searchQuery) ||
+            c.medico.toLowerCase().includes(searchQuery) ||
+            c.fecha_display.includes(searchQuery);
+        return matchTipo && matchEstado && matchSearch;
+    });
+
+    document.getElementById('countPill').textContent = filtered.length + ' cita' + (filtered.length !== 1 ? 's' : '');
+
+    var container = document.getElementById('grupos-container');
+    if (filtered.length === 0) {
+        container.innerHTML = '<div class="table-card"><div class="empty-state"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><p>No hay citas para mostrar.</p></div></div>';
+        return;
+    }
+
+    var grupos = {};
+    filtered.forEach(function(c) {
+        var d = new Date(c.fecha + 'T00:00:00');
+        var key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2,'0');
+        var label = MESES[d.getMonth()] + ' ' + d.getFullYear();
+        if (!grupos[key]) grupos[key] = { label: label, citas: [] };
+        grupos[key].citas.push(c);
+    });
+
+    var keys = Object.keys(grupos).sort().reverse();
+    var html = '';
+    keys.forEach(function(key) {
+        var g = grupos[key];
+        html += '<div class="mes-group table-card">';
+        html += '<div class="mes-header"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>' + g.label + '</span><span class="mes-badge">' + g.citas.length + ' cita' + (g.citas.length !== 1 ? 's' : '') + '</span></div>';
+        html += '<div class="table-wrapper"><table><thead><tr><th>Paciente</th><th>M&eacute;dico</th><th>Fecha</th><th>Hora</th><th>Motivo</th><th>Estado</th><th>Acci&oacute;n</th></tr></thead><tbody>';
+        g.citas.forEach(function(c) {
+            var bc = c.estado === 'pendiente' ? 'badge-pendiente' : c.estado === 'confirmada' ? 'badge-confirmada' : c.estado === 'atendido' ? 'badge-atendido' : 'badge-cancelado';
+            var bl = c.estado === 'pendiente' ? 'Pendiente' : c.estado === 'confirmada' ? 'Confirmada' : c.estado === 'atendido' ? 'Atendido' : 'Cancelado';
+            html += '<tr>';
+            html += '<td><div class="pac-cell" data-id="'+c.id+'" data-paciente="'+c.paciente+'" data-medico="'+c.medico+'" data-fecha="'+c.fecha_display+'" data-hora="'+c.hora+'" data-motivo="'+(c.motivo||'&mdash;')+'" data-estado="'+c.estado+'" data-delete-url="'+c.delete_url+'">';
+            html += '<div class="pac-avatar">'+c.paciente_ini+'</div><div class="pac-cell-info"><strong>'+c.paciente+'</strong><span>Paciente</span></div></div></td>';
+            html += '<td><span style="font-weight:500;font-size:.86rem">'+c.medico+'</span></td>';
+            html += '<td><strong>'+c.fecha_display+'</strong></td>';
+            html += '<td style="color:var(--muted)">'+c.hora+'</td>';
+            html += '<td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:.82rem">'+(c.motivo||'&mdash;')+'</td>';
+            html += '<td><span class="badge '+bc+'">'+bl+'</span></td>';
+            html += '<td><a href="'+c.delete_url+'" class="btn-sm btn-danger"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>Eliminar</a></td>';
+            html += '</tr>';
+        });
+        html += '</tbody></table></div></div>';
+    });
+    container.innerHTML = html;
+    adjuntarModal();
+}
+
+document.querySelectorAll('.tipo-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+        document.querySelectorAll('.tipo-tab').forEach(function(t){ t.classList.remove('active'); });
+        tab.classList.add('active');
+        tipoActivo = tab.dataset.tipo;
+        actualizarStats();
+        renderGrupos();
+    });
+});
+
+document.querySelectorAll('.filter-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.filter-btn').forEach(function(b){ b.classList.remove('active'); });
+        btn.classList.add('active');
+        estadoActivo = btn.dataset.filter;
+        renderGrupos();
+    });
+});
+
+document.getElementById('searchInput').addEventListener('input', function() {
+    searchQuery = this.value.toLowerCase().trim();
+    renderGrupos();
+});
+
+function adjuntarModal() {
+    var overlay     = document.getElementById('modal-overlay');
+    var closeBtn    = document.getElementById('modal-close-btn');
+    var footerClose = document.getElementById('modal-footer-close');
+    document.querySelectorAll('.pac-cell').forEach(function(el) {
+        el.addEventListener('click', function() {
+            var d = el.dataset;
+            document.getElementById('modal-titulo').textContent    = 'Cita #' + d.id;
+            document.getElementById('modal-subtitulo').textContent = d.paciente + ' - ' + d.fecha;
+            document.getElementById('modal-paciente').textContent  = d.paciente;
+            document.getElementById('modal-medico').textContent    = d.medico;
+            document.getElementById('modal-fecha').textContent     = d.fecha;
+            document.getElementById('modal-hora').textContent      = d.hora;
+            document.getElementById('modal-motivo').textContent    = d.motivo;
+            document.getElementById('modal-delete-link').href      = d.deleteUrl || d['delete-url'];
+            var estadoEl = document.getElementById('modal-estado');
+            var labels  = {pendiente:'Pendiente', atendido:'Atendido', cancelado:'Cancelado'};
+            var classes = {pendiente:'badge badge-pendiente', atendido:'badge badge-atendido', cancelado:'badge badge-cancelado'};
+            estadoEl.innerHTML = '<span class="'+(classes[d.estado]||'badge')+'">'+(labels[d.estado]||d.estado)+'</span>';
+            overlay.classList.add('visible');
+            document.body.style.overflow = 'hidden';
+        });
+    });
+    function cerrar() { overlay.classList.remove('visible'); document.body.style.overflow = ''; }
+    closeBtn.onclick = cerrar;
+    footerClose.onclick = cerrar;
+    overlay.onclick = function(e){ if(e.target === overlay) cerrar(); };
+    document.onkeydown = function(e){ if(e.key === 'Escape') cerrar(); };
+}
+
+function actualizarStats() {
+    var filtrado = todasCitas.filter(function(c){ return c.tipo_paciente === tipoActivo; });
+    var counts = {pendiente:0, confirmada:0, atendido:0, cancelado:0};
+    filtrado.forEach(function(c){ if(counts[c.estado] !== undefined) counts[c.estado]++; });
+    document.getElementById('stat-pendiente').textContent = counts.pendiente + counts.confirmada;
+    document.getElementById('stat-atendido').textContent  = counts.atendido;
+    document.getElementById('stat-cancelado').textContent = counts.cancelado;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    actualizarContadores();
+    actualizarStats();
+    renderGrupos();
+});
+
+</script>
+
+<script>
+/* ── SISTEMA DE TOASTS (mensajes Django) ── */
+(function () {
+    const ICONS = {
+        success: 'fa-circle-check',
+        error:   'fa-circle-xmark',
+        warning: 'fa-triangle-exclamation',
+        info:    'fa-circle-info',
+        default: 'fa-circle-info',
+    };
+
+    function showToast(message, level) {
+        const wrap = document.getElementById('toastWrap');
+        if (!wrap) return;
+
+        const tag = level && level !== '' ? level.split(' ').find(t => ICONS[t]) || 'default' : 'default';
+        const icon = ICONS[tag];
+
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${tag === 'default' ? 'info' : tag}`;
+        toast.innerHTML = `
+            <i class="fa-solid ${icon}"></i>
+            <span class="toast-msg">${message}</span>
+            <button class="toast-close" title="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+        `;
+
+        wrap.appendChild(toast);
+
+        // Cerrar manual
+        toast.querySelector('.toast-close').addEventListener('click', () => dismissToast(toast));
+
+        // Auto-dismiss después de 4.5s
+        setTimeout(() => dismissToast(toast), 4500);
+    }
+
+    function dismissToast(toast) {
+        toast.classList.add('out');
+        setTimeout(() => toast.remove(), 320);
+    }
+
+    // Leer messages de Django y mostrarlos como toasts
+    const container = document.getElementById('djangoMessages');
+    if (container) {
+        container.querySelectorAll('span[data-level]').forEach(el => {
+            showToast(el.textContent.trim(), el.dataset.level);
+        });
+    }
+})();
+</script>
+</body>
+</html>

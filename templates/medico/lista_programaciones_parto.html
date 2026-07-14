@@ -1,0 +1,120 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Programaciones de Parto — Zumedical</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root{--mg:#b03580;--mg-l:#cc4d99;--mg-d:#8a2563;--mg-bg:#fbf0f7;--mg-border:#e8aad4;--text:#2a1020;--muted:#8a6070;--white:#fff;--bg:#fdf5fa;--sw:260px;--green:#2e7d52;--green-bg:#edfaf3;--green-border:#a8dfc0;--yellow:#b45309;--yellow-bg:#fffbeb;--yellow-border:#fcd34d;--red:#b91c1c;--red-bg:#fef2f2;--red-border:#fca5a5;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:"DM Sans",sans-serif;background:var(--bg);display:flex;height:100vh;overflow:hidden;}
+    .sidebar{width:var(--sw);height:100vh;background:linear-gradient(175deg,#8a2563 0%,#b03580 55%,#cc4d99 100%);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;overflow-y:auto;}
+    .sb-brand{padding:1.5rem;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:.75rem;}
+    .sb-logo{width:40px;height:40px;background:white;border-radius:50%;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;}
+    .sb-logo img{width:36px;height:36px;object-fit:contain;}
+    .sb-brand h2{font-family:"Cormorant Garamond",serif;font-size:1.3rem;font-weight:600;color:white;}
+    .sb-brand span{font-size:.7rem;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.1em;}
+    .sb-user{padding:1rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:.75rem;text-decoration:none;}
+    .sb-av{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:600;color:white;flex-shrink:0;text-transform:uppercase;}
+    .sb-user-info p{font-size:.7rem;color:rgba(255,255,255,.6);text-transform:uppercase;}
+    .sb-user-info h3{font-size:.88rem;font-weight:500;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px;}
+    .sb-nav{flex:1;padding:1rem .75rem;}
+    .nav-lbl{font-size:.68rem;color:rgba(255,255,255,.5);letter-spacing:.1em;text-transform:uppercase;padding:.5rem .75rem;margin-top:.5rem;}
+    .nav-item{display:flex;align-items:center;gap:.75rem;padding:.7rem 1rem;border-radius:10px;color:rgba(255,255,255,.85);text-decoration:none;font-size:.88rem;margin-bottom:.2rem;transition:all .2s;}
+    .nav-item:hover,.nav-item.active{background:rgba(255,255,255,.18);color:white;}
+    .nav-item svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;flex-shrink:0;}
+    .sb-footer{padding:1rem .75rem;border-top:1px solid rgba(255,255,255,.12);}
+    .btn-logout{display:flex;align-items:center;gap:.75rem;padding:.7rem 1rem;border-radius:10px;color:rgba(255,255,255,.8);text-decoration:none;font-size:.88rem;transition:all .2s;width:100%;}
+    .btn-logout:hover{background:rgba(255,255,255,.15);color:white;}
+    .btn-logout svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;}
+    .main{margin-left:var(--sw);flex:1;padding:2rem 2.5rem;height:100vh;overflow-y:auto;}
+    .top-row{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:1.75rem;flex-wrap:wrap;gap:1rem;}
+    .page-title{font-family:"Cormorant Garamond",serif;font-size:1.9rem;font-weight:600;color:var(--text);}
+    .page-sub{color:var(--muted);font-size:.88rem;margin-top:.2rem;}
+    .btn-primary{background:var(--mg);color:white;border:none;padding:.65rem 1.4rem;border-radius:10px;font-size:.9rem;font-weight:500;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:.5rem;transition:all .2s;}
+    .btn-primary:hover{background:var(--mg-d);}
+    /* Cards grid */
+    .partos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.25rem;}
+    .parto-card{background:white;border-radius:16px;border:1px solid var(--mg-border);overflow:hidden;transition:transform .2s,box-shadow .2s;}
+    .parto-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(176,53,128,.1);}
+    .parto-card-top{padding:1.25rem 1.5rem;border-bottom:1px solid var(--mg-border);}
+    .parto-paciente{display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem;}
+    .parto-av{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--mg-d),var(--mg-l));display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:700;color:white;flex-shrink:0;text-transform:uppercase;}
+    .parto-nombre{font-weight:600;font-size:.95rem;color:var(--text);}
+    .parto-sub{font-size:.75rem;color:var(--muted);}
+    .parto-tipo{display:inline-flex;align-items:center;gap:.4rem;background:var(--mg-bg);border:1px solid var(--mg-border);border-radius:20px;padding:.25rem .75rem;font-size:.8rem;font-weight:600;color:var(--mg-d);}
+    .parto-card-body{padding:1.25rem 1.5rem;}
+    .parto-fecha{font-family:"Cormorant Garamond",serif;font-size:1.5rem;font-weight:700;color:var(--text);margin-bottom:.25rem;}
+    .parto-hora{font-size:.85rem;color:var(--muted);margin-bottom:.75rem;}
+    .parto-lugar{font-size:.82rem;color:var(--text);display:flex;align-items:center;gap:.4rem;}
+    .parto-card-footer{padding:.85rem 1.5rem;background:var(--bg);border-top:1px solid var(--mg-border);display:flex;align-items:center;justify-content:space-between;}
+    .estado-badge{display:inline-flex;align-items:center;gap:.35rem;padding:.25rem .75rem;border-radius:20px;font-size:.78rem;font-weight:600;border:1px solid;}
+    .estado-programado{background:var(--yellow-bg);color:var(--yellow);border-color:var(--yellow-border);}
+    .estado-confirmado{background:var(--green-bg);color:var(--green);border-color:var(--green-border);}
+    .estado-realizado{background:#e8f4fd;color:#1d6fa4;border-color:#90cdf4;}
+    .estado-cancelado{background:var(--red-bg);color:var(--red);border-color:var(--red-border);}
+    .estado-reprogramado{background:var(--yellow-bg);color:#92600a;border-color:var(--yellow-border);}
+    .btn-edit{display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .85rem;background:var(--mg-bg);color:var(--mg);border:1px solid var(--mg-border);border-radius:8px;text-decoration:none;font-size:.8rem;font-weight:500;transition:all .2s;}
+    .btn-edit:hover{background:var(--mg);color:white;}
+    .empty{text-align:center;padding:4rem 2rem;color:var(--muted);}
+    .empty-icon{font-size:3rem;margin-bottom:.75rem;}
+    .empty h3{font-family:"Cormorant Garamond",serif;font-size:1.3rem;color:var(--text);margin-bottom:.5rem;}
+    @media(max-width:700px){.main{padding:1.25rem}.partos-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+{% include 'medico/sidebar_medico.html' %}
+
+<main class="main">
+  <div class="top-row">
+    <div><div class="page-title">Programaciones de Parto</div><p class="page-sub">{{ programaciones|length }} programación{{ programaciones|length|pluralize:"es" }} registrada{{ programaciones|length|pluralize:"s" }}</p></div>
+    <a href="{% url 'programar_parto' %}" class="btn-primary">🤰 + Nueva Programación</a>
+  </div>
+
+  {% if programaciones %}
+  <div class="partos-grid">
+    {% for p in programaciones %}
+    <div class="parto-card">
+      <div class="parto-card-top">
+        <div class="parto-paciente">
+          <div class="parto-av">{% if p.paciente.first_name %}{{ p.paciente.first_name|slice:":1" }}{{ p.paciente.last_name|slice:":1" }}{% else %}{{ p.paciente.username|slice:":1"|upper }}{% endif %}</div>
+          <div><div class="parto-nombre">{{ p.paciente.get_full_name|default:p.paciente.username }}</div><div class="parto-sub">@{{ p.paciente.username }}</div></div>
+        </div>
+        <span class="parto-tipo">
+          {% if p.tipo == 'parto_natural' %}🤱{% elif p.tipo == 'cesarea' %}🏨{% else %}💉{% endif %}
+          {{ p.get_tipo_display }}
+        </span>
+      </div>
+      <div class="parto-card-body">
+        <div class="parto-fecha">{{ p.fecha_programada|date:"d 'de' F 'de' Y" }}</div>
+        <div class="parto-hora">🕐 {{ p.hora_programada|time:"H:i" }} hrs{% if p.semanas_gestacion %} · Semana {{ p.semanas_gestacion }}{% endif %}</div>
+        <div class="parto-lugar">📍 {{ p.lugar }}</div>
+        {% if p.indicaciones %}
+        <div style="margin-top:.75rem;font-size:.8rem;color:var(--muted);background:var(--bg);border-radius:8px;padding:.5rem .75rem;">{{ p.indicaciones|truncatechars:100 }}</div>
+        {% endif %}
+      </div>
+      <div class="parto-card-footer">
+        <span class="estado-badge estado-{{ p.estado }}">
+          {% if p.estado == 'programado' %}🕒{% elif p.estado == 'confirmado' %}✅{% elif p.estado == 'realizado' %}🎉{% elif p.estado == 'cancelado' %}❌{% else %}🔄{% endif %}
+          {{ p.get_estado_display }}
+        </span>
+        <a href="{% url 'editar_parto' p.id %}" class="btn-edit">✏️ Editar</a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div style="background:white;border-radius:16px;border:1px solid var(--mg-border)">
+    <div class="empty">
+      <div class="empty-icon">🤰</div>
+      <h3>Sin programaciones registradas</h3>
+      <p>Aún no has programado ningún parto o cesárea.</p>
+      <a href="{% url 'programar_parto' %}" style="display:inline-flex;align-items:center;gap:.5rem;margin-top:1rem;background:var(--mg);color:white;padding:.65rem 1.4rem;border-radius:10px;text-decoration:none;font-size:.9rem;font-weight:500">🤰 Programar ahora</a>
+    </div>
+  </div>
+  {% endif %}
+</main>
+</body>
+</html>

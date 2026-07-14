@@ -1,0 +1,273 @@
+﻿<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Evaluación de Riesgo — Zumedical</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --mg:#b03580;--mg-l:#cc4d99;--mg-d:#8a2563;
+      --mg-bg:#fbf0f7;--mg-border:#e8aad4;
+      --text:#2a1020;--muted:#8a6070;
+      --white:#fff;--bg:#fdf5fa;
+      --green:#2e7d52;--green-bg:#edfaf3;--green-border:#a8dfc0;
+      --yellow:#b45309;--yellow-bg:#fffbeb;--yellow-border:#fcd34d;
+      --red:#b91c1c;--red-bg:#fef2f2;--red-border:#fca5a5;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:"DM Sans",sans-serif;background:var(--bg);min-height:100vh;display:flex;}
+
+    /* SIDEBAR */
+    .sidebar{width:260px;min-height:100vh;background:linear-gradient(175deg,#8a2563 0%,#b03580 55%,#cc4d99 100%);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:200;}
+    .sidebar-brand{padding:2rem 1.5rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:.75rem;}
+    .sidebar-brand-logo{width:44px;height:44px;background:white;border-radius:50%;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+    .sidebar-brand-logo img{width:40px;height:40px;object-fit:contain;}
+    .sidebar-brand-text h2{font-family:"Cormorant Garamond",serif;font-size:1.4rem;font-weight:600;color:white;line-height:1;}
+    .sidebar-brand-text span{font-size:.72rem;color:rgba(255,255,255,.7);letter-spacing:.1em;text-transform:uppercase;}
+    .sidebar-user{padding:1.2rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:.75rem;text-decoration:none;}
+    .sidebar-avatar{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:500;color:white;text-transform:uppercase;flex-shrink:0;}
+    .sidebar-user-info p{font-size:.78rem;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.08em;}
+    .sidebar-user-info h3{font-size:.9rem;font-weight:500;color:white;}
+    .sidebar-nav{flex:1;padding:1rem .75rem;}
+    .nav-label{font-size:.7rem;color:rgba(255,255,255,.5);letter-spacing:.1em;text-transform:uppercase;padding:.5rem .75rem;margin-top:.5rem;}
+    .nav-item{display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;border-radius:10px;color:rgba(255,255,255,.85);text-decoration:none;font-size:.9rem;font-weight:400;transition:all .2s;margin-bottom:.25rem;}
+    .nav-item:hover,.nav-item.active{background:rgba(255,255,255,.18);color:white;}
+    .sidebar-footer{padding:1rem .75rem;border-top:1px solid rgba(255,255,255,.12);}
+    .btn-logout{display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;border-radius:10px;color:rgba(255,255,255,.8);text-decoration:none;font-size:.9rem;transition:all .2s;}
+    .btn-logout:hover{background:rgba(255,255,255,.15);color:white;}
+
+    /* MAIN */
+    .main{margin-left:260px;flex:1;padding:2.5rem;}
+    .page-header{margin-bottom:2rem;}
+    .page-header .sub{font-size:.85rem;color:var(--muted);font-weight:300;margin-bottom:.3rem;}
+    .page-header h1{font-family:"Cormorant Garamond",serif;font-size:2.2rem;font-weight:600;color:var(--text);}
+
+    /* AVISO "generado por médico" */
+    .aviso-ia{display:flex;align-items:flex-start;gap:.75rem;background:#f0f9ff;border:1px solid #bae6fd;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.5rem;}
+    .aviso-ia .icon{font-size:1.4rem;flex-shrink:0;}
+    .aviso-ia p{font-size:.88rem;color:#0c4a6e;line-height:1.55;}
+    .aviso-ia strong{color:#075985;}
+
+    /* ESTADO VACÍO */
+    .empty-card{background:var(--white);border-radius:16px;border:1px solid var(--mg-border);padding:3rem 2rem;text-align:center;}
+    .empty-icon{font-size:3rem;margin-bottom:1rem;}
+    .empty-card h2{font-family:"Cormorant Garamond",serif;font-size:1.5rem;font-weight:600;color:var(--text);margin-bottom:.5rem;}
+    .empty-card p{font-size:.9rem;color:var(--muted);max-width:420px;margin:0 auto;line-height:1.6;}
+
+    /* RESULTADO CARD */
+    .resultado-card{border-radius:18px;overflow:hidden;border:1px solid;margin-bottom:2rem;box-shadow:0 4px 24px rgba(0,0,0,.06);}
+    .resultado-card.bajo  {border-color:var(--green-border);}
+    .resultado-card.medio {border-color:var(--yellow-border);}
+    .resultado-card.alto  {border-color:var(--red-border);}
+
+    .resultado-header{padding:1.75rem 2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;}
+    .resultado-header.bajo  {background:var(--green-bg);}
+    .resultado-header.medio {background:var(--yellow-bg);}
+    .resultado-header.alto  {background:var(--red-bg);}
+
+    .resultado-nivel{display:flex;align-items:center;gap:.75rem;}
+    .resultado-icono{font-size:2.5rem;line-height:1;}
+    .resultado-titulo h2{font-family:"Cormorant Garamond",serif;font-size:1.7rem;font-weight:700;}
+    .resultado-titulo p{font-size:.875rem;font-weight:300;margin-top:.2rem;}
+    .resultado-titulo.bajo h2,.resultado-titulo.bajo p{color:var(--green);}
+    .resultado-titulo.medio h2,.resultado-titulo.medio p{color:var(--yellow);}
+    .resultado-titulo.alto h2,.resultado-titulo.alto p{color:var(--red);}
+
+    .prob-badge{text-align:center;min-width:100px;}
+    .prob-badge .num{font-family:"Cormorant Garamond",serif;font-size:3.2rem;font-weight:700;line-height:1;}
+    .bajo  .prob-badge .num{color:var(--green);}
+    .medio .prob-badge .num{color:var(--yellow);}
+    .alto  .prob-badge .num{color:var(--red);}
+    .prob-badge .lbl{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);}
+
+    .resultado-body{background:var(--white);padding:1.75rem 2rem;}
+    .resultado-section{margin-bottom:1.5rem;}
+    .resultado-section:last-child{margin-bottom:0;}
+    .resultado-section h3{font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:.75rem;}
+
+    .factores-list,.recomendaciones-list{list-style:none;padding:0;display:flex;flex-direction:column;gap:.45rem;}
+    .factores-list li{display:flex;align-items:flex-start;gap:.6rem;padding:.6rem .9rem;border-radius:8px;font-size:.9rem;color:var(--text);background:var(--mg-bg);border:1px solid var(--mg-border);}
+    .recomendaciones-list li{display:flex;align-items:flex-start;gap:.6rem;padding:.6rem .9rem;border-radius:8px;font-size:.9rem;color:var(--text);background:#f0fdf4;border:1px solid #bbf7d0;}
+
+    .explicacion-box{background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:1rem 1.25rem;font-size:.875rem;color:#0c4a6e;line-height:1.6;}
+
+    .disclaimer{display:flex;align-items:flex-start;gap:.6rem;background:var(--mg-bg);border:1px solid var(--mg-border);border-radius:10px;padding:.9rem 1.1rem;font-size:.83rem;color:var(--mg-d);font-style:italic;margin-top:1.25rem;line-height:1.5;}
+
+    /* HISTORIAL */
+    .card{background:var(--white);border-radius:16px;border:1px solid var(--mg-border);padding:2rem;margin-bottom:2rem;}
+    .card h2{font-family:"Cormorant Garamond",serif;font-size:1.5rem;font-weight:600;color:var(--text);margin-bottom:1.25rem;}
+    .historial-grid{display:flex;flex-direction:column;gap:.75rem;}
+    .historial-item{display:flex;align-items:center;gap:1rem;padding:1rem 1.25rem;border-radius:12px;border:1px solid var(--mg-border);background:var(--mg-bg);transition:all .2s;}
+    .historial-item:hover{box-shadow:0 4px 12px rgba(176,53,128,.1);}
+    .hist-badge{min-width:80px;text-align:center;padding:.3rem .75rem;border-radius:20px;font-size:.8rem;font-weight:600;}
+    .hist-badge.bajo  {background:var(--green-bg);color:var(--green);border:1px solid var(--green-border);}
+    .hist-badge.medio {background:var(--yellow-bg);color:var(--yellow);border:1px solid var(--yellow-border);}
+    .hist-badge.alto  {background:var(--red-bg);color:var(--red);border:1px solid var(--red-border);}
+    .hist-info{flex:1;}
+    .hist-fecha{font-size:.8rem;color:var(--muted);}
+    .hist-detalle{font-size:.88rem;color:var(--text);margin-top:.15rem;}
+    .hist-prob{font-family:"Cormorant Garamond",serif;font-size:1.4rem;font-weight:700;color:var(--muted);}
+
+    @media(max-width:768px){
+      .sidebar{display:none;}
+      .main{margin-left:0;padding:1.25rem;}
+    }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="sidebar-brand-logo"><img src="/static/img/Logo.png" alt="Zumedical" /></div>
+    <div class="sidebar-brand-text"><h2>Zumedical</h2><span>Paciente</span></div>
+  </div>
+  <a href="{% url 'mi_perfil' %}" class="sidebar-user">
+    <div class="sidebar-avatar">{% if request.user.first_name %}{{ request.user.first_name|slice:":1" }}{{ request.user.last_name|slice:":1" }}{% else %}{{ request.user.username|slice:":1"|upper }}{% endif %}</div>
+    <div class="sidebar-user-info">
+      <p>Mi perfil</p>
+      <h3>{{ request.user.get_full_name|default:request.user.username }}</h3>
+    </div>
+  </a>
+  <nav class="sidebar-nav">
+    <div class="nav-label">Menú</div>
+    <a href="{% url 'paciente_dashboard' %}" class="nav-item">🏠 Inicio</a>
+    <a href="{% url 'agendar_cita' %}" class="nav-item">📅 Agendar Cita</a>
+    <a href="{% url 'ver_citas' %}" class="nav-item">🗓 Mis Citas</a>
+    <div class="nav-label">Inteligencia Artificial</div>
+    <a href="{% url 'chatbot_page' %}" class="nav-item">💬 Asistente Virtual</a>
+    <a href="{% url 'evaluar_riesgo' %}" class="nav-item active">🧬 Evaluación de Riesgo</a>
+  </nav>
+  <div class="sidebar-footer">
+    <a href="{% url 'logout' %}" class="btn-logout">🚪 Cerrar sesión</a>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+  <div class="page-header">
+    <p class="sub">Inteligencia Artificial · Análisis clínico prenatal</p>
+    <h1>Evaluación de Riesgo Gestacional</h1>
+  </div>
+
+  <!-- Aviso informativo -->
+  <div class="aviso-ia">
+    <span class="icon">🩺</span>
+    <p>
+      Esta evaluación es generada <strong>automáticamente por la inteligencia artificial</strong>
+      cada vez que tu médico registra un nuevo control prenatal.
+      <strong>No necesitas ingresar ningún dato</strong> — el sistema analiza los resultados clínicos del control.
+    </p>
+  </div>
+
+  <!-- ═══════ ÚLTIMA EVALUACIÓN ═══════ -->
+  {% if ultima_prediccion %}
+  {% with d=ultima_prediccion.datos_resultado nivel=ultima_prediccion.nivel_riesgo|lower %}
+
+  <div class="resultado-card {{ nivel }}">
+    <div class="resultado-header {{ nivel }}">
+      <div class="resultado-nivel">
+        <span class="resultado-icono">{{ ultima_prediccion.icono }}</span>
+        <div class="resultado-titulo {{ nivel }}">
+          <h2>Riesgo {{ ultima_prediccion.nivel_riesgo }}</h2>
+          <p>Evaluación del {{ ultima_prediccion.fecha|date:"d/m/Y" }} · Control semana {{ ultima_prediccion.semanas_gestacion }}</p>
+        </div>
+      </div>
+      <div class="prob-badge {{ nivel }}">
+        <div class="num">{{ ultima_prediccion.puntuacion_riesgo }}%</div>
+        <div class="lbl">Probabilidad</div>
+      </div>
+    </div>
+
+    <div class="resultado-body">
+
+      {% if d.factores %}
+      <div class="resultado-section">
+        <h3>✔ Factores encontrados</h3>
+        <ul class="factores-list">
+          {% for f in d.factores %}<li>⚠️ {{ f }}</li>{% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      {% if d.complicaciones %}
+      <div class="resultado-section">
+        <h3>🔶 Complicaciones que requieren vigilancia</h3>
+        <ul class="factores-list" style="--bg:var(--yellow-bg);">
+          {% for c in d.complicaciones %}
+          <li style="background:var(--yellow-bg);border-color:var(--yellow-border);">🔶 {{ c }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      {% if d.recomendaciones %}
+      <div class="resultado-section">
+        <h3>💡 Recomendaciones para ti</h3>
+        <ul class="recomendaciones-list">
+          {% for r in d.recomendaciones %}<li>✔ {{ r }}</li>{% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      {% if d.explicacion %}
+      <div class="resultado-section">
+        <h3>🔬 ¿Por qué obtuve este resultado?</h3>
+        <div class="explicacion-box">{{ d.explicacion }}</div>
+      </div>
+      {% endif %}
+
+      <div class="disclaimer">
+        ⚕️ Este resultado es una herramienta de apoyo basada en inteligencia artificial
+        y <strong>no reemplaza</strong> la valoración de tu médico tratante.
+        Ante cualquier duda o síntoma, consulta a tu obstetra de inmediato.
+      </div>
+    </div>
+  </div>
+  {% endwith %}
+
+  <!-- ═══════ HISTORIAL ═══════ -->
+  {% if predicciones|length > 1 %}
+  <div class="card">
+    <h2>📊 Historial de Evaluaciones</h2>
+    <div class="historial-grid">
+      {% for pred in predicciones %}
+      <div class="historial-item">
+        <span class="hist-badge {{ pred.nivel_riesgo|lower }}">
+          {{ pred.icono }} {{ pred.nivel_riesgo }}
+        </span>
+        <div class="hist-info">
+          <div class="hist-fecha">{{ pred.fecha|date:"d/m/Y" }} · Semana {{ pred.semanas_gestacion }}</div>
+          <div class="hist-detalle">PA {{ pred.presion_arterial }} · Glucosa {{ pred.glucosa }} mg/dL · IMC {{ pred.imc }}</div>
+        </div>
+        <div class="hist-prob">{{ pred.puntuacion_riesgo }}%</div>
+      </div>
+      {% if not forloop.last %}
+      <div style="text-align:center;color:var(--muted);font-size:.8rem;padding:.1rem 0;">↓</div>
+      {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% else %}
+  <!-- Estado vacío: no hay controles aún -->
+  <div class="empty-card">
+    <div class="empty-icon">🧬</div>
+    <h2>Aún no tienes evaluaciones</h2>
+    <p>
+      La evaluación de riesgo se genera automáticamente cuando tu médico
+      registra un control prenatal. Agenda tu próxima cita para obtener tu
+      primer análisis de riesgo gestacional.
+    </p>
+    <a href="{% url 'agendar_cita' %}" style="display:inline-block;margin-top:1.5rem;background:linear-gradient(135deg,var(--mg-d),var(--mg-l));color:white;padding:.875rem 2rem;border-radius:10px;text-decoration:none;font-size:.9rem;font-weight:500;">
+      📅 Agendar cita
+    </a>
+  </div>
+  {% endif %}
+
+</main>
+</body>
+</html>

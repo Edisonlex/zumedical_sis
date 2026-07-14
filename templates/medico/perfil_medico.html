@@ -1,0 +1,737 @@
+﻿{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zumedical — Mi Perfil</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        :root{--mg:#B03580;--mg-l:#CC4D99;--mg-d:#8A2563;--mg-bg:#FBF0F7;--mg-border:#E8AAD4;--text:#2A1020;--muted:#8A6070;--white:#fff;--bg:#FDF5FA;--sw:260px;--error:#C0392B;--success:#2E7D32}
+        @keyframes pageIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+        body{font-family:'DM Sans',sans-serif;background:var(--bg);min-height:100vh;display:flex;opacity:0;animation:pageIn .35s ease .05s forwards}
+
+        /* ── SIDEBAR ── */
+        .sidebar{width:var(--sw);min-height:100vh;background:linear-gradient(175deg,#8A2563 0%,#B03580 55%,#CC4D99 100%);display:flex;flex-direction:column;position:sticky;top:0;left:0;z-index:100;align-self:flex-start;height:100vh;overflow-y:auto;flex-shrink:0}
+        .sb-brand{padding:2rem 1.5rem 1.5rem;border-bottom:1px solid rgba(255,255,255,0.12);display:flex;align-items:center;gap:0.75rem}
+        .sb-logo{width:44px;height:44px;background:white;border-radius:50%;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+        .sb-logo img{width:40px;height:40px;object-fit:contain}
+        .sb-brand-text h2{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;color:white;line-height:1}
+        .sb-brand-text span{font-size:0.72rem;color:rgba(255,255,255,0.7);letter-spacing:0.1em;text-transform:uppercase}
+        .sb-user{padding:1.2rem 1.5rem;border-bottom:1px solid rgba(255,255,255,0.12);display:flex;align-items:center;gap:0.75rem;text-decoration:none;background:rgba(255,255,255,0.18)}
+        .sb-avatar{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:500;color:white;flex-shrink:0;text-transform:uppercase}
+        .sb-user-info{flex:1;min-width:0}
+        .sb-user-info p{font-size:0.72rem;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.15rem}
+        .sb-user-info h3{font-size:0.9rem;font-weight:500;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .sb-user-arrow{flex-shrink:0}
+        .sb-user-arrow svg{width:14px;height:14px;stroke:white;fill:none;stroke-width:2}
+        .sb-nav{flex:1;padding:1rem 0.75rem}
+        .nav-lbl{font-size:0.7rem;color:rgba(255,255,255,0.5);letter-spacing:0.1em;text-transform:uppercase;padding:0.5rem 0.75rem;margin-top:0.5rem}
+        .nav-item{display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:10px;color:rgba(255,255,255,0.85);text-decoration:none;font-size:0.9rem;font-weight:400;transition:all 0.2s;margin-bottom:0.25rem}
+        .nav-item:hover,.nav-item.active{background:rgba(255,255,255,0.18);color:white}
+        .nav-item svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;flex-shrink:0}
+        .sb-footer{padding:1rem 0.75rem;border-top:1px solid rgba(255,255,255,0.12)}
+        .btn-logout{display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:10px;color:rgba(255,255,255,0.8);text-decoration:none;font-size:0.9rem;transition:all 0.2s;width:100%}
+        .btn-logout:hover{background:rgba(255,255,255,0.15);color:white}
+        .btn-logout svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8}
+
+        /* ── MAIN ── */
+        .main{flex:1;padding:2.5rem;min-height:100vh;overflow-y:auto}
+        .page-header{margin-bottom:2rem}
+        .page-header h1{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:600;color:var(--text);margin-bottom:0.25rem}
+        .page-header p{color:var(--muted);font-size:0.9rem;font-weight:300}
+
+        /* ALERTS */
+        .alert{padding:0.85rem 1.25rem;border-radius:12px;font-size:0.88rem;display:flex;align-items:center;gap:0.6rem;margin-bottom:1.5rem}
+        .alert svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0}
+        .alert-success{background:#E8F5E9;color:var(--success);border:1px solid #C8E6C9}
+        .alert-error{background:#FFEBEE;color:var(--error);border:1px solid #FFCDD2}
+
+        /* HERO */
+        .profile-hero{background:var(--white);border-radius:16px;border:1px solid var(--mg-border);padding:2rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:1.5rem;position:relative;overflow:hidden}
+        .profile-hero::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:linear-gradient(180deg,var(--mg-d),var(--mg-l))}
+        .profile-big-avatar{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--mg-d),var(--mg-l));display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:600;color:white;flex-shrink:0;text-transform:uppercase}
+        .profile-info h2{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:600;color:var(--text);margin-bottom:0.2rem}
+        .profile-info p{font-size:0.85rem;color:var(--muted);font-weight:300}
+        .profile-badge{display:inline-flex;align-items:center;gap:0.4rem;padding:0.3rem 0.8rem;background:var(--mg-bg);border:1px solid var(--mg-border);border-radius:20px;font-size:0.75rem;font-weight:500;color:var(--mg-d);margin-top:0.5rem}
+        .profile-badge svg{width:12px;height:12px;stroke:var(--mg);fill:none;stroke-width:2}
+
+        /* TABS */
+        .tabs{display:flex;gap:0.5rem;margin-bottom:1.5rem;border-bottom:1px solid var(--mg-border)}
+        .tab-btn{padding:0.7rem 1.25rem;border:none;background:none;font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:400;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all 0.2s;display:flex;align-items:center;gap:0.5rem}
+        .tab-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8}
+        .tab-btn:hover{color:var(--mg)}
+        .tab-btn.active{color:var(--mg);border-bottom-color:var(--mg);font-weight:500}
+        .tab-panel{display:none}
+        .tab-panel.active{display:block}
+
+        /* FORM CARD */
+        .form-card{background:var(--white);border-radius:16px;border:1px solid var(--mg-border);padding:2rem;margin-bottom:1.5rem}
+        .form-card-title{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;color:var(--text);margin-bottom:1.5rem;padding-bottom:0.75rem;border-bottom:1px solid var(--mg-border);display:flex;align-items:center;gap:0.5rem}
+        .form-card-title svg{width:18px;height:18px;stroke:var(--mg);fill:none;stroke-width:1.8}
+        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+        .form-group{margin-bottom:1.2rem}
+        .form-group label{display:block;font-size:0.78rem;font-weight:500;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.5rem}
+        .input-wrap{position:relative}
+        /* Solo el SVG-icono (no el btn) recibe el estilo posicionado */
+        .input-wrap > svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:var(--mg-border);fill:none;stroke-width:1.8;pointer-events:none;transition:stroke 0.2s}
+        .input-wrap:focus-within > svg{stroke:var(--mg)}
+        .form-group input{width:100%;padding:0.8rem 1rem 0.8rem 2.6rem;border:1.5px solid var(--mg-border);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:0.9rem;color:var(--text);background:var(--white);transition:all 0.2s;outline:none}
+        .form-group input:focus{border-color:var(--mg);box-shadow:0 0 0 4px rgba(176,53,128,0.08)}
+        .form-group input::placeholder{color:#D4A8C4}
+        .form-group input[readonly]{background:var(--mg-bg);color:var(--muted);cursor:not-allowed}
+        .hint{font-size:0.75rem;color:var(--muted);margin-top:0.35rem;font-weight:300}
+        /* Input con ojo: padding derecho para no tapar el texto */
+        .input-wrap.has-eye input{padding-right:2.8rem}
+        /* Ojo: posicionado a la derecha, fuera del flujo del SVG genérico */
+        .eye-btn{position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:4px;display:flex;align-items:center;justify-content:center;border-radius:6px;transition:background 0.15s;z-index:2}
+        .eye-btn:hover{background:var(--mg-bg)}
+        .eye-btn svg{width:16px;height:16px;stroke:var(--muted);fill:none;stroke-width:1.8;display:block;transition:stroke 0.2s}
+        .eye-btn:hover svg{stroke:var(--mg)}
+
+        /* PASSWORD STRENGTH */
+        .strength-bar{height:4px;border-radius:4px;background:var(--mg-border);margin-top:0.5rem;overflow:hidden}
+        .strength-fill{height:100%;border-radius:4px;transition:all 0.3s;width:0}
+
+        /* SECURITY */
+        .security-item{display:flex;align-items:center;justify-content:space-between;padding:1.25rem 0;border-bottom:1px solid rgba(232,170,212,0.3)}
+        .security-item:last-child{border-bottom:none;padding-bottom:0}
+        .security-item-info{display:flex;align-items:center;gap:0.75rem}
+        .security-icon{width:38px;height:38px;border-radius:10px;background:var(--mg-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+        .security-icon svg{width:18px;height:18px;stroke:var(--mg);fill:none;stroke-width:1.8}
+        .security-item-text h4{font-size:0.9rem;font-weight:500;color:var(--text);margin-bottom:0.15rem}
+        .security-item-text p{font-size:0.78rem;color:var(--muted);font-weight:300}
+        .badge-active{display:inline-flex;padding:0.2rem 0.65rem;border-radius:20px;font-size:0.72rem;font-weight:500;background:#E8F5E9;color:#2E7D32}
+        .badge-warn{display:inline-flex;padding:0.2rem 0.65rem;border-radius:20px;font-size:0.72rem;font-weight:500;background:#FFF3E0;color:#E65100}
+
+        /* BUTTONS */
+        .btn-primary{display:inline-flex;align-items:center;gap:0.5rem;padding:0.8rem 1.75rem;background:linear-gradient(135deg,var(--mg-d),var(--mg-l));color:white;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:500;cursor:pointer;transition:opacity 0.2s}
+        .btn-primary:hover{opacity:0.9}
+        .btn-primary svg{width:16px;height:16px;stroke:white;fill:none;stroke-width:2}
+        .btn-secondary{display:inline-flex;align-items:center;gap:0.5rem;padding:0.8rem 1.75rem;background:transparent;color:var(--mg);border:1.5px solid var(--mg-border);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:500;cursor:pointer;transition:all 0.2s;text-decoration:none}
+        .btn-secondary:hover{background:var(--mg-bg);border-color:var(--mg)}
+        .btn-secondary svg{width:16px;height:16px;stroke:var(--mg);fill:none;stroke-width:2}
+        .form-actions{display:flex;gap:0.75rem;align-items:center;margin-top:1.5rem}
+
+        @media(max-width:768px){body{flex-direction:column}.sidebar{width:100%;min-height:auto;position:relative;height:auto}.main{padding:1.5rem}.form-row{grid-template-columns:1fr}}
+
+        /* ── DYNAMISM ── */
+        /* Tab slide animation */
+        .tab-panel{display:none;animation:tabSlideIn .22s ease}
+        .tab-panel.active{display:block}
+        @keyframes tabSlideIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+        /* Hero pulse on avatar */
+        .profile-big-avatar{cursor:default;transition:transform 0.3s,box-shadow 0.3s}
+        .profile-big-avatar:hover{transform:scale(1.06);box-shadow:0 8px 28px rgba(176,53,128,0.35)}
+
+        /* Form card hover lift */
+        .form-card{transition:box-shadow 0.25s}
+        .form-card:hover{box-shadow:0 6px 24px rgba(176,53,128,0.1)}
+
+        /* Input focus animated border */
+        .form-group input{transition:border-color 0.2s,box-shadow 0.2s,transform 0.15s}
+        .form-group input:focus{transform:translateY(-1px)}
+
+        /* Label float color */
+        .form-group:focus-within label{color:var(--mg)}
+
+        /* Btn ripple */
+        .btn-primary{position:relative;overflow:hidden;transition:opacity 0.2s,transform 0.15s,box-shadow 0.2s}
+        .btn-primary:hover{opacity:1;transform:translateY(-2px);box-shadow:0 6px 20px rgba(138,37,99,0.3)}
+        .btn-primary:active{transform:translateY(0)}
+        .ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,0.35);transform:scale(0);animation:rippleAnim 0.5s ease-out forwards;pointer-events:none}
+        @keyframes rippleAnim{to{transform:scale(4);opacity:0}}
+
+        /* Security item hover */
+        .security-item{transition:background 0.15s,padding-left 0.15s;border-radius:10px;padding-left:0.5rem;margin:0 -0.5rem}
+        .security-item:hover{background:var(--mg-bg);padding-left:1rem}
+
+        /* Tab btn indicator pill */
+        .tab-btn{position:relative;transition:color 0.2s}
+        .tab-btn::after{content:'';position:absolute;bottom:-1px;left:50%;width:0;height:2px;background:var(--mg);border-radius:2px;transition:width 0.25s,left 0.25s}
+        .tab-btn:hover::after{width:60%;left:20%}
+        .tab-btn.active::after{width:100%;left:0}
+
+        /* Saving spinner on btn */
+        .btn-primary.saving{pointer-events:none;opacity:0.75}
+        .btn-primary.saving svg{animation:spin 0.8s linear infinite}
+        @keyframes spin{to{transform:rotate(360deg)}}
+
+        /* Field check icon */
+        .input-wrap .check-icon{position:absolute;right:11px;top:50%;transform:translateY(-50%);width:15px;height:15px;stroke:#43A047;fill:none;stroke-width:2.5;opacity:0;transition:opacity 0.2s;pointer-events:none}
+        .input-wrap.valid .check-icon{opacity:1}
+        .input-wrap.valid > svg:not(.check-icon){stroke:#43A047}
+        .input-wrap.invalid > svg:not(.eye-btn svg){stroke:var(--error)}
+
+        /* ── FIELD VALIDATION STATES ── */
+        .form-group input.input-ok    { border-color:#43A047; }
+        .form-group input.input-error { border-color:var(--error); }
+        .field-msg { font-size:0.75rem; margin-top:0.35rem; display:none; }
+        .field-msg.visible { display:block; }
+        .field-msg.ok    { color:#2E7D32; }
+        .field-msg.error { color:var(--error); }
+
+        /* ── CHAR COUNTER ── */
+        .char-counter { font-size:0.72rem; color:var(--muted); float:right; transition:color 0.2s; }
+        .char-counter.warn { color:var(--error); }
+
+        /* eye-btn CSS moved to main input-wrap section */
+
+        /* ── MATCH INDICATOR ── */
+        .match-indicator { display:flex; align-items:center; gap:0.4rem; font-size:0.75rem; margin-top:0.35rem; display:none; }
+        .match-indicator.visible { display:flex; }
+        .match-indicator.ok    { color:#2E7D32; }
+        .match-indicator.error { color:var(--error); }
+        .match-indicator svg { width:13px; height:13px; stroke:currentColor; fill:none; stroke-width:2.5; flex-shrink:0; }
+
+        /* ── SECURITY SCORE ── */
+        .security-score { display:flex; flex-direction:column; gap:0.4rem; margin-bottom:1.5rem; padding:1rem 1.25rem; background:var(--mg-bg); border:1px solid var(--mg-border); border-radius:12px; }
+        .security-score-label { font-size:0.78rem; font-weight:500; color:var(--muted); display:flex; justify-content:space-between; }
+        .security-score-label span { font-weight:600; }
+        .security-score-bar { height:6px; background:#e0e0e0; border-radius:6px; overflow:hidden; }
+        .security-score-fill { height:100%; border-radius:6px; transition:all 0.5s ease; }
+
+        /* ── TOAST ── */
+        @keyframes toastIn  { from{opacity:0;transform:translateY(12px) scale(.96)} to{opacity:1;transform:translateY(0) scale(1)} }
+        @keyframes toastOut { from{opacity:1} to{opacity:0;transform:translateY(8px) scale(.95)} }
+        .toast { position:fixed; bottom:1.75rem; right:1.75rem; background:white; border-radius:12px; padding:0.85rem 1.2rem; display:flex; align-items:center; gap:0.65rem; box-shadow:0 8px 32px rgba(138,37,99,0.18); border:1px solid var(--mg-border); z-index:999; font-size:0.875rem; color:var(--text); animation:toastIn .3s ease forwards; max-width:300px; }
+        .toast.error { border-color:#FFCDD2; }
+        .toast svg { width:15px; height:15px; stroke:#43A047; fill:none; stroke-width:2.5; flex-shrink:0; }
+        .toast.error svg { stroke:var(--error); }
+        .toast-out { animation:toastOut .25s ease forwards; }
+
+        /* ── UNSAVED INDICATOR ── */
+        .unsaved-dot { width:8px; height:8px; border-radius:50%; background:#FB8C00; display:inline-block; margin-left:0.4rem; opacity:0; transition:opacity 0.3s; }
+        .unsaved-dot.visible { opacity:1; }
+
+        /* ── NAV TRANSITION ── */
+        .nav-exit { transition:opacity .22s ease, transform .22s ease; }
+    </style>
+</head>
+<body>
+
+{% include 'medico/sidebar_medico.html' %}
+
+<main class="main">
+    <div class="page-header">
+        <h1>Mi Perfil</h1>
+        <p>Administra tu información personal y seguridad de cuenta</p>
+    </div>
+
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">
+        <svg viewBox="0 0 24 24">{% if message.tags == 'error' %}<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>{% else %}<polyline points="20 6 9 17 4 12"/>{% endif %}</svg>
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- HERO -->
+    <div class="profile-hero">
+        <div class="profile-big-avatar">{{ request.user.first_name|slice:":1" }}{{ request.user.last_name|slice:":1"|default:"M" }}</div>
+        <div class="profile-info">
+            <h2>Dr(a). {{ request.user.get_full_name|default:request.user.username }}</h2>
+            <p>{{ request.user.email|default:"Sin correo registrado" }}</p>
+            <span class="profile-badge">
+                <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                Médico
+            </span>
+        </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+        <button class="tab-btn active" onclick="showTab('datos', this)">
+            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Datos personales
+        </button>
+        <button class="tab-btn" onclick="showTab('password', this)">
+            <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Contraseña
+        </button>
+        <button class="tab-btn" onclick="showTab('seguridad', this)">
+            <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Seguridad
+        </button>
+    </div>
+
+    <!-- TAB: DATOS -->
+    <div class="tab-panel active" id="tab-datos">
+        <div class="form-card">
+            <p class="form-card-title">
+                <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                Información personal
+                <span class="unsaved-dot" id="unsaved-dot-datos" title="Cambios sin guardar"></span>
+            </p>
+            <form method="POST" id="form-datos" novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="action" value="perfil">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nombre <span class="char-counter" id="cc-nombre">0/20</span></label>
+                        <div class="input-wrap">
+                            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            <input type="text" name="first_name" id="inp-nombre"
+                                value="{{ request.user.first_name }}"
+                                placeholder="Tu nombre"
+                                maxlength="20"
+                                autocomplete="given-name">
+                            <svg class="check-icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                        <span class="field-msg" id="msg-nombre"></span>
+                    </div>
+                    <div class="form-group">
+                        <label>Apellidos <span class="char-counter" id="cc-apellido">0/20</span></label>
+                        <div class="input-wrap">
+                            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            <input type="text" name="last_name" id="inp-apellido"
+                                value="{{ request.user.last_name }}"
+                                placeholder="Tus apellidos"
+                                maxlength="20"
+                                autocomplete="family-name">
+                            <svg class="check-icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                        <span class="field-msg" id="msg-apellido"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Correo electrónico</label>
+                    <div class="input-wrap">
+                        <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                        <input type="email" name="email" id="inp-email"
+                            value="{{ request.user.email }}"
+                            placeholder="tucorreo@email.com"
+                            autocomplete="email">
+                        <svg class="check-icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                    <span class="field-msg" id="msg-email"></span>
+                </div>
+                <div class="form-group">
+                    <label>Usuario</label>
+                    <div class="input-wrap">
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                        <input type="text" value="{{ request.user.username }}" readonly>
+                    </div>
+                    <p class="hint">El nombre de usuario no puede cambiarse.</p>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary" id="btn-guardar-datos">
+                        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                        Guardar cambios
+                    </button>
+                    <a href="{% url 'medico_dashboard' %}" class="btn-secondary" data-nav>
+                        <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                        Volver
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- TAB: CONTRASEÑA -->
+    <div class="tab-panel" id="tab-password">
+        <div class="form-card">
+            <p class="form-card-title">
+                <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                Cambiar contraseña
+            </p>
+            <form method="POST" id="form-password" novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="action" value="password">
+                <div class="form-group">
+                    <label>Contraseña actual</label>
+                    <div class="input-wrap has-eye">
+                        <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        <input type="password" name="password_actual" id="inp-actual" placeholder="Tu contraseña actual" required autocomplete="current-password">
+                        <button type="button" class="eye-btn" onclick="toggleEye('inp-actual', this)">
+                            <svg viewBox="0 0 24 24" class="eye-icon"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nueva contraseña</label>
+                        <div class="input-wrap has-eye">
+                            <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                            <input type="password" name="password_nuevo" id="passwordNuevo" placeholder="Mínimo 8 caracteres" required autocomplete="new-password" oninput="checkStrength(this.value); checkMatch()">
+                            <button type="button" class="eye-btn" onclick="toggleEye('passwordNuevo', this)">
+                                <svg viewBox="0 0 24 24" class="eye-icon"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            </button>
+                        </div>
+                        <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+                        <p class="hint" id="strengthText">Ingresa una contraseña</p>
+                    </div>
+                    <div class="form-group">
+                        <label>Confirmar contraseña</label>
+                        <div class="input-wrap has-eye">
+                            <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                            <input type="password" name="password_confirmar" id="inp-confirmar" placeholder="Repite la nueva contraseña" required autocomplete="new-password" oninput="checkMatch()">
+                            <button type="button" class="eye-btn" onclick="toggleEye('inp-confirmar', this)">
+                                <svg viewBox="0 0 24 24" class="eye-icon"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            </button>
+                        </div>
+                        <div class="match-indicator" id="match-indicator">
+                            <svg viewBox="0 0 24 24" id="match-icon"></svg>
+                            <span id="match-text"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary" id="btn-actualizar-pass">
+                        <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        Actualizar contraseña
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- TAB: SEGURIDAD -->
+    <div class="tab-panel" id="tab-seguridad">
+        <div class="form-card">
+            <p class="form-card-title">
+                <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Estado de seguridad
+            </p>
+
+            <!-- SCORE BAR -->
+            <!-- datos para JS sin mezclar Django tags en script -->
+            <span id="score-data"
+                data-email="{% if request.user.email %}1{% else %}0{% endif %}"
+                data-firstname="{% if request.user.first_name %}1{% else %}0{% endif %}"
+                data-lastname="{% if request.user.last_name %}1{% else %}0{% endif %}"
+                style="display:none"></span>
+
+            <div class="security-score">
+                <div class="security-score-label">
+                    Nivel de seguridad de la cuenta
+                    <span id="score-label">Calculando...</span>
+                </div>
+                <div class="security-score-bar">
+                    <div class="security-score-fill" id="score-fill" style="width:0%"></div>
+                </div>
+            </div>
+
+            <div class="security-item">
+                <div class="security-item-info">
+                    <div class="security-icon"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+                    <div class="security-item-text">
+                        <h4>Contraseña</h4>
+                        <p>Protege tu cuenta con una contraseña segura</p>
+                    </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:0.6rem;">
+                    <span class="badge-active">Configurada</span>
+                    <button type="button" class="btn-secondary" style="padding:0.35rem 0.8rem;font-size:0.78rem;" onclick="showTab('password', document.querySelectorAll('.tab-btn')[1])">Cambiar</button>
+                </div>
+            </div>
+            <div class="security-item">
+                <div class="security-item-info">
+                    <div class="security-icon"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+                    <div class="security-item-text">
+                        <h4>Correo electrónico</h4>
+                        <p>{{ request.user.email|default:"No registrado" }}</p>
+                    </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:0.6rem;">
+                    {% if request.user.email %}<span class="badge-active">Registrado</span>{% else %}<span class="badge-warn">Pendiente</span>{% endif %}
+                    <button type="button" class="btn-secondary" style="padding:0.35rem 0.8rem;font-size:0.78rem;" onclick="showTab('datos', document.querySelectorAll('.tab-btn')[0])">Editar</button>
+                </div>
+            </div>
+            <div class="security-item">
+                <div class="security-item-info">
+                    <div class="security-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>
+                    <div class="security-item-text">
+                        <h4>Nombre completo</h4>
+                        <p>{{ request.user.get_full_name|default:"No registrado" }}</p>
+                    </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:0.6rem;">
+                    {% if request.user.first_name %}<span class="badge-active">Completo</span>{% else %}<span class="badge-warn">Incompleto</span>{% endif %}
+                    <button type="button" class="btn-secondary" style="padding:0.35rem 0.8rem;font-size:0.78rem;" onclick="showTab('datos', document.querySelectorAll('.tab-btn')[0])">Completar</button>
+                </div>
+            </div>
+            <div class="security-item">
+                <div class="security-item-info">
+                    <div class="security-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+                    <div class="security-item-text">
+                        <h4>Rol de cuenta</h4>
+                        <p>Tipo de acceso asignado en el sistema</p>
+                    </div>
+                </div>
+                <span class="badge-active">Médico</span>
+            </div>
+            <div class="security-item">
+                <div class="security-item-info">
+                    <div class="security-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>
+                    <div class="security-item-text">
+                        <h4>Usuario</h4>
+                        <p>{{ request.user.username }}</p>
+                    </div>
+                </div>
+                <span class="badge-active">Activo</span>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<script>
+/* ══ TABS ══ */
+function showTab(name, btn) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    btn.classList.add('active');
+}
+
+/* ══ RIPPLE ══ */
+function addRipple(btn, e) {
+    var r = document.createElement('span');
+    r.className = 'ripple';
+    var rect = btn.getBoundingClientRect();
+    var size = Math.max(rect.width, rect.height);
+    r.style.cssText = 'width:'+size+'px;height:'+size+'px;left:'+(e.clientX-rect.left-size/2)+'px;top:'+(e.clientY-rect.top-size/2)+'px';
+    btn.appendChild(r);
+    setTimeout(function(){ r.remove(); }, 520);
+}
+document.querySelectorAll && document.addEventListener('DOMContentLoaded', function(){
+    document.querySelectorAll('.btn-primary').forEach(function(btn){
+        btn.addEventListener('click', function(e){ addRipple(this, e); });
+    });
+});
+
+/* ══ EYE TOGGLE ══ */
+function toggleEye(inputId, btn) {
+    var inp = document.getElementById(inputId);
+    var showing = inp.type === 'text';
+    inp.type = showing ? 'password' : 'text';
+    btn.querySelector('svg').innerHTML = showing
+        ? '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>'
+        : '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>';
+    btn.title = showing ? 'Mostrar contraseña' : 'Ocultar contraseña';
+}
+
+/* ══ PASSWORD STRENGTH ══ */
+function checkStrength(val) {
+    const fill = document.getElementById('strengthFill');
+    const text = document.getElementById('strengthText');
+    let score = 0;
+    if (val.length >= 8) score++;
+    if (/[A-Z]/.test(val)) score++;
+    if (/[0-9]/.test(val)) score++;
+    if (/[^A-Za-z0-9]/.test(val)) score++;
+    const levels = [
+        { w: '0%',   color: 'transparent', label: 'Ingresa una contraseña' },
+        { w: '25%',  color: '#E53935',      label: '⚠ Contraseña débil' },
+        { w: '50%',  color: '#FB8C00',      label: '◑ Contraseña regular' },
+        { w: '75%',  color: '#FDD835',      label: '◕ Contraseña buena' },
+        { w: '100%', color: '#43A047',      label: '✓ Contraseña fuerte' },
+    ];
+    fill.style.width = levels[score].w;
+    fill.style.background = levels[score].color;
+    text.textContent = levels[score].label;
+    text.style.color = score === 0 ? '' : levels[score].color;
+}
+
+/* ══ CONFIRM MATCH ══ */
+function checkMatch() {
+    var n = document.getElementById('passwordNuevo');
+    var c = document.getElementById('inp-confirmar');
+    var ind = document.getElementById('match-indicator');
+    var icon = document.getElementById('match-icon');
+    var txt  = document.getElementById('match-text');
+    if (!c || !c.value) { ind.classList.remove('visible'); return; }
+    var ok = n.value === c.value;
+    ind.className = 'match-indicator visible ' + (ok ? 'ok' : 'error');
+    icon.innerHTML = ok
+        ? '<polyline points="20 6 9 17 4 12"/>'
+        : '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>';
+    txt.textContent = ok ? 'Las contraseñas coinciden' : 'Las contraseñas no coinciden';
+    c.className = ok ? 'input-ok' : 'input-error';
+}
+
+/* ══ TOAST ══ */
+function mostrarToast(msg, esError) {
+    var t = document.createElement('div');
+    t.className = 'toast' + (esError ? ' error' : '');
+    var icon = esError
+        ? '<svg viewBox="0 0 24 24" style="stroke:#C0392B"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>'
+        : '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>';
+    t.innerHTML = icon + '<span>' + msg + '</span>';
+    document.body.appendChild(t);
+    setTimeout(function() { t.classList.add('toast-out'); setTimeout(function() { t.remove(); }, 260); }, 3500);
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+
+    /* ── CHAR COUNTERS (solo letras) ── */
+    function setupNombreField(inputId, counterId, msgId) {
+        var inp = document.getElementById(inputId);
+        var cc  = document.getElementById(counterId);
+        var msg = document.getElementById(msgId);
+        if (!inp) return;
+
+        function update() {
+            var val = inp.value;
+            cc.textContent = val.length + '/20';
+            cc.className = 'char-counter' + (val.length >= 18 ? ' warn' : '');
+
+            var hasNum = /[0-9]/.test(val);
+            var wrap = inp.closest('.input-wrap');
+
+            if (val.length === 0) {
+                inp.className = '';
+                if (wrap) { wrap.classList.remove('valid','invalid'); }
+                msg.className = 'field-msg';
+            } else if (hasNum) {
+                inp.className = 'input-error';
+                if (wrap) { wrap.classList.remove('valid'); wrap.classList.add('invalid'); }
+                msg.className = 'field-msg visible error';
+                msg.textContent = 'No se permiten números en este campo';
+            } else {
+                inp.className = 'input-ok';
+                if (wrap) { wrap.classList.remove('invalid'); wrap.classList.add('valid'); }
+                msg.className = 'field-msg visible ok';
+                msg.textContent = '✓ Válido';
+            }
+            marcarUnsaved();
+        }
+
+        // Bloquear números en tiempo real
+        inp.addEventListener('keypress', function(e) {
+            if (/\d/.test(e.key)) { e.preventDefault(); }
+        });
+        inp.addEventListener('input', update);
+        update(); // init
+    }
+
+    setupNombreField('inp-nombre',   'cc-nombre',   'msg-nombre');
+    setupNombreField('inp-apellido', 'cc-apellido', 'msg-apellido');
+
+    /* ── EMAIL VALIDATION ── */
+    var inpEmail = document.getElementById('inp-email');
+    var msgEmail = document.getElementById('msg-email');
+    if (inpEmail) {
+        inpEmail.addEventListener('input', function() {
+            var val = this.value.trim();
+            var emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+            var wrap = this.closest('.input-wrap');
+            if (val.length === 0) {
+                this.className = '';
+                if (wrap) wrap.classList.remove('valid','invalid');
+                msgEmail.className = 'field-msg';
+            } else if (emailRe.test(val)) {
+                this.className = 'input-ok';
+                if (wrap) { wrap.classList.remove('invalid'); wrap.classList.add('valid'); }
+                msgEmail.className = 'field-msg visible ok';
+                msgEmail.textContent = '✓ Correo válido';
+            } else {
+                this.className = 'input-error';
+                if (wrap) { wrap.classList.remove('valid'); wrap.classList.add('invalid'); }
+                msgEmail.className = 'field-msg visible error';
+                msgEmail.textContent = 'Ingresa un correo válido (ej: nombre@dominio.com)';
+            }
+            marcarUnsaved();
+        });
+    }
+
+    /* ── UNSAVED INDICATOR ── */
+    var unsavedDot = document.getElementById('unsaved-dot-datos');
+    function marcarUnsaved() {
+        if (unsavedDot) unsavedDot.classList.add('visible');
+    }
+
+    var formDatos = document.getElementById('form-datos');
+    if (formDatos) {
+        formDatos.addEventListener('submit', function(e) {
+            var nombre  = document.getElementById('inp-nombre');
+            var apellido= document.getElementById('inp-apellido');
+            var email   = document.getElementById('inp-email');
+            var emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+            var errors  = [];
+
+            if (nombre && /[0-9]/.test(nombre.value))   errors.push('El nombre no puede contener números');
+            if (apellido && /[0-9]/.test(apellido.value)) errors.push('El apellido no puede contener números');
+            if (email && email.value && !emailRe.test(email.value.trim())) errors.push('El correo electrónico no es válido');
+
+            if (errors.length > 0) {
+                e.preventDefault();
+                mostrarToast(errors[0], true);
+                return;
+            }
+
+            if (unsavedDot) unsavedDot.classList.remove('visible');
+            var btn = document.getElementById('btn-guardar-datos');
+            if (btn) {
+                btn.classList.add('saving');
+                btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Guardando...';
+            }
+        });
+    }
+
+    /* ── PASSWORD FORM VALIDATION ── */
+    var formPass = document.getElementById('form-password');
+    if (formPass) {
+        formPass.addEventListener('submit', function(e) {
+            var nuevo    = document.getElementById('passwordNuevo');
+            var confirmar= document.getElementById('inp-confirmar');
+            if (nuevo && confirmar && nuevo.value !== confirmar.value) {
+                e.preventDefault();
+                mostrarToast('Las contraseñas no coinciden', true);
+                return;
+            }
+            if (nuevo && nuevo.value.length < 8) {
+                e.preventDefault();
+                mostrarToast('La contraseña debe tener al menos 8 caracteres', true);
+                return;
+            }
+            var btn = document.getElementById('btn-actualizar-pass');
+            if (btn) {
+                btn.classList.add('saving');
+                btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Actualizando...';
+            }
+        });
+    }
+
+    /* ── SECURITY SCORE BAR ── */
+    var scoreFill  = document.getElementById('score-fill');
+    var scoreLabel = document.getElementById('score-label');
+    if (scoreFill) {
+        var scoreEl = document.getElementById('score-data');
+        var pts = 1; // contraseña siempre configurada
+        if (scoreEl && scoreEl.dataset.email === '1')     pts++;
+        if (scoreEl && scoreEl.dataset.firstname === '1') pts++;
+        if (scoreEl && scoreEl.dataset.lastname === '1')  pts++;
+
+        var pct = Math.round((pts / 4) * 100);
+        var colors = { 25: '#E53935', 50: '#FB8C00', 75: '#FDD835', 100: '#43A047' };
+        var labels = { 25: 'Baja', 50: 'Media', 75: 'Buena', 100: 'Excelente' };
+        setTimeout(function() {
+            scoreFill.style.width = pct + '%';
+            scoreFill.style.background = colors[pct] || '#43A047';
+            scoreLabel.textContent = (labels[pct] || 'Excelente') + ' (' + pct + '%)';
+            scoreLabel.style.color = colors[pct] || '#43A047';
+        }, 400);
+    }
+
+    /* ── NAV EXIT TRANSITION ── */
+    document.querySelectorAll('[data-nav]').forEach(function(link) {
+        link.addEventListener('click', function(e) {
+            var href = this.getAttribute('href');
+            if (!href || href.startsWith('#')) return;
+            e.preventDefault();
+            document.body.style.transition = 'opacity .22s ease, transform .22s ease';
+            document.body.style.opacity = '0';
+            document.body.style.transform = 'translateY(-8px)';
+            setTimeout(function() { window.location.href = href; }, 230);
+        });
+    });
+
+});
+</script>
+</body>
+</html>

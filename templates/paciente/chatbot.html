@@ -1,0 +1,349 @@
+﻿<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Asistente Virtual — Zumedical</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root{
+      --mg:#b03580;--mg-l:#cc4d99;--mg-d:#8a2563;
+      --mg-bg:#fbf0f7;--mg-border:#e8aad4;
+      --text:#2a1020;--muted:#8a6070;--white:#fff;--bg:#fdf5fa;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:"DM Sans",sans-serif;background:var(--bg);min-height:100vh;display:flex;}
+
+    /* SIDEBAR */
+    .sidebar{width:260px;min-height:100vh;background:linear-gradient(175deg,#8a2563 0%,#b03580 55%,#cc4d99 100%);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:200;}
+    .sb-brand{padding:2rem 1.5rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:.75rem;}
+    .sb-logo{width:44px;height:44px;background:white;border-radius:50%;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+    .sb-logo img{width:40px;height:40px;object-fit:contain;}
+    .sb-brand h2{font-family:"Cormorant Garamond",serif;font-size:1.4rem;font-weight:600;color:white;line-height:1;}
+    .sb-brand span{font-size:.72rem;color:rgba(255,255,255,.7);letter-spacing:.1em;text-transform:uppercase;}
+    .sb-user{padding:1.2rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:.75rem;text-decoration:none;}
+    .sb-av{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:500;color:white;text-transform:uppercase;flex-shrink:0;}
+    .sb-user-info p{font-size:.78rem;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.08em;}
+    .sb-user-info h3{font-size:.9rem;font-weight:500;color:white;}
+    .sb-nav{flex:1;padding:1rem .75rem;}
+    .nav-lbl{font-size:.7rem;color:rgba(255,255,255,.5);letter-spacing:.1em;text-transform:uppercase;padding:.5rem .75rem;margin-top:.5rem;}
+    .nav-item{display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;border-radius:10px;color:rgba(255,255,255,.85);text-decoration:none;font-size:.9rem;font-weight:400;transition:all .2s;margin-bottom:.25rem;}
+    .nav-item:hover,.nav-item.active{background:rgba(255,255,255,.18);color:white;}
+    .nav-badge{margin-left:auto;background:rgba(255,255,255,.25);color:white;font-size:.68rem;font-weight:500;padding:.15rem .5rem;border-radius:20px;}
+    .sb-footer{padding:1rem .75rem;border-top:1px solid rgba(255,255,255,.12);}
+    .btn-logout{display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;border-radius:10px;color:rgba(255,255,255,.8);text-decoration:none;font-size:.9rem;transition:all .2s;}
+    .btn-logout:hover{background:rgba(255,255,255,.15);color:white;}
+
+    /* MAIN */
+    .main{margin-left:260px;flex:1;padding:2.5rem;display:flex;flex-direction:column;height:100vh;overflow:hidden;}
+
+    /* HEADER */
+    .page-header{margin-bottom:1.5rem;flex-shrink:0;}
+    .page-header .sub{font-size:.85rem;color:var(--muted);font-weight:300;margin-bottom:.3rem;}
+    .page-header h1{font-family:"Cormorant Garamond",serif;font-size:2rem;font-weight:600;color:var(--text);}
+
+    /* CHAT CONTAINER */
+    .chat-wrapper{
+      flex:1;display:flex;flex-direction:column;
+      background:var(--white);border-radius:18px;
+      border:1px solid var(--mg-border);
+      box-shadow:0 4px 24px rgba(176,53,128,.07);
+      overflow:hidden;min-height:0;
+    }
+
+    /* CHAT HEADER */
+    .chat-header{
+      padding:1rem 1.5rem;background:linear-gradient(135deg,var(--mg-d),var(--mg-l));
+      display:flex;align-items:center;gap:.85rem;flex-shrink:0;
+    }
+    .bot-av{
+      width:42px;height:42px;border-radius:50%;
+      background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.4);
+      display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;
+    }
+    .bot-info h3{font-size:1rem;font-weight:600;color:white;}
+    .bot-info p{font-size:.75rem;color:rgba(255,255,255,.75);}
+    .bot-status{display:flex;align-items:center;gap:.4rem;margin-top:.2rem;}
+    .dot-on{width:8px;height:8px;border-radius:50%;background:#4ade80;box-shadow:0 0 6px #4ade80;}
+    .bot-status span{font-size:.72rem;color:rgba(255,255,255,.75);}
+
+    /* MENSAJES */
+    .chat-messages{
+      flex:1;overflow-y:auto;padding:1.5rem;
+      display:flex;flex-direction:column;gap:1rem;
+      scroll-behavior:smooth;
+    }
+    .chat-messages::-webkit-scrollbar{width:6px;}
+    .chat-messages::-webkit-scrollbar-thumb{background:var(--mg-border);border-radius:3px;}
+
+    .msg{display:flex;gap:.75rem;max-width:85%;}
+    .msg.bot{align-self:flex-start;}
+    .msg.user{align-self:flex-end;flex-direction:row-reverse;}
+
+    .msg-av{
+      width:34px;height:34px;border-radius:50%;flex-shrink:0;
+      display:flex;align-items:center;justify-content:center;font-size:.85rem;
+    }
+    .msg.bot .msg-av{background:linear-gradient(135deg,var(--mg-d),var(--mg-l));color:white;}
+    .msg.user .msg-av{background:var(--mg-bg);color:var(--mg-d);font-weight:600;font-size:.75rem;border:1px solid var(--mg-border);}
+
+    .msg-bubble{
+      padding:.8rem 1rem;border-radius:12px;font-size:.9rem;line-height:1.55;
+    }
+    .msg.bot .msg-bubble{
+      background:var(--mg-bg);border:1px solid var(--mg-border);
+      color:var(--text);border-top-left-radius:4px;
+    }
+    .msg.user .msg-bubble{
+      background:linear-gradient(135deg,var(--mg-d),var(--mg-l));
+      color:white;border-top-right-radius:4px;
+    }
+
+    /* BOTONES DE OPCIONES */
+    .opciones{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.5rem;padding-left:2.65rem;}
+    .btn-opcion{
+      padding:.5rem 1rem;border-radius:20px;
+      border:1.5px solid var(--mg-border);background:var(--white);
+      color:var(--mg-d);font-size:.83rem;font-weight:500;
+      cursor:pointer;transition:all .2s;font-family:"DM Sans",sans-serif;
+    }
+    .btn-opcion:hover{background:var(--mg);color:white;border-color:var(--mg);transform:translateY(-1px);}
+    .btn-opcion.cat{
+      display:flex;align-items:center;gap:.4rem;
+      background:var(--white);
+    }
+    .btn-opcion.cat:hover{background:var(--mg);}
+    .btn-volver{
+      padding:.45rem .9rem;border-radius:20px;
+      border:1px solid var(--mg-border);background:transparent;
+      color:var(--muted);font-size:.78rem;cursor:pointer;
+      font-family:"DM Sans",sans-serif;transition:all .2s;
+    }
+    .btn-volver:hover{color:var(--mg);border-color:var(--mg);}
+
+    /* TYPING INDICATOR */
+    .typing{display:flex;align-items:center;gap:.35rem;padding:.6rem .85rem;background:var(--mg-bg);border:1px solid var(--mg-border);border-radius:12px;border-top-left-radius:4px;width:fit-content;}
+    .typing span{width:7px;height:7px;border-radius:50%;background:var(--mg);animation:blink 1.4s infinite;}
+    .typing span:nth-child(2){animation-delay:.2s;}
+    .typing span:nth-child(3){animation-delay:.4s;}
+    @keyframes blink{0%,80%,100%{opacity:.2;transform:scale(.8);}40%{opacity:1;transform:scale(1);}}
+
+    /* FOOTER DISCLAIMER */
+    .chat-footer{
+      padding:.75rem 1.5rem;border-top:1px solid var(--mg-border);
+      background:var(--mg-bg);flex-shrink:0;
+    }
+    .chat-footer p{font-size:.75rem;color:var(--muted);text-align:center;line-height:1.4;}
+    .chat-footer strong{color:var(--mg-d);}
+
+    @media(max-width:768px){
+      .sidebar{display:none;}
+      .main{margin-left:0;padding:1rem;height:100svh;}
+    }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sb-brand">
+    <div class="sb-logo"><img src="/static/img/Logo.png" alt="Zumedical" /></div>
+    <div><h2>Zumedical</h2><span>Paciente</span></div>
+  </div>
+  <a href="{% url 'mi_perfil' %}" class="sb-user">
+    <div class="sb-av">{% if request.user.first_name %}{{ request.user.first_name|slice:":1" }}{{ request.user.last_name|slice:":1" }}{% else %}{{ request.user.username|slice:":1"|upper }}{% endif %}</div>
+    <div class="sb-user-info"><p>Mi perfil</p><h3>{{ request.user.get_full_name|default:request.user.username }}</h3></div>
+  </a>
+  <nav class="sb-nav">
+    <div class="nav-lbl">Menú</div>
+    <a href="{% url 'paciente_dashboard' %}" class="nav-item">🏠 Inicio</a>
+    <a href="{% url 'agendar_cita' %}" class="nav-item">📅 Agendar Cita</a>
+    <a href="{% url 'ver_citas' %}" class="nav-item">🗓 Mis Citas</a>
+    <div class="nav-lbl">Inteligencia Artificial</div>
+    <a href="{% url 'chatbot_page' %}" class="nav-item active">
+      💬 Asistente Virtual
+      <span class="nav-badge">IA</span>
+    </a>
+    <a href="{% url 'evaluar_riesgo' %}" class="nav-item">
+      🧬 Evaluación de Riesgo
+      <span class="nav-badge">IA</span>
+    </a>
+  </nav>
+  <div class="sb-footer">
+    <a href="{% url 'logout' %}" class="btn-logout">🚪 Cerrar sesión</a>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="page-header">
+    <p class="sub">Inteligencia Artificial · Prenatal</p>
+    <h1>Asistente Virtual</h1>
+  </div>
+
+  <div class="chat-wrapper">
+    <!-- HEADER DEL CHAT -->
+    <div class="chat-header">
+      <div class="bot-av">🤱</div>
+      <div class="bot-info">
+        <h3>Asistente Zumedical</h3>
+        <div class="bot-status">
+          <div class="dot-on"></div>
+          <span>En línea · Responde al instante</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- MENSAJES -->
+    <div class="chat-messages" id="chat-messages"></div>
+
+    <!-- FOOTER LEGAL -->
+    <div class="chat-footer">
+      <p>⚕️ Este asistente brinda <strong>información general</strong> y no reemplaza la consulta con tu médico tratante.</p>
+    </div>
+  </div>
+</main>
+
+<script>
+const ENDPOINT   = '{{ chatbot_endpoint }}';
+const CSRF_TOKEN = '{{ csrf_token }}';
+const USER_INICIALES = '{% if request.user.first_name %}{{ request.user.first_name|slice:":1" }}{{ request.user.last_name|slice:":1" }}{% else %}{{ request.user.username|slice:":1"|upper }}{% endif %}'.toUpperCase() || 'Yo';
+
+const messagesEl = document.getElementById('chat-messages');
+
+// ── Helpers de DOM ─────────────────────────────────────────────────────────
+function scrollBottom() {
+  setTimeout(() => { messagesEl.scrollTop = messagesEl.scrollHeight; }, 80);
+}
+
+function addMsg(tipo, html) {
+  const wrap = document.createElement('div');
+  wrap.className = `msg ${tipo}`;
+
+  const av = document.createElement('div');
+  av.className = 'msg-av';
+  av.textContent = tipo === 'bot' ? '🤱' : USER_INICIALES;
+
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+  bubble.innerHTML = html;
+
+  wrap.appendChild(av);
+  wrap.appendChild(bubble);
+  messagesEl.appendChild(wrap);
+  scrollBottom();
+  return wrap;
+}
+
+function addOpciones(botones, tipo = 'btn') {
+  const wrap = document.createElement('div');
+  wrap.className = 'opciones';
+  botones.forEach(b => {
+    const btn = document.createElement('button');
+    btn.className = tipo === 'cat' ? 'btn-opcion cat' : 'btn-opcion';
+    btn.innerHTML = b.label;
+    btn.onclick = () => { disableOpciones(); enviar(b.estado, b.label); };
+    wrap.appendChild(btn);
+  });
+  messagesEl.appendChild(wrap);
+  scrollBottom();
+}
+
+function addVolver() {
+  const wrap = document.createElement('div');
+  wrap.className = 'opciones';
+  const btn = document.createElement('button');
+  btn.className = 'btn-volver';
+  btn.textContent = '← Volver al menú principal';
+  btn.onclick = () => { disableOpciones(); enviar('volver', 'Volver al menú'); };
+  wrap.appendChild(btn);
+  messagesEl.appendChild(wrap);
+  scrollBottom();
+}
+
+function disableOpciones() {
+  messagesEl.querySelectorAll('.btn-opcion,.btn-volver').forEach(b => {
+    b.disabled = true;
+    b.style.opacity = '.45';
+    b.style.cursor = 'default';
+  });
+}
+
+function showTyping() {
+  const wrap = document.createElement('div');
+  wrap.className = 'msg bot';
+  wrap.id = 'typing-indicator';
+  wrap.innerHTML = `
+    <div class="msg-av">🤱</div>
+    <div class="typing"><span></span><span></span><span></span></div>
+  `;
+  messagesEl.appendChild(wrap);
+  scrollBottom();
+}
+
+function hideTyping() {
+  const el = document.getElementById('typing-indicator');
+  if (el) el.remove();
+}
+
+// ── API ────────────────────────────────────────────────────────────────────
+async function enviar(estado, textoUsuario = '') {
+  if (textoUsuario && textoUsuario !== 'inicio' && textoUsuario !== 'volver') {
+    addMsg('user', textoUsuario);
+  }
+
+  showTyping();
+
+  try {
+    const res = await fetch(ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': CSRF_TOKEN,
+      },
+      body: JSON.stringify({ estado }),
+    });
+    const data = await res.json();
+    hideTyping();
+    manejarRespuesta(data);
+  } catch (e) {
+    hideTyping();
+    addMsg('bot', '⚠️ Error de conexión. Por favor intenta nuevamente.');
+  }
+}
+
+function manejarRespuesta(data) {
+  if (data.tipo === 'bienvenida' || data.tipo === 'categorias') {
+    addMsg('bot', data.mensaje);
+    if (data.categorias && data.categorias.length) {
+      addOpciones(
+        data.categorias.map(c => ({
+          label: `${c.emoji} ${c.nombre}`,
+          estado: `cat:${c.slug}`,
+        })),
+        'cat'
+      );
+    }
+  } else if (data.tipo === 'preguntas') {
+    addMsg('bot', data.mensaje);
+    if (data.preguntas && data.preguntas.length) {
+      addOpciones(
+        data.preguntas.map(p => ({ label: p.pregunta, estado: `faq:${p.id}` }))
+      );
+    }
+    addVolver();
+  } else if (data.tipo === 'respuesta') {
+    addMsg('bot', data.mensaje);
+    addVolver();
+  } else {
+    addMsg('bot', data.mensaje || '⚠️ Opción no reconocida.');
+  }
+}
+
+// ── Inicio automático ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  enviar('inicio');
+});
+</script>
+</body>
+</html>

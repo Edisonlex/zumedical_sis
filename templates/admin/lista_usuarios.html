@@ -1,0 +1,626 @@
+﻿{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zumedical — Usuarios</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --mg:#B03580;--mg-l:#CC4D99;--mg-d:#8A2563;
+  --mg-bg:#FBF0F7;--mg-border:#E8AAD4;
+  --text:#2A1020;--muted:#8A6070;--white:#fff;--bg:#FDF5FA;--sw:260px;
+  --green:#1a7a4a;--green-bg:#edfaf3;--green-border:#a8e6c8;
+  --red:#b03030;--red-bg:#fdf0f0;--red-border:#f5aaaa;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);min-height:100vh;display:flex;opacity:0;animation:fadeIn .4s ease .05s forwards}
+@keyframes fadeIn{to{opacity:1}}
+
+/* SIDEBAR */
+.sidebar{width:var(--sw);height:100vh;background:linear-gradient(175deg,#8A2563 0%,#B03580 55%,#CC4D99 100%);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:200;overflow:hidden;transition:transform .3s ease;box-shadow:4px 0 24px rgba(138,37,99,.2)}
+.sb-brand{padding:1.75rem 1.5rem 1.25rem;border-bottom:1px solid rgba(255,255,255,0.12);display:flex;align-items:center;gap:0.75rem}
+.sb-logo{width:42px;height:42px;background:white;border-radius:50%;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.sb-logo img{width:38px;height:38px;object-fit:contain}
+.sb-brand-text h2{font-family:'Cormorant Garamond',serif;font-size:1.35rem;font-weight:600;color:white;line-height:1}
+.sb-brand-text span{font-size:0.7rem;color:rgba(255,255,255,0.65);letter-spacing:0.1em;text-transform:uppercase}
+.sb-user{padding:1rem 1.5rem;border-bottom:1px solid rgba(255,255,255,0.12);display:flex;align-items:center;gap:0.7rem}
+.sb-avatar{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:500;color:white;flex-shrink:0;text-transform:uppercase}
+.sb-user-info p{font-size:0.72rem;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.1rem}
+.sb-user-info h3{font-size:0.88rem;font-weight:500;color:white}
+.sb-nav{flex:1;padding:1rem 0.75rem;overflow-y:auto}
+.nav-lbl{font-size:0.68rem;color:rgba(255,255,255,0.45);letter-spacing:0.1em;text-transform:uppercase;padding:0.5rem 0.75rem;margin-top:0.75rem}
+.nav-item{display:flex;align-items:center;gap:0.7rem;padding:0.7rem 1rem;border-radius:10px;color:rgba(255,255,255,0.82);text-decoration:none;font-size:0.88rem;transition:all 0.2s;margin-bottom:0.2rem}
+.nav-badge{margin-left:auto;background:rgba(255,255,255,.25);color:white;font-size:.68rem;font-weight:600;padding:.15rem .5rem;border-radius:999px;min-width:20px;text-align:center}
+.nav-badge-alert{background:#e74c3c}
+.nav-item:hover,.nav-item.active{background:rgba(255,255,255,0.18);color:white}
+.nav-item i{width:18px;text-align:center;font-size:15px;flex-shrink:0}
+.sb-footer{padding:1rem 0.75rem;border-top:1px solid rgba(255,255,255,0.12)}
+.btn-logout{display:flex;align-items:center;gap:0.7rem;padding:0.7rem 1rem;border-radius:10px;color:rgba(255,255,255,0.75);text-decoration:none;font-size:0.88rem;transition:all 0.2s}
+.btn-logout:hover{background:rgba(255,255,255,0.15);color:white}
+.btn-logout i{width:17px;text-align:center;font-size:15px}
+
+/* MAIN */
+.mobile-topbar{display:none;align-items:center;justify-content:space-between;padding:1rem 1.25rem;background:linear-gradient(135deg,#8A2563,#CC4D99);position:fixed;top:0;left:0;right:0;z-index:300}
+.mobile-topbar-brand{display:flex;align-items:center;gap:.6rem}
+.mobile-topbar-brand img{width:32px;height:32px;background:white;border-radius:50%;padding:2px;object-fit:contain}
+.mobile-topbar-brand span{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;color:white}
+.hamburger{background:rgba(255,255,255,.15);border:none;border-radius:8px;padding:.5rem .65rem;cursor:pointer;display:flex;flex-direction:column;gap:4px}
+.hamburger span{display:block;width:20px;height:2px;background:white;border-radius:2px;transition:all .3s}
+.hamburger.open span:nth-child(1){transform:translateY(6px) rotate(45deg)}
+.hamburger.open span:nth-child(2){opacity:0}
+.hamburger.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:150;opacity:0;pointer-events:none;transition:opacity .3s}
+.sidebar-overlay.active{opacity:1;pointer-events:auto}
+.main{margin-left:var(--sw);flex:1;padding:2rem 2.5rem;min-height:100vh}
+
+/* HEADER */
+.page-header{margin-bottom:1.75rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+.page-header h1{font-family:'Cormorant Garamond',serif;font-size:1.9rem;font-weight:600;color:var(--text);margin-bottom:0.15rem}
+.page-header p{color:var(--muted);font-size:0.85rem;font-weight:300}
+.header-actions{display:flex;align-items:center;gap:0.75rem}
+.btn-new{display:inline-flex;align-items:center;gap:0.45rem;padding:0.6rem 1.2rem;background:linear-gradient(135deg,var(--mg-d),var(--mg-l));color:white;border-radius:9px;text-decoration:none;font-size:0.85rem;font-weight:500;transition:opacity 0.2s;white-space:nowrap;box-shadow:0 3px 10px rgba(176,53,128,0.25)}
+.btn-new:hover{opacity:0.88}
+.btn-new svg{width:14px;height:14px;stroke:white;fill:none;stroke-width:2.5}
+.btn-back{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.1rem;background:var(--white);color:var(--mg);border:1.5px solid var(--mg-border);border-radius:9px;text-decoration:none;font-size:0.85rem;font-weight:500;transition:all 0.2s}
+.btn-back:hover{background:var(--mg-bg);border-color:var(--mg)}
+.btn-back svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+
+/* STATS ROW */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.75rem}
+.stat-mini{background:var(--white);border:1px solid var(--mg-border);border-radius:12px;padding:1rem 1.25rem;display:flex;align-items:center;gap:0.85rem}
+.stat-mini-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.stat-mini-icon svg{width:18px;height:18px;fill:none;stroke-width:1.8}
+.icon-total{background:#FBF0F7}.icon-total svg{stroke:#8A2563}
+.icon-activos{background:#edfaf3}.icon-activos svg{stroke:#1a7a4a}
+.icon-inactivos{background:#fdf0f0}.icon-inactivos svg{stroke:#b03030}
+.icon-online{background:#E3F2FD}.icon-online svg{stroke:#1565C0}
+.stat-mini-info p{font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.1rem}
+.stat-mini-info strong{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:600;color:var(--text);line-height:1}
+
+/* MENSAJES */
+.mensaje{display:flex;align-items:center;gap:0.65rem;padding:0.8rem 1rem;border-radius:10px;font-size:0.875rem;margin-bottom:1.25rem;border:1px solid}
+.mensaje svg{width:15px;height:15px;fill:none;stroke-width:2;flex-shrink:0}
+.msg-success{background:var(--green-bg);border-color:var(--green-border);color:var(--green)}
+.msg-success svg{stroke:var(--green)}
+.msg-error{background:var(--red-bg);border-color:var(--red-border);color:var(--red)}
+.msg-error svg{stroke:var(--red)}
+
+/* FILTROS */
+.table-filters{display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;padding:1rem 1.25rem;border-bottom:1px solid var(--mg-border);background:var(--white)}
+.filter-btn{padding:0.35rem 0.9rem;border-radius:20px;font-size:0.78rem;font-weight:500;cursor:pointer;border:1.5px solid var(--mg-border);background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;transition:all 0.2s}
+.filter-btn.active,.filter-btn:hover{background:var(--mg-bg);border-color:var(--mg);color:var(--mg-d)}
+.search-wrap{position:relative;flex:1;min-width:180px}
+.search-wrap svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:15px;height:15px;stroke:var(--muted);fill:none;stroke-width:1.8}
+.search-wrap input{width:100%;padding:0.55rem 1rem 0.55rem 2.2rem;border:1.5px solid var(--mg-border);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:0.85rem;color:var(--text);outline:none;background:var(--bg);transition:all 0.2s}
+.search-wrap input:focus{border-color:var(--mg);background:var(--white);box-shadow:0 0 0 3px rgba(176,53,128,0.07)}
+.search-wrap input::placeholder{color:#C9A8BF}
+.table-count-pill{font-size:0.78rem;color:var(--muted);background:var(--mg-bg);padding:0.3rem 0.8rem;border-radius:20px;border:1px solid var(--mg-border);white-space:nowrap}
+
+/* TABLE */
+.table-card{background:var(--white);border-radius:16px;border:1px solid var(--mg-border);overflow:hidden;box-shadow:0 2px 12px rgba(176,53,128,0.06)}
+.table-wrapper{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:720px}
+thead tr{background:var(--mg-bg)}
+th{padding:0.75rem 1.1rem;text-align:left;font-size:0.68rem;font-weight:600;color:var(--mg-d);text-transform:uppercase;letter-spacing:0.1em;border-bottom:1px solid var(--mg-border);white-space:nowrap}
+td{padding:0.85rem 1.1rem;font-size:0.86rem;color:var(--text);border-bottom:1px solid rgba(232,170,212,0.25);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr{transition:background 0.15s}
+tbody tr:hover{background:#FDF5FA}
+tbody tr.inactivo td{opacity:0.55}
+
+/* USER CELL */
+.user-cell{display:flex;align-items:center;gap:0.75rem}
+.user-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--mg-d),var(--mg-l));display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:600;color:white;flex-shrink:0;text-transform:uppercase}
+.user-avatar.inactivo{background:linear-gradient(135deg,#aaa,#ccc)}
+.user-cell-info strong{display:block;font-size:0.86rem;font-weight:600;color:var(--text);line-height:1.2}
+.user-cell-info span{font-size:0.75rem;color:var(--muted);font-weight:300}
+
+/* NOMBRE CLICKEABLE */
+.nombre-link{cursor:pointer;transition:color 0.2s}
+.nombre-link:hover strong{color:var(--mg)}
+
+/* BADGES ROL */
+.badge{display:inline-flex;align-items:center;gap:0.32rem;padding:0.22rem 0.65rem;border-radius:20px;font-size:0.7rem;font-weight:600;letter-spacing:0.02em}
+.badge::before{content:'';width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.badge-admin{background:#FBF0F7;color:#8A2563;border:1px solid #E8AAD4}.badge-admin::before{background:#8A2563}
+.badge-medico{background:#E8F5E9;color:#2E7D32;border:1px solid #A5D6A7}.badge-medico::before{background:#2E7D32}
+.badge-secretaria{background:#E3F2FD;color:#1565C0;border:1px solid #90CAF9}.badge-secretaria::before{background:#1565C0}
+.badge-paciente{background:#FFF3E0;color:#E65100;border:1px solid #FFCC80}.badge-paciente::before{background:#E65100}
+.badge-other{background:#F5F5F5;color:#616161;border:1px solid #E0E0E0}.badge-other::before{background:#9E9E9E}
+
+/* SESION */
+.sesion-badge{display:inline-flex;align-items:center;gap:0.32rem;padding:0.22rem 0.65rem;border-radius:20px;font-size:0.7rem;font-weight:500}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.sesion-activa{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+.sesion-activa .dot{background:var(--green);animation:pulse 2s infinite}
+.sesion-inactiva{background:#f5f5f5;color:#999;border:1px solid #e0e0e0}
+.sesion-inactiva .dot{background:#ccc}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* CUENTA */
+.cuenta-badge{display:inline-flex;align-items:center;gap:0.32rem;padding:0.22rem 0.65rem;border-radius:20px;font-size:0.7rem;font-weight:500}
+.cuenta-activa{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+.cuenta-inactiva{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border)}
+
+/* ACCIONES */
+.td-actions{display:flex;align-items:center;gap:0.4rem;flex-wrap:nowrap}
+.btn-sm{display:inline-flex;align-items:center;gap:0.28rem;padding:0.3rem 0.7rem;border-radius:7px;font-size:0.74rem;font-weight:500;text-decoration:none;transition:all 0.18s;white-space:nowrap;border:1px solid;cursor:pointer;font-family:'DM Sans',sans-serif;line-height:1.4}
+.btn-sm svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2.2;flex-shrink:0}
+.btn-edit{background:var(--mg-bg);color:var(--mg-d);border-color:var(--mg-border)}
+.btn-edit:hover{background:var(--mg);color:white;border-color:var(--mg)}
+.btn-danger{background:#FEF0F0;color:#8B2020;border-color:#F5AAAA}
+.btn-danger:hover{background:#D63B3B;color:white;border-color:#D63B3B}
+.btn-desactivar{background:#FFF8E1;color:#7B5800;border-color:#FFD54F}
+.btn-desactivar:hover{background:#F57F17;color:white;border-color:#F57F17}
+.btn-activar{background:var(--green-bg);color:var(--green);border-color:var(--green-border)}
+.btn-activar:hover{background:var(--green);color:white;border-color:var(--green)}
+
+/* EMPTY */
+.empty-state{padding:3rem;text-align:center;color:var(--muted)}
+.empty-state svg{width:38px;height:38px;stroke:var(--mg-border);fill:none;stroke-width:1.5;margin:0 auto 0.75rem;display:block}
+.empty-state p{font-size:0.88rem}
+
+/* MODAL INFO */
+.modal-overlay{position:fixed;inset:0;background:rgba(42,16,32,0.5);backdrop-filter:blur(4px);z-index:500;display:flex;align-items:center;justify-content:center;padding:1.5rem;opacity:0;pointer-events:none;transition:opacity 0.2s}
+.modal-overlay.visible{opacity:1;pointer-events:all}
+.modal{background:white;border-radius:20px;width:100%;max-width:460px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 60px rgba(42,16,32,0.2);transform:translateY(16px) scale(0.98);transition:transform 0.28s cubic-bezier(0.34,1.56,0.64,1),opacity 0.2s;opacity:0}
+.modal-overlay.visible .modal{transform:translateY(0) scale(1);opacity:1}
+.modal-tira{height:4px;background:linear-gradient(90deg,var(--mg-d),var(--mg-l))}
+.modal-header{padding:1.4rem 1.6rem 1.1rem;display:flex;align-items:center;gap:1rem;border-bottom:1px solid var(--mg-border)}
+.modal-avatar{width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,var(--mg-d),var(--mg-l));display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;color:white;flex-shrink:0;box-shadow:0 3px 10px rgba(176,53,128,0.3)}
+.modal-avatar.inactivo{background:linear-gradient(135deg,#888,#bbb);box-shadow:none}
+.modal-header-info{flex:1;min-width:0}
+.modal-header-info h2{font-family:'Cormorant Garamond',serif;font-size:1.25rem;font-weight:600;color:var(--text);margin-bottom:0.15rem}
+.modal-header-info p{font-size:0.8rem;color:var(--muted);font-weight:300;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.modal-close{background:var(--mg-bg);border:1px solid var(--mg-border);border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all 0.2s}
+.modal-close:hover{background:var(--mg);border-color:var(--mg)}
+.modal-close:hover svg{stroke:white}
+.modal-close svg{width:13px;height:13px;stroke:var(--mg);fill:none;stroke-width:2.2;transition:stroke 0.2s}
+.modal-body{padding:1.25rem 1.6rem;display:grid;grid-template-columns:1fr 1fr;gap:0.65rem}
+.modal-item{background:var(--bg);border:1px solid var(--mg-border);border-radius:10px;padding:0.8rem 0.95rem}
+.modal-item-full{grid-column:1/-1}
+.modal-item-label{display:flex;align-items:center;gap:0.3rem;font-size:0.65rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.09em;margin-bottom:0.3rem}
+.modal-item-label svg{width:11px;height:11px;stroke:var(--mg-l);fill:none;stroke-width:2}
+.modal-item-valor{font-size:0.88rem;font-weight:500;color:var(--text)}
+.modal-footer{padding:1rem 1.6rem 1.4rem;display:flex;justify-content:flex-end;gap:0.55rem}
+.modal-btn-edit{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.3rem;background:linear-gradient(135deg,var(--mg-d),var(--mg-l));color:white;border:none;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:0.83rem;font-weight:500;cursor:pointer;text-decoration:none;transition:opacity 0.2s;box-shadow:0 3px 10px rgba(176,53,128,0.2)}
+.modal-btn-edit:hover{opacity:0.9}
+.modal-btn-edit svg{width:13px;height:13px;stroke:white;fill:none;stroke-width:2}
+.modal-btn-close{display:inline-flex;align-items:center;padding:0.6rem 1.1rem;background:var(--white);color:var(--muted);border:1.5px solid var(--mg-border);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:0.83rem;cursor:pointer;transition:all 0.2s}
+.modal-btn-close:hover{border-color:var(--mg);color:var(--mg)}
+
+/* MODAL CONFIRMAR */
+.confirm-overlay{position:fixed;inset:0;background:rgba(42,16,32,0.5);backdrop-filter:blur(4px);z-index:600;display:flex;align-items:center;justify-content:center;padding:1.5rem;opacity:0;pointer-events:none;transition:opacity 0.2s}
+.confirm-overlay.visible{opacity:1;pointer-events:all}
+.confirm-modal{background:white;border-radius:16px;width:100%;max-width:380px;overflow:hidden;box-shadow:0 20px 50px rgba(42,16,32,0.25);transform:scale(0.96);transition:transform 0.22s cubic-bezier(0.34,1.56,0.64,1),opacity 0.2s;opacity:0}
+.confirm-overlay.visible .confirm-modal{transform:scale(1);opacity:1}
+.confirm-tira-deactivate{height:4px;background:linear-gradient(90deg,#e8a000,#f5c842)}
+.confirm-tira-activate{height:4px;background:linear-gradient(90deg,var(--green),#2ecc71)}
+.confirm-body{padding:1.6rem 1.6rem 1.1rem}
+.confirm-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:1rem}
+.confirm-icon-deactivate{background:#FFF8E1;border:1px solid #FFD54F}
+.confirm-icon-activate{background:var(--green-bg);border:1px solid var(--green-border)}
+.confirm-icon svg{width:22px;height:22px;fill:none;stroke-width:1.8}
+.confirm-icon-deactivate svg{stroke:#F57F17}
+.confirm-icon-activate svg{stroke:var(--green)}
+.confirm-body h3{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;color:var(--text);margin-bottom:0.45rem}
+.confirm-body p{font-size:0.845rem;color:var(--muted);line-height:1.6}
+.confirm-body strong{color:var(--text)}
+.confirm-footer{padding:0.9rem 1.6rem 1.4rem;display:flex;gap:0.55rem;justify-content:flex-end}
+.confirm-cancel{display:inline-flex;align-items:center;padding:0.6rem 1.1rem;background:var(--white);color:var(--muted);border:1.5px solid var(--mg-border);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:0.83rem;cursor:pointer;transition:all 0.2s}
+.confirm-cancel:hover{border-color:var(--mg);color:var(--mg)}
+.confirm-ok{display:inline-flex;align-items:center;gap:0.35rem;padding:0.6rem 1.3rem;border:none;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:0.83rem;font-weight:500;cursor:pointer;transition:opacity 0.2s}
+.confirm-ok:hover{opacity:0.88}
+.confirm-ok-deactivate{background:linear-gradient(135deg,#b45309,#f59e0b);color:white}
+.confirm-ok-activate{background:linear-gradient(135deg,var(--green),#2ecc71);color:white}
+
+@media(max-width:768px){body{flex-direction:column}.sidebar{position:fixed;top:64px;left:0;height:calc(100vh - 64px);transform:translateX(-100%);width:var(--sw);z-index:250}.sidebar.open{transform:translateX(0)}.sidebar-overlay{display:block;z-index:200}.mobile-topbar{display:flex}.main{margin-left:0;padding:1.25rem;padding-top:calc(1.25rem + 64px)}.stats-row{grid-template-columns:repeat(2,1fr)}.modal-body{grid-template-columns:1fr}.td-actions{flex-wrap:wrap}.modal-overlay{padding:0.75rem}.modal{max-height:95vh}}
+</style>
+</head>
+<body>
+
+<div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
+<div class="mobile-topbar">
+    <div class="mobile-topbar-brand">
+        <img src="/static/img/Logo.png" alt="Zumedical">
+        <span>Zumedical</span>
+    </div>
+    <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
+        <span></span><span></span><span></span>
+    </button>
+</div>
+<aside class="sidebar" id="sidebar">
+    <div class="sb-brand">
+        <div class="sb-logo"><img src="/static/img/Logo.png" alt="Zumedical"></div>
+        <div class="sb-brand-text"><h2>Zumedical</h2><span>Administrador</span></div>
+    </div>
+    <div class="sb-user">
+        <div class="sb-avatar">{% if request.user.first_name %}{{ request.user.first_name|slice:":1" }}{{ request.user.last_name|slice:":1" }}{% else %}{{ request.user.username|slice:":1"|upper }}{% endif %}</div>
+        <div class="sb-user-info"><p>Sesión activa</p><h3>{{ request.user.get_full_name|default:request.user.username }}</h3></div>
+    </div>
+    <nav class="sb-nav">
+        <div class="nav-lbl">Panel</div>
+        <a href="{% url 'admin_dashboard' %}" class="nav-item"><i class="fa-solid fa-grid-2"></i> Inicio</a>
+        <div class="nav-lbl">Gestión</div>
+        <a href="{% url 'lista_usuarios' %}" class="nav-item active"><i class="fa-solid fa-users"></i> Usuarios</a>
+        <a href="{% url 'lista_medicos' %}" class="nav-item"><i class="fa-solid fa-user-doctor"></i> Médicos</a>
+        <a href="{% url 'lista_pacientes' %}" class="nav-item"><i class="fa-solid fa-hospital-user"></i> Pacientes</a>
+        <a href="{% url 'todas_citas' %}" class="nav-item">
+            <i class="fa-regular fa-calendar-check"></i> Citas
+            {% if citas_pendientes %}<span class="nav-badge-alert">{{ citas_pendientes }}</span>{% endif %}
+        </a>
+        <a href="{% url 'controles_admin' %}" class="nav-item"><i class="fa-solid fa-heart-pulse"></i> Controles Prenatales</a>
+        <div class="nav-lbl">Sistema</div>
+        <a href="{% url 'auditoria_admin' %}" class="nav-item"><i class="fa-solid fa-shield-halved"></i> Auditoría</a>
+    </nav>
+    <div class="sb-footer">
+        <a href="{% url 'logout' %}" class="btn-logout"><i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar sesión</a>
+    </div>
+</aside>
+
+<main class="main">
+
+  <div class="page-header">
+    <div>
+      <h1>Usuarios del Sistema</h1>
+      <p>Gestión y control de acceso de todos los usuarios</p>
+    </div>
+    <div class="header-actions">
+      <a href="{% url 'admin_crear_usuario' %}" class="btn-new">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nuevo usuario
+      </a>
+      <a href="{% url 'admin_dashboard' %}" class="btn-back">
+        <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Volver
+      </a>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-mini">
+      <div class="stat-mini-icon icon-total"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+      <div class="stat-mini-info"><p>Total</p><strong>{{ usuarios|length }}</strong></div>
+    </div>
+    <div class="stat-mini">
+      <div class="stat-mini-icon icon-activos"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div class="stat-mini-info"><p>Activos</p><strong>{{ usuarios|length }}</strong></div>
+    </div>
+    <div class="stat-mini">
+      <div class="stat-mini-icon icon-online"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+      <div class="stat-mini-info"><p>En línea</p><strong id="stat-online">—</strong></div>
+    </div>
+    <div class="stat-mini">
+      <div class="stat-mini-icon icon-inactivos"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></div>
+      <div class="stat-mini-info"><p>Inactivos</p><strong id="stat-inactivos">—</strong></div>
+    </div>
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+    <div class="mensaje {% if message.tags == 'error' %}msg-error{% else %}msg-success{% endif %}">
+      {% if message.tags == 'error' %}<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      {% else %}<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>{% endif %}
+      {{ message }}
+    </div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="table-card">
+    <div class="table-filters">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="searchInput" placeholder="Buscar usuario, nombre o email...">
+      </div>
+      <button class="filter-btn active" data-filter="todos">Todos</button>
+      <button class="filter-btn" data-filter="admin">Admin</button>
+      <button class="filter-btn" data-filter="medico">Médico</button>
+      <button class="filter-btn" data-filter="secretaria">Secretaria</button>
+      <button class="filter-btn" data-filter="paciente">Paciente</button>
+      <span class="table-count-pill" id="countPill">{{ usuarios|length }} usuarios</span>
+    </div>
+
+    <div class="table-wrapper">
+      <table id="usersTable">
+        <thead>
+          <tr>
+            <th>N.</th>
+            <th>Usuario</th>
+            <th>Email</th>
+            <th>Rol</th>
+            <th>Sesión</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in usuarios %}
+          <tr class="{% if not u.is_active %}inactivo{% endif %}" data-rol="{{ u.rol }}">
+            <td style="color:var(--muted);font-size:0.78rem;width:36px">{{ forloop.counter }}</td>
+            <td>
+              <div class="user-cell nombre-link"
+                data-username="{{ u.username }}"
+                data-nombre="{{ u.get_full_name|default:'Sin nombre' }}"
+                data-email="{{ u.email|default:'—' }}"
+                data-rol="{{ u.rol|default:'—' }}"
+                data-activo="{{ u.is_active|yesno:'true,false' }}"
+                data-sesion="{{ u.sesion_activa|yesno:'true,false' }}"
+                data-edit-url="{% url 'admin_editar_usuario' u.id %}"
+                style="cursor:pointer">
+                <div class="user-avatar {% if not u.is_active %}inactivo{% endif %}">{{ u.first_name|slice:":1"|default:u.username|slice:":1"|upper }}{{ u.last_name|slice:":1" }}</div>
+                <div class="user-cell-info">
+                  <strong>{{ u.get_full_name|default:u.username }}</strong>
+                  <span>@{{ u.username }}</span>
+                </div>
+              </div>
+            </td>
+            <td style="color:var(--muted);font-size:0.82rem">{{ u.email|default:"—" }}</td>
+            <td>
+              {% if u.rol == 'admin' %}<span class="badge badge-admin">Admin</span>
+              {% elif u.rol == 'medico' %}<span class="badge badge-medico">Médico</span>
+              {% elif u.rol == 'secretaria' %}<span class="badge badge-secretaria">Secretaria</span>
+              {% elif u.rol == 'paciente' %}<span class="badge badge-paciente">Paciente</span>
+              {% else %}<span class="badge badge-other">{{ u.rol|default:"—" }}</span>{% endif %}
+            </td>
+            <td>
+              {% if u.sesion_activa %}
+                <span class="sesion-badge sesion-activa"><span class="dot"></span>En línea</span>
+              {% else %}
+                <span class="sesion-badge sesion-inactiva"><span class="dot"></span>Sin sesión</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if u.is_active %}
+                <span class="cuenta-badge cuenta-activa">Activa</span>
+              {% else %}
+                <span class="cuenta-badge cuenta-inactiva">Inactiva</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="td-actions">
+                <a href="{% url 'admin_editar_usuario' u.id %}" class="btn-sm btn-edit">
+                  <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>
+                  Editar
+                </a>
+                {% if u.rol != 'admin' %}
+                  {% if u.is_active %}
+                  <button class="btn-sm btn-desactivar toggle-btn"
+                    data-accion="desactivar"
+                    data-nombre="{{ u.get_full_name|default:u.username }}"
+                    data-url="{% url 'toggle_usuario' u.id %}">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                    Desactivar
+                  </button>
+                  {% else %}
+                  <button class="btn-sm btn-activar toggle-btn"
+                    data-accion="activar"
+                    data-nombre="{{ u.get_full_name|default:u.username }}"
+                    data-url="{% url 'toggle_usuario' u.id %}">
+                    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                    Reactivar
+                  </button>
+                  {% endif %}
+                  <a href="{% url 'admin_eliminar_usuario' u.id %}" class="btn-sm btn-danger">
+                    <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+                    Eliminar
+                  </a>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7"><div class="empty-state"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><p>No hay usuarios registrados.</p></div></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<!-- MODAL INFO -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-tira"></div>
+    <div class="modal-header">
+      <div class="modal-avatar" id="modal-avatar"></div>
+      <div class="modal-header-info">
+        <h2 id="modal-nombre"></h2>
+        <p id="modal-email-sub"></p>
+      </div>
+      <button class="modal-close" id="modal-close-btn">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-item">
+        <div class="modal-item-label"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Usuario</div>
+        <div class="modal-item-valor" id="modal-username"></div>
+      </div>
+      <div class="modal-item">
+        <div class="modal-item-label"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Rol</div>
+        <div class="modal-item-valor" id="modal-rol"></div>
+      </div>
+      <div class="modal-item">
+        <div class="modal-item-label"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Sesión</div>
+        <div class="modal-item-valor" id="modal-sesion"></div>
+      </div>
+      <div class="modal-item">
+        <div class="modal-item-label"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Cuenta</div>
+        <div class="modal-item-valor" id="modal-cuenta"></div>
+      </div>
+      <div class="modal-item modal-item-full">
+        <div class="modal-item-label"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Correo</div>
+        <div class="modal-item-valor" id="modal-email-full"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn-close" id="modal-footer-close">Cerrar</button>
+      <a href="#" class="modal-btn-edit" id="modal-edit-link">
+        <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>
+        Editar usuario
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONFIRMAR TOGGLE -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-modal">
+    <div id="confirm-tira"></div>
+    <div class="confirm-body">
+      <div class="confirm-icon" id="confirm-icon">
+        <svg id="confirm-icon-svg" viewBox="0 0 24 24"></svg>
+      </div>
+      <h3 id="confirm-titulo"></h3>
+      <p id="confirm-texto"></p>
+    </div>
+    <div class="confirm-footer">
+      <button class="confirm-cancel" id="confirm-cancel">Cancelar</button>
+      <form method="POST" id="confirm-form" style="display:inline">
+        {% csrf_token %}
+        <input type="hidden" name="accion" id="confirm-accion-input">
+        <button type="submit" class="confirm-ok" id="confirm-ok"></button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Hamburguesa móvil ──
+function toggleSidebar() {
+    const sb = document.getElementById('sidebar');
+    const ov = document.getElementById('overlay');
+    const hb = document.getElementById('hamburger');
+    sb.classList.toggle('open');
+    ov.classList.toggle('active');
+    hb.classList.toggle('open');
+}
+function closeSidebar() {
+    const sb = document.getElementById('sidebar');
+    const ov = document.getElementById('overlay');
+    const hb = document.getElementById('hamburger');
+    sb.classList.remove('open');
+    ov.classList.remove('active');
+    hb.classList.remove('open');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  var ROLES = {admin:'Administrador',medico:'Médico',secretaria:'Secretaria',paciente:'Paciente'};
+
+  // STATS dinámicos
+  var rows = document.querySelectorAll('#usersTable tbody tr');
+  var online = 0, inactivos = 0;
+  rows.forEach(function(r){
+    if(r.querySelector('.sesion-activa')) online++;
+    if(r.classList.contains('inactivo')) inactivos++;
+  });
+  var elOnline = document.getElementById('stat-online');
+  var elInact  = document.getElementById('stat-inactivos');
+  if(elOnline) elOnline.textContent = online;
+  if(elInact)  elInact.textContent  = inactivos;
+
+  // BÚSQUEDA
+  var searchInput = document.getElementById('searchInput');
+  var countPill   = document.getElementById('countPill');
+  var activeFilter = 'todos';
+
+  function applyFilters(){
+    var q = searchInput.value.toLowerCase();
+    var visible = 0;
+    rows.forEach(function(r){
+      var txt = r.textContent.toLowerCase();
+      var rol = r.dataset.rol || '';
+      var matchSearch = txt.includes(q);
+      var matchFilter = activeFilter === 'todos' || rol === activeFilter;
+      var show = matchSearch && matchFilter;
+      r.style.display = show ? '' : 'none';
+      if(show) visible++;
+    });
+    if(countPill) countPill.textContent = visible + ' usuario' + (visible !== 1 ? 's' : '');
+  }
+
+  searchInput.addEventListener('input', applyFilters);
+
+  document.querySelectorAll('.filter-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.filter-btn').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      activeFilter = btn.dataset.filter;
+      applyFilters();
+    });
+  });
+
+  // MODAL INFO
+  var overlay     = document.getElementById('modal-overlay');
+  var closeBtn    = document.getElementById('modal-close-btn');
+  var footerClose = document.getElementById('modal-footer-close');
+
+  document.querySelectorAll('.nombre-link').forEach(function(el){
+    el.addEventListener('click', function(){
+      var d = el.dataset;
+      var iniciales = (d.nombre.split(' ').slice(0,2).map(function(w){ return w[0]||''; }).join('') || d.username[0]).toUpperCase();
+      var esActivo = d.activo === 'true';
+      var enLinea  = d.sesion  === 'true';
+      var av = document.getElementById('modal-avatar');
+      av.textContent = iniciales;
+      av.className = 'modal-avatar' + (esActivo ? '' : ' inactivo');
+      document.getElementById('modal-nombre').textContent     = d.nombre;
+      document.getElementById('modal-email-sub').textContent  = d.email;
+      document.getElementById('modal-username').textContent   = d.username;
+      document.getElementById('modal-rol').textContent        = ROLES[d.rol] || d.rol;
+      document.getElementById('modal-email-full').textContent = d.email;
+      document.getElementById('modal-sesion').textContent     = enLinea  ? '🟢 En línea'   : '⚫ Sin sesión';
+      document.getElementById('modal-cuenta').textContent     = esActivo ? '✅ Activa'      : '🔴 Desactivada';
+      document.getElementById('modal-edit-link').href         = d.editUrl;
+      overlay.classList.add('visible');
+      document.body.style.overflow = 'hidden';
+    });
+  });
+
+  function cerrarInfo(){ overlay.classList.remove('visible'); document.body.style.overflow = ''; }
+  closeBtn.addEventListener('click', cerrarInfo);
+  footerClose.addEventListener('click', cerrarInfo);
+  overlay.addEventListener('click', function(e){ if(e.target === overlay) cerrarInfo(); });
+
+  // MODAL CONFIRMAR TOGGLE
+  var confirmOverlay = document.getElementById('confirm-overlay');
+  var confirmCancel  = document.getElementById('confirm-cancel');
+  var confirmForm    = document.getElementById('confirm-form');
+
+  document.querySelectorAll('.toggle-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var accion     = btn.dataset.accion;
+      var nombre     = btn.dataset.nombre;
+      var url        = btn.dataset.url;
+      var desactivar = accion === 'desactivar';
+      document.getElementById('confirm-tira').className = desactivar ? 'confirm-tira-deactivate' : 'confirm-tira-activate';
+      var iconDiv = document.getElementById('confirm-icon');
+      iconDiv.className = 'confirm-icon ' + (desactivar ? 'confirm-icon-deactivate' : 'confirm-icon-activate');
+      document.getElementById('confirm-icon-svg').innerHTML = desactivar
+        ? '<circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>'
+        : '<polyline points="20 6 9 17 4 12"/>';
+      document.getElementById('confirm-titulo').textContent = desactivar ? 'Desactivar cuenta' : 'Reactivar cuenta';
+      document.getElementById('confirm-texto').innerHTML = desactivar
+        ? 'La cuenta de <strong>' + nombre + '</strong> quedará bloqueada. El usuario no podrá iniciar sesión.'
+        : 'La cuenta de <strong>' + nombre + '</strong> será reactivada y podrá volver a acceder.';
+      var okBtn = document.getElementById('confirm-ok');
+      okBtn.textContent = desactivar ? 'Sí, desactivar' : 'Sí, reactivar';
+      okBtn.className   = 'confirm-ok ' + (desactivar ? 'confirm-ok-deactivate' : 'confirm-ok-activate');
+      confirmForm.action = url;
+      document.getElementById('confirm-accion-input').value = accion;
+      confirmOverlay.classList.add('visible');
+      document.body.style.overflow = 'hidden';
+    });
+  });
+
+  function cerrarConfirm(){ confirmOverlay.classList.remove('visible'); document.body.style.overflow = ''; }
+  confirmCancel.addEventListener('click', cerrarConfirm);
+  confirmOverlay.addEventListener('click', function(e){ if(e.target === confirmOverlay) cerrarConfirm(); });
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape'){ cerrarInfo(); cerrarConfirm(); } });
+});
+</script>
+</body>
+</html>

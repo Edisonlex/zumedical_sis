@@ -1,0 +1,57 @@
+[
+  {
+    "model": "landing.especialidad",
+    "pk": 1,
+    "fields": {
+      "nombre": "Ginecología y Obstetricia",
+      "descripcion": "Atención integral de la salud femenina, embarazo, parto y puerperio. Seguimiento prenatal personalizado con tecnología avanzada.",
+      "icono": "fa-baby",
+      "tipo": "prenatal",
+      "activo": true
+    }
+  },
+  {
+    "model": "landing.especialidad",
+    "pk": 2,
+    "fields": {
+      "nombre": "Odontología",
+      "descripcion": "Salud bucal completa: limpieza dental, tratamientos estéticos, ortodoncia y atención preventiva para toda la familia.",
+      "icono": "fa-tooth",
+      "tipo": "general",
+      "activo": true
+    }
+  },
+  {
+    "model": "landing.especialidad",
+    "pk": 3,
+    "fields": {
+      "nombre": "Medicina General",
+      "descripcion": "Consulta médica general, diagnóstico y tratamiento de enfermedades comunes, medicina preventiva y control de salud.",
+      "icono": "fa-stethoscope",
+      "tipo": "general",
+      "activo": true
+    }
+  },
+  {
+    "model": "landing.especialidad",
+    "pk": 4,
+    "fields": {
+      "nombre": "Ecografía Diagnóstica",
+      "descripcion": "Diagnóstico por imágenes con equipos de última generación. Ecografías abdominales, pélvicas y de tejidos blandos.",
+      "icono": "fa-x-ray",
+      "tipo": "general",
+      "activo": true
+    }
+  },
+  {
+    "model": "landing.especialidad",
+    "pk": 5,
+    "fields": {
+      "nombre": "Programación de Partos y Cesáreas",
+      "descripcion": "Planificación y coordinación profesional del nacimiento, con atención especializada para madre y bebé.",
+      "icono": "fa-hospital",
+      "tipo": "prenatal",
+      "activo": true
+    }
+  }
+]

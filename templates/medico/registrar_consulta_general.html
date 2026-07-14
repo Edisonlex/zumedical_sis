@@ -1,0 +1,231 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Registrar Consulta General — Zumedical</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root{--mg:#b03580;--mg-l:#cc4d99;--mg-d:#8a2563;--mg-bg:#fbf0f7;--mg-border:#e8aad4;--text:#2a1020;--muted:#8a6070;--white:#fff;--bg:#fdf5fa;--sw:260px;--green:#2e7d52;--green-bg:#edfaf3;--red:#b91c1c;--red-bg:#fef2f2;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:"DM Sans",sans-serif;background:var(--bg);display:flex;height:100vh;overflow:hidden;}
+    .sidebar{width:var(--sw);height:100vh;background:linear-gradient(175deg,#8a2563 0%,#b03580 55%,#cc4d99 100%);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;overflow-y:auto;}
+    .sb-brand{padding:1.5rem;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:.75rem;}
+    .sb-logo{width:40px;height:40px;background:white;border-radius:50%;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;}
+    .sb-logo img{width:36px;height:36px;object-fit:contain;}
+    .sb-brand h2{font-family:"Cormorant Garamond",serif;font-size:1.3rem;font-weight:600;color:white;}
+    .sb-brand span{font-size:.7rem;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.1em;}
+    .sb-user{padding:1rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:.75rem;text-decoration:none;}
+    .sb-av{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:600;color:white;flex-shrink:0;text-transform:uppercase;}
+    .sb-user-info p{font-size:.7rem;color:rgba(255,255,255,.6);text-transform:uppercase;}
+    .sb-user-info h3{font-size:.88rem;font-weight:500;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px;}
+    .sb-nav{flex:1;padding:1rem .75rem;}
+    .nav-lbl{font-size:.68rem;color:rgba(255,255,255,.5);letter-spacing:.1em;text-transform:uppercase;padding:.5rem .75rem;margin-top:.5rem;}
+    .nav-item{display:flex;align-items:center;gap:.75rem;padding:.7rem 1rem;border-radius:10px;color:rgba(255,255,255,.85);text-decoration:none;font-size:.88rem;margin-bottom:.2rem;transition:all .2s;}
+    .nav-item:hover,.nav-item.active{background:rgba(255,255,255,.18);color:white;}
+    .nav-item svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;flex-shrink:0;}
+    .sb-footer{padding:1rem .75rem;border-top:1px solid rgba(255,255,255,.12);}
+    .btn-logout{display:flex;align-items:center;gap:.75rem;padding:.7rem 1rem;border-radius:10px;color:rgba(255,255,255,.8);text-decoration:none;font-size:.88rem;transition:all .2s;width:100%;}
+    .btn-logout:hover{background:rgba(255,255,255,.15);color:white;}
+    .btn-logout svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;}
+    .main{margin-left:var(--sw);flex:1;padding:2rem 2.5rem 4rem;height:100vh;overflow-y:auto;}
+    .page-title{font-family:"Cormorant Garamond",serif;font-size:1.9rem;font-weight:600;color:var(--text);margin-bottom:.3rem;}
+    .page-sub{color:var(--muted);font-size:.88rem;margin-bottom:1.75rem;}
+    .card{background:white;border-radius:16px;border:1px solid var(--mg-border);padding:1.5rem 2rem;margin-bottom:1.25rem;box-shadow:0 2px 8px rgba(176,53,128,.04);}
+    .sec-title{display:flex;align-items:center;gap:.6rem;font-family:"Cormorant Garamond",serif;font-size:1.15rem;font-weight:600;color:var(--mg-d);margin-bottom:1.25rem;padding-bottom:.6rem;border-bottom:2px solid var(--mg-bg);}
+    .sec-icon{width:32px;height:32px;background:var(--mg-bg);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+    .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;}
+    .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;}
+    .full{grid-column:1/-1;}
+    .fg{display:flex;flex-direction:column;gap:.35rem;}
+    .fg label{font-size:.75rem;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+    .fg input,.fg select,.fg textarea{width:100%;padding:.6rem .85rem;border:1.5px solid var(--mg-border);border-radius:9px;font-family:"DM Sans",sans-serif;font-size:.875rem;color:var(--text);background:var(--bg);outline:none;transition:border-color .2s;resize:vertical;}
+    .fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--mg);box-shadow:0 0 0 3px rgba(176,53,128,.07);}
+    .fg input[readonly]{background:#f5f5f5;cursor:not-allowed;}
+    .fg .hint{font-size:.7rem;color:var(--muted);}
+    /* CIE table */
+    .cie-table{width:100%;border-collapse:collapse;}
+    .cie-table th{padding:.6rem .85rem;background:var(--mg-bg);font-size:.72rem;font-weight:500;color:var(--mg-d);text-transform:uppercase;letter-spacing:.06em;text-align:left;border:1px solid var(--mg-border);}
+    .cie-table td{padding:.5rem .75rem;border:1px solid #f0e0ee;}
+    .cie-table td input[type="text"]{border:1px solid var(--mg-border);border-radius:6px;padding:.4rem .6rem;font-size:.85rem;width:100%;background:var(--bg);}
+    .cie-table td input[type="checkbox"]{width:18px;height:18px;accent-color:var(--mg);cursor:pointer;}
+    .cie-table td.center{text-align:center;}
+    /* Paciente selector */
+    .pac-select-wrap{position:relative;}
+    .pac-search{width:100%;padding:.65rem 1rem;border:1.5px solid var(--mg-border);border-radius:9px;font-size:.875rem;color:var(--text);background:var(--bg);outline:none;}
+    .pac-search:focus{border-color:var(--mg);}
+    .pac-list{position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid var(--mg-border);border-radius:9px;max-height:220px;overflow-y:auto;z-index:50;display:none;box-shadow:0 8px 20px rgba(0,0,0,.1);}
+    .pac-list.open{display:block;}
+    .pac-opt{padding:.65rem 1rem;cursor:pointer;font-size:.875rem;transition:background .15s;}
+    .pac-opt:hover,.pac-opt.selected{background:var(--mg-bg);color:var(--mg-d);}
+    .pac-opt .sub{font-size:.75rem;color:var(--muted);}
+    /* Buttons */
+    .actions{display:flex;gap:1rem;justify-content:flex-end;margin-top:1.5rem;}
+    .btn-primary{background:var(--mg);color:white;border:none;padding:.75rem 2rem;border-radius:10px;font-family:"DM Sans",sans-serif;font-size:.95rem;font-weight:500;cursor:pointer;transition:all .2s;}
+    .btn-primary:hover{background:var(--mg-d);transform:translateY(-1px);}
+    .btn-sec{background:var(--mg-bg);color:var(--mg);border:1px solid var(--mg-border);padding:.75rem 1.5rem;border-radius:10px;font-size:.95rem;font-weight:500;cursor:pointer;text-decoration:none;transition:all .2s;}
+    .btn-sec:hover{background:white;}
+    .alert-success{background:var(--green-bg);border:1px solid #a8dfc0;color:var(--green);padding:1rem 1.5rem;border-radius:10px;margin-bottom:1.5rem;font-size:.9rem;}
+    .alert-error{background:var(--red-bg);border:1px solid #fca5a5;color:var(--red);padding:1rem 1.5rem;border-radius:10px;margin-bottom:1.5rem;font-size:.9rem;}
+    @media(max-width:800px){.grid2,.grid3,.grid4{grid-template-columns:1fr}.main{padding:1.25rem}}
+  </style>
+</head>
+<body>
+{% include 'medico/sidebar_medico.html' %}
+
+<main class="main">
+  <div class="page-title">Registrar Consulta General</div>
+  <p class="page-sub">Complete el formulario de historia clínica de consulta general</p>
+
+  {% if messages %}{% for msg in messages %}<div class="alert-{% if 'exitosa' in msg.message or 'correctamente' in msg.message %}success{% else %}error{% endif %}">{{ msg }}</div>{% endfor %}{% endif %}
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    <!-- Paciente -->
+    <div class="card">
+      <div class="sec-title"><div class="sec-icon">👤</div>Paciente</div>
+      <div class="fg">
+        <label>Seleccionar paciente *</label>
+        <div class="pac-select-wrap">
+          <input type="text" class="pac-search" id="pac-search" placeholder="Buscar por nombre..." autocomplete="off"/>
+          <input type="hidden" name="paciente" id="pac-hidden"/>
+          <div class="pac-list" id="pac-list">
+            {% for p in pacientes %}
+            <div class="pac-opt" data-id="{{ p.usuario.id }}" data-name="{{ p.usuario.get_full_name|default:p.usuario.username }}">
+              {{ p.usuario.get_full_name|default:p.usuario.username }}<div class="sub">@{{ p.usuario.username }}</div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Motivo -->
+    <div class="card">
+      <div class="sec-title"><div class="sec-icon">💬</div>Motivo de Consulta</div>
+      <div class="fg"><label>Motivo de consulta *</label><textarea name="motivo_consulta" rows="3" placeholder="Describe el motivo principal de la consulta..." required></textarea></div>
+    </div>
+
+    <!-- Antecedentes -->
+    <div class="card">
+      <div class="sec-title"><div class="sec-icon">📋</div>Antecedentes</div>
+      <div class="grid2">
+        <div class="fg"><label>Personales</label><textarea name="antecedentes_personales" rows="3" placeholder="Enfermedades previas, condiciones crónicas..."></textarea></div>
+        <div class="fg"><label>Familiares</label><textarea name="antecedentes_familiares" rows="3" placeholder="Enfermedades hereditarias, diabetes, HTA..."></textarea></div>
+        <div class="fg"><label>Alérgicos</label><textarea name="antecedentes_alergicos" rows="2" placeholder="Alergias conocidas a medicamentos, alimentos..."></textarea></div>
+        <div class="fg"><label>Quirúrgicos</label><textarea name="antecedentes_quirurgicos" rows="2" placeholder="Cirugías previas..."></textarea></div>
+        <div class="fg full"><label>Obstétricos</label><textarea name="antecedentes_obstetricos" rows="2" placeholder="Gestaciones, partos, abortos (si aplica)..."></textarea></div>
+      </div>
+    </div>
+
+    <!-- Examen físico -->
+    <div class="card">
+      <div class="sec-title"><div class="sec-icon">🔬</div>Examen Físico</div>
+      <div class="fg"><label>Hallazgos del examen físico</label><textarea name="examen_fisico" rows="4" placeholder="Descripción del examen físico general y por sistemas..."></textarea></div>
+    </div>
+
+    <!-- Signos vitales -->
+    <div class="card">
+      <div class="sec-title"><div class="sec-icon">🩺</div>Signos Vitales</div>
+      <div class="grid4">
+        <div class="fg"><label>P/A (mmHg)</label><input type="text" name="presion_arterial" placeholder="Ej: 120/80"/></div>
+        <div class="fg"><label>Saturación O₂ (%)</label><input type="number" name="saturacion_oxigeno" min="70" max="100" placeholder="98"/></div>
+        <div class="fg"><label>FC (lpm)</label><input type="number" name="frecuencia_cardiaca" min="40" max="200" placeholder="75"/></div>
+        <div class="fg"><label>FR (rpm)</label><input type="number" name="frecuencia_respiratoria" min="8" max="40" placeholder="16"/></div>
+        <div class="fg"><label>Temperatura (°C)</label><input type="number" name="temperatura" step="0.1" min="34" max="42" placeholder="36.5"/></div>
+        <div class="fg"><label>Talla (m)</label><input type="number" name="talla" id="talla" step="0.01" min="1.0" max="2.5" placeholder="1.60"/></div>
+        <div class="fg"><label>Peso (kg)</label><input type="number" name="peso" id="peso" step="0.1" min="20" max="300" placeholder="65.0"/></div>
+        <div class="fg"><label>IMC</label><input type="text" id="imc" readonly placeholder="Auto"/><span class="hint">Calculado automáticamente</span></div>
+      </div>
+    </div>
+
+    <!-- Exámenes y evolución -->
+    <div class="card">
+      <div class="sec-title"><div class="sec-icon">🧪</div>Exámenes, Evolución y Plan</div>
+      <div class="grid2">
+        <div class="fg"><label>Exámenes enviados</label><textarea name="examenes_enviados" rows="3" placeholder="Laboratorio, imagen, etc."></textarea></div>
+        <div class="fg"><label>Evolución de la enfermedad</label><textarea name="evolucion_enfermedad" rows="3" placeholder="Descripción de la evolución..."></textarea></div>
+        <div class="fg"><label>Plan</label><textarea name="plan" rows="3" placeholder="Plan diagnóstico y terapéutico..."></textarea></div>
+        <div class="fg"><label>Tratamiento</label><textarea name="tratamiento" rows="3" placeholder="Medicamentos, dosis, indicaciones..."></textarea></div>
+      </div>
+    </div>
+
+    <!-- Diagnóstico CIE-10 -->
+    <div class="card">
+      <div class="sec-title"><div class="sec-icon">🏥</div>Diagnóstico</div>
+      <div style="overflow-x:auto">
+        <table class="cie-table">
+          <thead><tr><th>Patología</th><th>CIE-10</th><th style="text-align:center">Presuntivo</th><th style="text-align:center">Definitivo</th></tr></thead>
+          <tbody>
+            {% for i in "123" %}
+            <tr>
+              <td><input type="text" name="diag{{ i }}_patologia" placeholder="Nombre de la patología"/></td>
+              <td><input type="text" name="diag{{ i }}_cie10" placeholder="Ej: J18.9" style="width:120px"/></td>
+              <td class="center"><input type="checkbox" name="diag{{ i }}_presuntivo"/></td>
+              <td class="center"><input type="checkbox" name="diag{{ i }}_definitivo"/></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Próxima cita -->
+    <div class="card">
+      <div class="sec-title"><div class="sec-icon">📅</div>Próxima Cita</div>
+      <div class="grid2">
+        <div class="fg"><label>Fecha de próxima cita</label><input type="date" name="proxima_cita"/></div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <a href="{% url 'historial_consultas_generales' %}" class="btn-sec">Cancelar</a>
+      <button type="submit" class="btn-primary">💾 Guardar Consulta</button>
+    </div>
+  </form>
+</main>
+
+<script>
+// Paciente buscable
+const search = document.getElementById('pac-search');
+const list   = document.getElementById('pac-list');
+const hidden = document.getElementById('pac-hidden');
+const opts   = list.querySelectorAll('.pac-opt');
+
+search.addEventListener('focus', () => list.classList.add('open'));
+document.addEventListener('click', e => { if (!e.target.closest('.pac-select-wrap')) list.classList.remove('open'); });
+search.addEventListener('input', () => {
+  const q = search.value.toLowerCase();
+  opts.forEach(o => { o.style.display = o.dataset.name.toLowerCase().includes(q) ? '' : 'none'; });
+  list.classList.add('open');
+});
+opts.forEach(o => {
+  o.addEventListener('click', () => {
+    search.value = o.dataset.name;
+    hidden.value = o.dataset.id;
+    opts.forEach(x => x.classList.remove('selected'));
+    o.classList.add('selected');
+    list.classList.remove('open');
+  });
+});
+
+// IMC automático
+const pesoEl  = document.getElementById('peso');
+const tallaEl = document.getElementById('talla');
+const imcEl   = document.getElementById('imc');
+function calcIMC() {
+  const p = parseFloat(pesoEl.value), t = parseFloat(tallaEl.value);
+  if (p > 0 && t > 0) {
+    const v = (p / (t * t)).toFixed(1);
+    let cat = v < 18.5 ? 'Bajo peso' : v < 25 ? 'Normal' : v < 30 ? 'Sobrepeso' : 'Obesidad';
+    imcEl.value = `${v} (${cat})`;
+  } else imcEl.value = '';
+}
+pesoEl.addEventListener('input', calcIMC);
+tallaEl.addEventListener('input', calcIMC);
+</script>
+</body>
+</html>

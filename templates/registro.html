@@ -1,0 +1,1043 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zumedical — Registro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --magenta: #B03580;
+            --magenta-light: #CC4D99;
+            --magenta-dark: #8A2563;
+            --magenta-border: #E8AAD4;
+            --text: #2A1020;
+            --text-muted: #8A6070;
+            --white: #FFFFFF;
+            --error: #C0392B;
+            --error-bg: #FDECEA;
+            --success: #1a7a4a;
+            --success-bg: #EAFAF1;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            background: #FDF5FA;
+            overflow: hidden;
+        }
+
+        .left-panel {
+            width: 40%;
+            background: linear-gradient(145deg, #8A2563 0%, #B03580 50%, #CC4D99 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .left-panel::before {
+            content: '';
+            position: absolute;
+            width: 400px; height: 400px;
+            border-radius: 50%;
+            border: 60px solid rgba(255,255,255,0.06);
+            top: -100px; right: -100px;
+            animation: rotateSlow 20s linear infinite;
+        }
+
+        .left-panel::after {
+            content: '';
+            position: absolute;
+            width: 300px; height: 300px;
+            border-radius: 50%;
+            border: 40px solid rgba(255,255,255,0.06);
+            bottom: -80px; left: -80px;
+            animation: rotateSlow 15s linear infinite reverse;
+        }
+
+        @keyframes rotateSlow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .brand { text-align: center; z-index: 1; }
+
+        .brand-logo {
+            width: 140px; height: 140px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+            border: 3px solid rgba(255,255,255,0.6);
+            overflow: hidden;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.2);
+            animation: logoEntrance 0.8s cubic-bezier(0.34,1.56,0.64,1) forwards;
+        }
+
+        @keyframes logoEntrance {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .brand-logo img { width: 130px; height: 130px; object-fit: contain; }
+
+        .brand h1 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2.8rem; font-weight: 600;
+            color: white;
+            letter-spacing: 0.02em;
+            line-height: 1;
+            margin-bottom: 0.75rem;
+            animation: slideUp 0.7s 0.2s ease forwards;
+            opacity: 0;
+        }
+
+        .brand p {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.75);
+            font-weight: 300;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            animation: slideUp 0.7s 0.35s ease forwards;
+            opacity: 0;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .left-tagline {
+            margin-top: 3rem;
+            text-align: center;
+            z-index: 1;
+            animation: slideUp 0.7s 0.5s ease forwards;
+            opacity: 0;
+        }
+
+        .left-tagline p {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.25rem;
+            color: rgba(255,255,255,0.85);
+            font-style: italic;
+            line-height: 1.6;
+            max-width: 280px;
+        }
+
+        /* ── RIGHT PANEL ── */
+        .right-panel {
+            flex: 1;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 2rem;
+            background: #FEFAFD;
+            overflow-y: auto;
+            margin-left: 40%;
+            height: 100vh;
+        }
+
+        .register-card {
+            width: 100%;
+            max-width: 480px;
+            padding: 2rem 0;
+            animation: fadeUp 0.6s 0.1s ease both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .register-header { margin-bottom: 2rem; }
+
+        .register-header h2 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2.2rem; font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+
+        .register-header p {
+            color: var(--text-muted);
+            font-size: 0.9rem; font-weight: 300;
+        }
+
+        /* ── FORM ── */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-group { margin-bottom: 1.4rem; position: relative; }
+
+        .form-group label {
+            display: block;
+            font-size: 0.78rem; font-weight: 500;
+            color: var(--text-muted);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+            transition: color 0.2s;
+        }
+
+        .form-group:focus-within label { color: var(--magenta); }
+
+        .input-wrap { position: relative; }
+
+        .input-wrap svg.field-icon {
+            position: absolute;
+            left: 14px; top: 50%;
+            transform: translateY(-50%);
+            width: 17px; height: 17px;
+            stroke: var(--magenta-light);
+            fill: none; stroke-width: 1.5;
+            pointer-events: none;
+            transition: stroke 0.2s;
+        }
+
+        .form-group:focus-within .field-icon { stroke: var(--magenta); }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.95rem 2.6rem 0.95rem 2.8rem;
+            border: 1.5px solid var(--magenta-border);
+            border-radius: 12px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            color: var(--text);
+            background: var(--white);
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+
+        .form-group input:focus {
+            border-color: var(--magenta);
+            box-shadow: 0 0 0 4px rgba(176, 53, 128, 0.1);
+        }
+
+        .form-group input::placeholder { color: #D4A8C4; }
+
+        /* Estados */
+        .form-group input.is-valid {
+            border-color: var(--success);
+            box-shadow: 0 0 0 3px rgba(26,122,74,0.1);
+        }
+
+        .form-group input.is-invalid {
+            border-color: var(--error);
+            box-shadow: 0 0 0 3px rgba(192,57,43,0.1);
+            animation: shake 0.35s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        /* Ícono de estado dentro del input */
+        .status-icon {
+            position: absolute;
+            right: 10px; top: 50%;
+            transform: translateY(-50%) scale(0);
+            width: 16px; height: 16px;
+            transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), opacity 0.2s;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .status-icon.show { transform: translateY(-50%) scale(1); opacity: 1; }
+        .status-icon svg { width: 16px; height: 16px; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+        .status-icon.valid svg { stroke: var(--success); }
+        .status-icon.invalid svg { stroke: var(--error); }
+
+        /* Toggle contraseña */
+        .toggle-pass {
+            position: absolute;
+            right: 10px; top: 50%;
+            transform: translateY(-50%);
+            background: none; border: none;
+            cursor: pointer; padding: 2px;
+            display: flex; align-items: center;
+            color: var(--magenta-light);
+            transition: color 0.2s;
+        }
+        .toggle-pass:hover { color: var(--magenta); }
+        .toggle-pass svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 1.5; }
+
+        /* Mensaje inline */
+        .field-msg {
+            font-size: 0.72rem;
+            margin-top: 0.3rem;
+            padding-left: 2px;
+            min-height: 1em;
+            display: flex; align-items: center; gap: 4px;
+            line-height: 1.3;
+        }
+        .field-msg.error { color: var(--error); }
+        .field-msg.success { color: var(--success); }
+        .field-msg svg { width: 11px; height: 11px; flex-shrink: 0; }
+
+        /* Barra de fortaleza de contraseña */
+        .strength-bar {
+            display: flex;
+            gap: 4px;
+            margin-top: 6px;
+            height: 4px;
+        }
+
+        .strength-bar span {
+            flex: 1;
+            border-radius: 10px;
+            background: var(--magenta-border);
+            transition: background 0.3s ease;
+        }
+
+        .strength-bar span.weak   { background: #E74C3C; }
+        .strength-bar span.medium { background: #F39C12; }
+        .strength-bar span.strong { background: var(--success); }
+
+        .strength-label {
+            font-size: 0.7rem;
+            margin-top: 4px;
+            color: var(--text-muted);
+            transition: color 0.3s;
+        }
+        .strength-label.weak   { color: #E74C3C; }
+        .strength-label.medium { color: #D4820A; }
+        .strength-label.strong { color: var(--success); }
+
+        /* Lista de requisitos de contraseña */
+        .pass-reqs {
+            list-style: none;
+            margin-top: .6rem;
+            display: flex;
+            flex-direction: column;
+            gap: .3rem;
+        }
+        .pass-reqs li {
+            font-size: .78rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            transition: color .2s;
+        }
+        .pass-reqs li i { font-size: .82rem; }
+        .pass-reqs li.ok { color: var(--success); }
+        .pass-reqs li.ok i::before { content: "\f058"; font-family: "Font Awesome 6 Free"; font-weight: 900; }
+
+        /* Errores Django */
+        .errorlist {
+            list-style: none;
+            margin-top: 0.3rem;
+        }
+        .errorlist li {
+            font-size: 0.75rem;
+            color: var(--error);
+            display: flex; align-items: center; gap: 4px;
+        }
+
+        /* ── BOTÓN ── */
+        .btn-register {
+            width: 100%;
+            padding: 0.95rem;
+            background: linear-gradient(135deg, var(--magenta-dark) 0%, var(--magenta-light) 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1rem; font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            letter-spacing: 0.03em;
+            margin-top: 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-register::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(255,255,255,0);
+            transition: background 0.2s;
+        }
+
+        .btn-register:hover::after { background: rgba(255,255,255,0.08); }
+        .btn-register:active { transform: scale(0.99); }
+
+        .btn-register:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .btn-register .spinner {
+            display: none;
+            width: 18px; height: 18px;
+            border: 2.5px solid rgba(255,255,255,0.4);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .btn-register.loading .btn-text { display: none; }
+        .btn-register.loading .spinner { display: block; }
+
+        /* ── DIVIDER / LINKS ── */
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .divider::before, .divider::after {
+            content: ''; flex: 1;
+            height: 1px;
+            background: var(--magenta-border);
+            opacity: 0.5;
+        }
+
+        .divider span {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        .login-link { text-align: center; }
+
+        .login-link p { font-size: 0.875rem; color: var(--text-muted); }
+
+        .login-link a {
+            color: var(--magenta); font-weight: 500;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .login-link a:hover { color: var(--magenta-dark); text-decoration: underline; }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 768px) {
+            body { flex-direction: column; overflow: auto; }
+            .left-panel {
+                width: 100%;
+                height: auto;
+                min-height: auto;
+                padding: 2.5rem 2rem;
+                position: relative;
+                top: auto;
+                left: auto;
+                overflow: visible;
+            }
+            .left-panel::before, .left-panel::after { display: none; }
+            .right-panel {
+                margin-left: 0;
+                height: auto;
+                min-height: auto;
+                overflow-y: visible;
+                width: 100%;
+            }
+            .brand h1 { font-size: 2rem; }
+            .brand-logo { width: 90px; height: 90px; margin-bottom: 1rem; }
+            .brand-logo img { width: 80px; height: 80px; }
+            .left-tagline { margin-top: 1.2rem; }
+            .form-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="left-panel">
+        <div class="brand">
+            <div class="brand-logo">
+                <img src="/static/img/Logo.png" alt="Zumedical">
+            </div>
+            <h1>Zumedical</h1>
+            <p>Centro Médico Especializado</p>
+        </div>
+        <div class="left-tagline">
+            <p>"Tu salud es nuestra prioridad"</p>
+        </div>
+    </div>
+
+    <div class="right-panel">
+        <div class="register-card">
+            <a href="{% url 'landing' %}" class="back-link" style="display:flex;align-items:center;gap:8px;color:var(--magenta);text-decoration:none;margin-bottom:16px;font-size:14px;font-weight:500;transition:opacity 0.2s;">
+                <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round;"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                Volver a la página principal
+            </a>
+            <div class="register-header">
+                <h2>Crear cuenta</h2>
+                {% if especialidad_param %}
+                <div style="display:inline-flex; align-items:center; gap:8px; background:#f9eef4; border:1px solid #e8aad4; border-radius:50px; padding:6px 14px; margin-bottom:12px;">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#b5488a" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    <span style="font-size:13px; color:#b5488a; font-weight:500;">Especialidad seleccionada: {{ especialidad_param|title }}</span>
+                </div>
+                <p>Regístrate para agendar tu primera cita.</p>
+                {% else %}
+                <p>Crea tu cuenta para acceder a nuestros servicios.</p>
+                {% endif %}
+            </div>
+
+            <form method="POST" id="registerForm" novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="tipo_param" value="{{ tipo_param|default:'' }}">
+
+                {% if messages %}
+                <div style="margin-bottom:1rem;">
+                    {% for message in messages %}
+                    <div style="padding:0.8rem 1rem;border-radius:10px;font-size:0.875rem;display:flex;align-items:center;gap:8px;
+                                {% if message.tags == 'error' %}background:#fdecea;border:1px solid #f5c6c6;color:#c0392b;
+                                {% else %}background:#eafaf1;border:1px solid #a9dfbf;color:#1a7a4a;{% endif %}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;flex-shrink:0;">
+                            {% if message.tags == 'error' %}<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                            {% else %}<path d="M20 6L9 17l-5-5"/>{% endif %}
+                        </svg>
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- NOMBRE / APELLIDOS -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="id_first_name">Nombre</label>
+                        <div class="input-wrap">
+                            <svg class="field-icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            <input type="text" id="id_first_name" name="first_name"
+                                   placeholder="Tu nombre" maxlength="20"
+                                   value="{{ form.first_name.value|default:'' }}">
+                            <span class="status-icon" id="status_first_name"><svg viewBox="0 0 24 24"></svg></span>
+                        </div>
+                        <p class="field-msg" id="msg_first_name"></p>
+                        {{ form.first_name.errors }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="id_last_name">Apellidos</label>
+                        <div class="input-wrap">
+                            <svg class="field-icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            <input type="text" id="id_last_name" name="last_name"
+                                   placeholder="Tus apellidos" maxlength="20"
+                                   value="{{ form.last_name.value|default:'' }}">
+                            <span class="status-icon" id="status_last_name"><svg viewBox="0 0 24 24"></svg></span>
+                        </div>
+                        <p class="field-msg" id="msg_last_name"></p>
+                        {{ form.last_name.errors }}
+                    </div>
+                </div>
+
+                <!-- CÉDULA / TELÉFONO -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="id_cedula">Cédula de identidad</label>
+                        <div class="input-wrap">
+                            <svg class="field-icon" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                            <input type="text" id="id_cedula" name="cedula"
+                                   placeholder="0000000000" maxlength="10"
+                                   value="{{ form.cedula.value|default:'' }}" inputmode="numeric">
+                            <span class="status-icon" id="status_cedula"><svg viewBox="0 0 24 24"></svg></span>
+                        </div>
+                        <p class="field-msg" id="msg_cedula"></p>
+                        {{ form.cedula.errors }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="id_telefono">Teléfono</label>
+                        <div class="input-wrap">
+                            <svg class="field-icon" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.18h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9a16 16 0 0 0 6.29 6.29l1.18-.92a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                            <input type="text" id="id_telefono" name="telefono"
+                                   placeholder="09XXXXXXXX" maxlength="10"
+                                   value="{{ form.telefono.value|default:'' }}" inputmode="tel">
+                            <span class="status-icon" id="status_telefono"><svg viewBox="0 0 24 24"></svg></span>
+                        </div>
+                        <p class="field-msg" id="msg_telefono"></p>
+                        {{ form.telefono.errors }}
+                    </div>
+                </div>
+
+                <!-- USUARIO -->
+                <div class="form-group">
+                    <label for="id_username">Usuario</label>
+                    <div class="input-wrap">
+                        <svg class="field-icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                        <input type="text" id="id_username" name="username"
+                               placeholder="Elige un nombre de usuario" maxlength="20"
+                               value="{{ form.username.value|default:'' }}" autocomplete="username">
+                        <span class="status-icon" id="status_username"><svg viewBox="0 0 24 24"></svg></span>
+                    </div>
+                    <p class="field-msg" id="msg_username"></p>
+                    {{ form.username.errors }}
+                </div>
+
+                <!-- GÉNERO -->
+                <div class="form-group">
+                    <label for="id_genero">Género</label>
+                    <div class="input-wrap">
+                        <svg class="field-icon" viewBox="0 0 24 24" style="top:50%;transform:translateY(-50%)"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                        <select id="id_genero" name="genero" style="width:100%;padding:0.95rem 2.6rem 0.95rem 2.8rem;border:1.5px solid var(--magenta-border);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:0.95rem;color:var(--text);background:var(--white);outline:none;appearance:none;transition:border-color 0.2s,box-shadow 0.2s;">
+                            <option value="">Selecciona tu género</option>
+                            <option value="femenino" {% if form.genero.value == 'femenino' %}selected{% endif %}>Femenino</option>
+                            <option value="masculino" {% if form.genero.value == 'masculino' %}selected{% endif %}>Masculino</option>
+                            <option value="otro" {% if form.genero.value == 'otro' %}selected{% endif %}>Otro / Prefiero no indicar</option>
+                        </select>
+                    </div>
+                    <p class="field-msg" id="msg_genero"></p>
+                    {{ form.genero.errors }}
+                </div>
+
+                <!-- CORREO -->
+                <div class="form-group">
+                    <label for="id_email">Correo electrónico</label>
+                    <div class="input-wrap">
+                        <svg class="field-icon" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                        <input type="email" id="id_email" name="email"
+                               placeholder="tucorreo@email.com"
+                               value="{{ form.email.value|default:'' }}" autocomplete="email">
+                        <span class="status-icon" id="status_email"><svg viewBox="0 0 24 24"></svg></span>
+                    </div>
+                    <p class="field-msg" id="msg_email"></p>
+                    {{ form.email.errors }}
+                </div>
+
+                <!-- CONTRASEÑA -->
+                <div class="form-group">
+                    <label for="id_password1">Contraseña</label>
+                    <div class="input-wrap">
+                        <svg class="field-icon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        <input type="password" id="id_password1" name="password1"
+                               placeholder="Crea tu contraseña" autocomplete="new-password">
+                        <button type="button" class="toggle-pass" data-target="id_password1" aria-label="Mostrar contraseña">
+                            <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                    </div>
+                    <div class="strength-bar" id="strengthBar">
+                        <span></span><span></span><span></span><span></span>
+                    </div>
+                    <p class="strength-label" id="strengthLabel"></p>
+                    <ul class="pass-reqs" id="passReqs">
+                        <li id="req-len"><i class="fa-regular fa-circle-xmark"></i> Mínimo 8 caracteres</li>
+                        <li id="req-upper"><i class="fa-regular fa-circle-xmark"></i> Una letra mayúscula</li>
+                        <li id="req-num"><i class="fa-regular fa-circle-xmark"></i> Un número</li>
+                        <li id="req-sym"><i class="fa-regular fa-circle-xmark"></i> Un símbolo (!@#$%...)</li>
+                    </ul>
+                    <p class="field-msg" id="msg_password1"></p>
+                    {{ form.password1.errors }}
+                </div>
+
+                <!-- CONFIRMAR CONTRASEÑA -->
+                <div class="form-group">
+                    <label for="id_password2">Confirmar contraseña</label>
+                    <div class="input-wrap">
+                        <svg class="field-icon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        <input type="password" id="id_password2" name="password2"
+                               placeholder="Repite tu contraseña" autocomplete="new-password">
+                        <button type="button" class="toggle-pass" data-target="id_password2" aria-label="Mostrar contraseña">
+                            <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                    </div>
+                    <p class="field-msg" id="msg_password2"></p>
+                    {{ form.password2.errors }}
+                </div>
+
+                <button type="submit" class="btn-register" id="btnRegister">
+                    <span class="btn-text">Crear cuenta</span>
+                    <div class="spinner"></div>
+                </button>
+            </form>
+
+            <div class="divider"><span>¿Ya tienes cuenta?</span></div>
+
+            <div class="login-link">
+                <p>Inicia sesión <a href="{% url 'login' %}">aquí</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (() => {
+        /* ── SVG helpers ── */
+        const SVG_CHECK  = `<path d="M20 6L9 17l-5-5"/>`;
+        const SVG_X      = `<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>`;
+        const SVG_EYE    = `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`;
+        const SVG_EYE_OFF = `<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>`;
+
+        /* ── Helpers de estado ── */
+        function setValid(inputEl, statusEl, msgEl, msg = '') {
+            inputEl.classList.remove('is-invalid');
+            inputEl.classList.add('is-valid');
+            statusEl.className = 'status-icon show valid';
+            statusEl.querySelector('svg').innerHTML = SVG_CHECK;
+            msgEl.className = 'field-msg success';
+            msgEl.innerHTML = msg
+                ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">${SVG_CHECK}</svg>${msg}`
+                : '';
+        }
+
+        function setInvalid(inputEl, statusEl, msgEl, msg) {
+            inputEl.classList.remove('is-valid');
+            inputEl.classList.add('is-invalid');
+            // Re-trigger shake
+            inputEl.style.animation = 'none';
+            inputEl.offsetHeight; // reflow
+            inputEl.style.animation = '';
+            statusEl.className = 'status-icon show invalid';
+            statusEl.querySelector('svg').innerHTML = SVG_X;
+            msgEl.className = 'field-msg error';
+            msgEl.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">${SVG_X}</svg>${msg}`;
+        }
+
+        function clearStatus(inputEl, statusEl, msgEl) {
+            inputEl.classList.remove('is-valid', 'is-invalid');
+            statusEl.className = 'status-icon';
+            msgEl.className = 'field-msg';
+            msgEl.innerHTML = '';
+        }
+
+        function getEls(id) {
+            return {
+                input:  document.getElementById(id),
+                status: document.getElementById('status_' + id.replace('id_','')),
+                msg:    document.getElementById('msg_' + id.replace('id_',''))
+            };
+        }
+
+        /* ── Validaciones individuales ── */
+        function validateName(id, label) {
+            const { input, status, msg } = getEls(id);
+            const val = input.value.trim();
+            if (!val) { setInvalid(input, status, msg, `${label} es obligatorio.`); return false; }
+            if (/\d/.test(val)) {
+                setInvalid(input, status, msg, 'No se permiten números.');
+                return false;
+            }
+            if (!/^[a-záéíóúüñA-ZÁÉÍÓÚÜÑ\s'-]+$/u.test(val)) {
+                setInvalid(input, status, msg, 'Solo letras y espacios.');
+                return false;
+            }
+            if (val.length < 2) { setInvalid(input, status, msg, 'Mínimo 2 caracteres.'); return false; }
+            if (val.length > 20) { setInvalid(input, status, msg, 'Máximo 20 caracteres.'); return false; }
+            setValid(input, status, msg);
+            return true;
+        }
+
+        function validateCedula() {
+            const { input, status, msg } = getEls('id_cedula');
+            const val = input.value.trim();
+            if (!val) { setInvalid(input, status, msg, 'La cédula es obligatoria.'); return false; }
+            if (!/^\d{10}$/.test(val)) { setInvalid(input, status, msg, 'Debe tener exactamente 10 dígitos.'); return false; }
+
+            // Algoritmo de validación de cédula ecuatoriana
+            const digits = val.split('').map(Number);
+            const prov = parseInt(val.substring(0, 2));
+            if (prov < 1 || prov > 24) { setInvalid(input, status, msg, 'Provincia inválida (primeros 2 dígitos).'); return false; }
+            if (digits[2] >= 6) { setInvalid(input, status, msg, 'Tercer dígito inválido.'); return false; }
+
+            const coefs = [2,1,2,1,2,1,2,1,2];
+            const suma = coefs.reduce((acc, c, i) => {
+                let r = c * digits[i];
+                if (r >= 10) r -= 9;
+                return acc + r;
+            }, 0);
+            const verificador = suma % 10 === 0 ? 0 : 10 - (suma % 10);
+            if (verificador !== digits[9]) { setInvalid(input, status, msg, 'Cédula ecuatoriana inválida.'); return false; }
+
+            setValid(input, status, msg, 'Cédula válida ✓');
+            return true;
+        }
+
+        function validateTelefono() {
+            const { input, status, msg } = getEls('id_telefono');
+            const val = input.value.trim();
+            if (!val) { setInvalid(input, status, msg, 'El teléfono es obligatorio.'); return false; }
+            if (!/^(09|02|03|04|05|06|07)\d{8}$/.test(val)) {
+                setInvalid(input, status, msg, 'Formato inválido. Ej: 09XXXXXXXX');
+                return false;
+            }
+            setValid(input, status, msg);
+            return true;
+        }
+
+        function validateUsername() {
+            const { input, status, msg } = getEls('id_username');
+            const val = input.value.trim();
+            if (!val) { setInvalid(input, status, msg, 'El usuario es obligatorio.'); return false; }
+            if (val.length < 4) { setInvalid(input, status, msg, 'Mínimo 4 caracteres.'); return false; }
+            if (val.length > 20) { setInvalid(input, status, msg, 'Máximo 20 caracteres.'); return false; }
+            if (/^\d/.test(val)) { setInvalid(input, status, msg, 'No puede comenzar con un número.'); return false; }
+            if (!/^[a-zA-Z0-9_.]+$/.test(val)) {
+                setInvalid(input, status, msg, 'Solo letras, números, punto y guión bajo.');
+                return false;
+            }
+            setValid(input, status, msg);
+            return true;
+        }
+
+        function validateEmail() {
+            const { input, status, msg } = getEls('id_email');
+            const val = input.value.trim();
+            if (!val) { setInvalid(input, status, msg, 'El correo es obligatorio.'); return false; }
+            // Regex más estricto: usuario@dominio.extensión (extensión mínimo 2 letras)
+            if (!/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(val)) {
+                setInvalid(input, status, msg, 'Ingresa un correo válido. Ej: nombre@correo.com');
+                return false;
+            }
+            if (val.includes('..')) { setInvalid(input, status, msg, 'El correo no puede tener puntos consecutivos.'); return false; }
+            setValid(input, status, msg);
+            return true;
+        }
+
+        function validateGenero() {
+            const sel = document.getElementById('id_genero');
+            const msg = document.getElementById('msg_genero');
+            if (!sel || !msg) return true;
+            if (!sel.value) {
+                sel.style.borderColor = 'var(--error)';
+                sel.style.boxShadow = '0 0 0 3px rgba(192,57,43,0.1)';
+                msg.className = 'field-msg error';
+                msg.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px">${SVG_X}</svg>Selecciona tu género.`;
+                return false;
+            }
+            sel.style.borderColor = 'var(--success)';
+            sel.style.boxShadow = '0 0 0 3px rgba(26,122,74,0.1)';
+            msg.className = 'field-msg';
+            msg.innerHTML = '';
+            return true;
+        }
+
+        /* ── Validaciones AJAX (unicidad en servidor) ── */
+        let _ajaxTimers = {};
+        function checkDisponibilidad(campo, valor, onResult) {
+            clearTimeout(_ajaxTimers[campo]);
+            _ajaxTimers[campo] = setTimeout(() => {
+                fetch(`{% url 'verificar_disponibilidad' %}?campo=${campo}&valor=${encodeURIComponent(valor)}`)
+                    .then(r => r.json())
+                    .then(data => onResult(data))
+                    .catch(() => {}); // silenciar errores de red
+            }, 450);
+        }
+
+        /* ── Fortaleza de contraseña ── */
+        const strengthBar   = document.getElementById('strengthBar');
+        const strengthLabel = document.getElementById('strengthLabel');
+        const bars = strengthBar.querySelectorAll('span');
+
+        function getStrength(pass) {
+            let score = 0;
+            if (pass.length >= 8) score++;
+            if (/[A-Z]/.test(pass)) score++;
+            if (/[0-9]/.test(pass)) score++;
+            if (/[^A-Za-z0-9]/.test(pass)) score++;
+            return score;
+        }
+
+        function updateStrengthBar(pass) {
+            const score = getStrength(pass);
+            const labels = ['', 'Débil', 'Regular', 'Buena', 'Fuerte'];
+            const classes = ['', 'weak', 'medium', 'strong', 'strong'];
+            bars.forEach((b, i) => {
+                b.className = i < score ? classes[score] : '';
+            });
+            strengthLabel.textContent = pass ? labels[score] : '';
+            strengthLabel.className = 'strength-label ' + (pass ? classes[score] : '');
+
+            // Actualizar lista de requisitos
+            const toggle = (id, ok) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.classList.toggle('ok', ok);
+            };
+            toggle('req-len',   pass.length >= 8);
+            toggle('req-upper', /[A-Z]/.test(pass));
+            toggle('req-num',   /[0-9]/.test(pass));
+            toggle('req-sym',   /[^A-Za-z0-9]/.test(pass));
+        }
+
+        function validatePassword1() {
+            const { input, msg } = getEls('id_password1');
+            const statusEl = { className: '', querySelector: () => ({ innerHTML: '' }) }; // sin status icon (tiene toggle)
+            const val = input.value;
+            if (!val) {
+                input.classList.remove('is-valid');
+                input.classList.add('is-invalid');
+                msg.className = 'field-msg error';
+                msg.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">${SVG_X}</svg>La contraseña es obligatoria.`;
+                return false;
+            }
+            if (val.length < 8) {
+                input.classList.remove('is-valid');
+                input.classList.add('is-invalid');
+                msg.className = 'field-msg error';
+                msg.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">${SVG_X}</svg>Mínimo 8 caracteres.`;
+                return false;
+            }
+            input.classList.remove('is-invalid');
+            input.classList.add('is-valid');
+            msg.className = 'field-msg';
+            msg.innerHTML = '';
+            return true;
+        }
+
+        function validatePassword2() {
+            const p1 = document.getElementById('id_password1').value;
+            const { input, msg } = getEls('id_password2');
+            const val = input.value;
+            if (!val) {
+                input.classList.remove('is-valid');
+                input.classList.add('is-invalid');
+                msg.className = 'field-msg error';
+                msg.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">${SVG_X}</svg>Confirma tu contraseña.`;
+                return false;
+            }
+            if (val !== p1) {
+                input.classList.remove('is-valid');
+                input.classList.add('is-invalid');
+                input.style.animation = 'none'; input.offsetHeight; input.style.animation = '';
+                msg.className = 'field-msg error';
+                msg.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">${SVG_X}</svg>Las contraseñas no coinciden.`;
+                return false;
+            }
+            input.classList.remove('is-invalid');
+            input.classList.add('is-valid');
+            msg.className = 'field-msg success';
+            msg.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">${SVG_CHECK}</svg>Las contraseñas coinciden.`;
+            return true;
+        }
+
+        /* ── Bind eventos ── */
+        function bindField(id, validFn) {
+            const input = document.getElementById(id);
+            if (!input) return;
+            input.addEventListener('blur', () => { if (input.value) validFn(); });
+            input.addEventListener('input', () => { if (input.classList.contains('is-invalid')) validFn(); });
+        }
+
+        bindField('id_first_name',  () => validateName('id_first_name', 'El nombre'));
+        bindField('id_last_name',   () => validateName('id_last_name', 'Los apellidos'));
+        bindField('id_cedula',      validateCedula);
+        bindField('id_telefono',    validateTelefono);
+        bindField('id_username',    validateUsername);
+        bindField('id_email',       validateEmail);
+        bindField('id_password2',   validatePassword2);
+
+        // AJAX: verificar unicidad de username al perder foco
+        document.getElementById('id_username').addEventListener('blur', function() {
+            const { input, status, msg } = getEls('id_username');
+            if (!validateUsername()) return; // primero pasa validación local
+            checkDisponibilidad('username', input.value.trim(), (data) => {
+                if (!data.disponible) setInvalid(input, status, msg, data.mensaje);
+                else setValid(input, status, msg, data.mensaje);
+            });
+        });
+
+        // AJAX: verificar unicidad de cédula al perder foco
+        document.getElementById('id_cedula').addEventListener('blur', function() {
+            const { input, status, msg } = getEls('id_cedula');
+            if (!validateCedula()) return;
+            checkDisponibilidad('cedula', input.value.trim(), (data) => {
+                if (!data.disponible) setInvalid(input, status, msg, data.mensaje);
+                else setValid(input, status, msg, data.mensaje);
+            });
+        });
+
+        // Genero change
+        const generoSel = document.getElementById('id_genero');
+        if (generoSel) generoSel.addEventListener('change', validateGenero);
+
+        // Solo números en cédula y teléfono
+        ['id_cedula','id_telefono'].forEach(id => {
+            document.getElementById(id).addEventListener('input', function() {
+                this.value = this.value.replace(/\D/g, '');
+            });
+        });
+
+        // Bloquear números y caracteres inválidos en nombre y apellidos en tiempo real
+        ['id_first_name','id_last_name'].forEach(id => {
+            document.getElementById(id).addEventListener('keypress', function(e) {
+                // Bloquear dígitos directamente al tipear
+                if (/\d/.test(e.key)) { e.preventDefault(); }
+            });
+            document.getElementById(id).addEventListener('input', function() {
+                // Limpiar si se pegó texto con números
+                const cleaned = this.value.replace(/[0-9]/g, '');
+                if (cleaned !== this.value) this.value = cleaned;
+            });
+        });
+
+        // Contraseña con barra de fortaleza
+        const pass1El = document.getElementById('id_password1');
+        pass1El.addEventListener('input', () => {
+            updateStrengthBar(pass1El.value);
+            if (pass1El.classList.contains('is-invalid')) validatePassword1();
+            // Re-validar confirmación si ya tiene algo
+            const p2 = document.getElementById('id_password2');
+            if (p2.value) validatePassword2();
+        });
+        pass1El.addEventListener('blur', () => { if (pass1El.value) validatePassword1(); });
+
+        document.getElementById('id_password2').addEventListener('input', () => {
+            if (document.getElementById('id_password2').classList.contains('is-invalid')) {
+                validatePassword2();
+            }
+        });
+
+        /* ── Toggle contraseña ── */
+        document.querySelectorAll('.toggle-pass').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetId = btn.dataset.target;
+                const targetInput = document.getElementById(targetId);
+                const isPass = targetInput.type === 'password';
+                targetInput.type = isPass ? 'text' : 'password';
+                btn.querySelector('svg').innerHTML = isPass ? SVG_EYE_OFF : SVG_EYE;
+            });
+        });
+
+        /* ── Submit ── */
+        const form = document.getElementById('registerForm');
+        const btn  = document.getElementById('btnRegister');
+
+        form.addEventListener('submit', (e) => {
+            const results = [
+                validateName('id_first_name', 'El nombre'),
+                validateName('id_last_name', 'Los apellidos'),
+                validateCedula(),
+                validateTelefono(),
+                validateGenero(),
+                validateUsername(),
+                validateEmail(),
+                validatePassword1(),
+                validatePassword2()
+            ];
+
+            if (results.some(r => !r)) {
+                e.preventDefault();
+                // Scroll al primer error
+                const firstError = form.querySelector('.is-invalid');
+                if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+
+            btn.classList.add('loading');
+            btn.disabled = true;
+        });
+
+    })();
+    </script>
+
+</body>
+</html>

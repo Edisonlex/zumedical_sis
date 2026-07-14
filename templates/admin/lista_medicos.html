@@ -1,0 +1,223 @@
+﻿{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zumedical — Médicos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        :root{--mg:#B03580;--mg-l:#CC4D99;--mg-d:#8A2563;--mg-bg:#FBF0F7;--mg-border:#E8AAD4;--text:#2A1020;--muted:#8A6070;--white:#fff;--bg:#FDF5FA;--sw:260px}
+        body{font-family:'DM Sans',sans-serif;background:var(--bg);min-height:100vh;display:flex;opacity:0;animation:fadeIn .4s ease .05s forwards}
+@keyframes fadeIn{to{opacity:1}}
+        .sidebar{width:var(--sw);height:100vh;background:linear-gradient(175deg,#8A2563 0%,#B03580 55%,#CC4D99 100%);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:200;overflow:hidden;transition:transform .3s ease;box-shadow:4px 0 24px rgba(138,37,99,.2)}
+        .sb-brand{padding:1.75rem 1.5rem 1.25rem;border-bottom:1px solid rgba(255,255,255,0.12);display:flex;align-items:center;gap:0.75rem}
+        .sb-logo{width:42px;height:42px;background:white;border-radius:50%;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+        .sb-logo img{width:38px;height:38px;object-fit:contain}
+        .sb-brand-text h2{font-family:'Cormorant Garamond',serif;font-size:1.35rem;font-weight:600;color:white;line-height:1}
+        .sb-brand-text span{font-size:0.7rem;color:rgba(255,255,255,0.65);letter-spacing:0.1em;text-transform:uppercase}
+        .sb-user{padding:1rem 1.5rem;border-bottom:1px solid rgba(255,255,255,0.12);display:flex;align-items:center;gap:0.7rem}
+        .sb-avatar{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:500;color:white;flex-shrink:0;text-transform:uppercase}
+        .sb-user-info p{font-size:0.72rem;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.1rem}
+        .sb-user-info h3{font-size:0.88rem;font-weight:500;color:white}
+        .sb-nav{flex:1;padding:1rem 0.75rem;overflow-y:auto}
+        .nav-lbl{font-size:0.68rem;color:rgba(255,255,255,0.45);letter-spacing:0.1em;text-transform:uppercase;padding:0.5rem 0.75rem;margin-top:0.75rem}
+        .nav-item{display:flex;align-items:center;gap:0.7rem;padding:0.7rem 1rem;border-radius:10px;color:rgba(255,255,255,0.82);text-decoration:none;font-size:0.88rem;transition:all 0.2s;margin-bottom:0.2rem}
+        .nav-badge{margin-left:auto;background:rgba(255,255,255,.25);color:white;font-size:.68rem;font-weight:600;padding:.15rem .5rem;border-radius:999px;min-width:20px;text-align:center}
+        .nav-badge-alert{background:#e74c3c}
+        .nav-item:hover,.nav-item.active{background:rgba(255,255,255,0.18);color:white}
+        .nav-item i{width:18px;text-align:center;font-size:15px;flex-shrink:0}
+        .sb-footer{padding:1rem 0.75rem;border-top:1px solid rgba(255,255,255,0.12)}
+        .btn-logout{display:flex;align-items:center;gap:0.7rem;padding:0.7rem 1rem;border-radius:10px;color:rgba(255,255,255,0.75);text-decoration:none;font-size:0.88rem;transition:all 0.2s}
+        .btn-logout:hover{background:rgba(255,255,255,0.15);color:white}
+        .btn-logout i{width:17px;text-align:center;font-size:15px}
+        .mobile-topbar{display:none;align-items:center;justify-content:space-between;padding:1rem 1.25rem;background:linear-gradient(135deg,#8A2563,#CC4D99);position:fixed;top:0;left:0;right:0;z-index:300}
+.mobile-topbar-brand{display:flex;align-items:center;gap:.6rem}
+.mobile-topbar-brand img{width:32px;height:32px;background:white;border-radius:50%;padding:2px;object-fit:contain}
+.mobile-topbar-brand span{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;color:white}
+.hamburger{background:rgba(255,255,255,.15);border:none;border-radius:8px;padding:.5rem .65rem;cursor:pointer;display:flex;flex-direction:column;gap:4px}
+.hamburger span{display:block;width:20px;height:2px;background:white;border-radius:2px;transition:all .3s}
+.hamburger.open span:nth-child(1){transform:translateY(6px) rotate(45deg)}
+.hamburger.open span:nth-child(2){opacity:0}
+.hamburger.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:150;opacity:0;pointer-events:none;transition:opacity .3s}
+.sidebar-overlay.active{opacity:1;pointer-events:auto}
+.main{margin-left:var(--sw);flex:1;padding:2.5rem;min-height:100vh}
+        .page-header{margin-bottom:2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+        .page-header-left h1{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:600;color:var(--text);margin-bottom:0.25rem}
+        .page-header-left p{color:var(--muted);font-size:0.88rem;font-weight:300}
+        .page-header-actions{display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap}
+        .btn-new{display:inline-flex;align-items:center;gap:0.45rem;padding:0.6rem 1.25rem;background:linear-gradient(135deg,var(--mg-d),var(--mg-l));color:white;border-radius:9px;text-decoration:none;font-size:0.85rem;font-weight:500;transition:opacity 0.2s,transform 0.15s;white-space:nowrap}
+        .btn-new:hover{opacity:0.88;transform:translateY(-1px)}
+        .btn-new svg{width:14px;height:14px;stroke:white;fill:none;stroke-width:2.2}
+        .btn-back{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.1rem;background:var(--white);color:var(--mg);border:1.5px solid var(--mg-border);border-radius:9px;text-decoration:none;font-size:0.85rem;font-weight:500;transition:all 0.2s;white-space:nowrap}
+        .btn-back:hover{background:var(--mg-bg);border-color:var(--mg)}
+        .btn-back svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+        .table-card{background:var(--white);border-radius:16px;border:1px solid var(--mg-border);overflow:hidden;position:relative}
+        .table-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:linear-gradient(180deg,var(--mg-d),var(--mg-l))}
+        .table-search{padding:1.25rem 1.5rem;border-bottom:1px solid var(--mg-border);display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+        .search-wrap{position:relative;flex:1;min-width:200px}
+        .search-wrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:var(--muted);fill:none;stroke-width:1.8}
+        .search-wrap input{width:100%;padding:0.65rem 1rem 0.65rem 2.4rem;border:1.5px solid var(--mg-border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.88rem;color:var(--text);outline:none;transition:all 0.2s;background:var(--bg)}
+        .search-wrap input:focus{border-color:var(--mg);box-shadow:0 0 0 3px rgba(176,53,128,0.08);background:var(--white)}
+        .search-wrap input::placeholder{color:#C9A8BF}
+        .table-count{font-size:0.82rem;color:var(--muted);white-space:nowrap;background:var(--mg-bg);padding:0.35rem 0.85rem;border-radius:20px;border:1px solid var(--mg-border)}
+        .table-wrapper{overflow-x:auto}
+        table{width:100%;border-collapse:collapse;min-width:520px}
+        thead tr{background:var(--mg-bg)}
+        th{padding:0.85rem 1.5rem;text-align:left;font-size:0.72rem;font-weight:500;color:var(--mg-d);text-transform:uppercase;letter-spacing:0.08em;border-bottom:1px solid var(--mg-border);white-space:nowrap}
+        td{padding:1rem 1.5rem;font-size:0.88rem;color:var(--text);border-bottom:1px solid rgba(232,170,212,0.3);vertical-align:middle}
+        tr:last-child td{border-bottom:none}
+        tbody tr{transition:background 0.15s}
+        tbody tr:hover{background:var(--mg-bg)}
+        .medico-cell{display:flex;align-items:center;gap:0.75rem}
+        .medico-avatar{width:36px;height:36px;border-radius:50%;background:var(--mg-bg);border:1px solid var(--mg-border);display:flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:500;color:var(--mg-d);flex-shrink:0;text-transform:uppercase}
+        .badge-esp{display:inline-flex;padding:0.25rem 0.75rem;border-radius:20px;font-size:0.72rem;font-weight:500;background:#E8F5E9;color:#2E7D32;border:1px solid #A5D6A7}
+        .td-actions{display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap}
+        .btn-sm{display:inline-flex;align-items:center;gap:0.3rem;padding:0.35rem 0.8rem;border-radius:7px;font-size:0.78rem;font-weight:500;text-decoration:none;transition:all 0.2s;white-space:nowrap;border:1px solid}
+        .btn-secondary{background:var(--mg-bg);color:var(--mg-d);border-color:var(--mg-border)}
+        .btn-secondary:hover{background:var(--mg);color:white;border-color:var(--mg)}
+        .btn-danger{background:#FEF0F0;color:#8B2020;border-color:#F5AAAA}
+        .btn-danger:hover{background:#D63B3B;color:white;border-color:#D63B3B}
+        .empty-state{padding:3rem;text-align:center;color:var(--muted)}
+        .empty-state svg{width:40px;height:40px;stroke:var(--mg-border);fill:none;stroke-width:1.5;margin:0 auto 1rem;display:block}
+        @media(max-width:768px){body{flex-direction:column}.sidebar{position:fixed;top:64px;left:0;height:calc(100vh - 64px);transform:translateX(-100%);width:var(--sw)}.sidebar.open{transform:translateX(0)}.sidebar-overlay{display:block;z-index:150}.mobile-topbar{display:flex}.main{margin-left:0;padding:1.25rem;padding-top:calc(1.25rem + 64px)}}
+    </style>
+</head>
+<body>
+<div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
+<div class="mobile-topbar">
+    <div class="mobile-topbar-brand">
+        <img src="/static/img/Logo.png" alt="Zumedical">
+        <span>Zumedical</span>
+    </div>
+    <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
+        <span></span><span></span><span></span>
+    </button>
+</div>
+<aside class="sidebar" id="sidebar">
+    <div class="sb-brand">
+        <div class="sb-logo"><img src="/static/img/Logo.png" alt="Zumedical"></div>
+        <div class="sb-brand-text"><h2>Zumedical</h2><span>Administrador</span></div>
+    </div>
+    <div class="sb-user">
+        <div class="sb-avatar">{% if request.user.first_name %}{{ request.user.first_name|slice:":1" }}{{ request.user.last_name|slice:":1" }}{% else %}{{ request.user.username|slice:":1"|upper }}{% endif %}</div>
+        <div class="sb-user-info"><p>Sesión activa</p><h3>{{ request.user.get_full_name|default:request.user.username }}</h3></div>
+    </div>
+    <nav class="sb-nav">
+        <div class="nav-lbl">Panel</div>
+        <a href="{% url 'admin_dashboard' %}" class="nav-item"><i class="fa-solid fa-grid-2"></i> Inicio</a>
+        <div class="nav-lbl">Gestión</div>
+        <a href="{% url 'lista_usuarios' %}" class="nav-item"><i class="fa-solid fa-users"></i> Usuarios</a>
+        <a href="{% url 'lista_medicos' %}" class="nav-item active"><i class="fa-solid fa-user-doctor"></i> Médicos</a>
+        <a href="{% url 'lista_pacientes' %}" class="nav-item"><i class="fa-solid fa-hospital-user"></i> Pacientes</a>
+        <a href="{% url 'todas_citas' %}" class="nav-item">
+            <i class="fa-regular fa-calendar-check"></i> Citas
+            {% if citas_pendientes %}<span class="nav-badge-alert">{{ citas_pendientes }}</span>{% endif %}
+        </a>
+        <a href="{% url 'controles_admin' %}" class="nav-item"><i class="fa-solid fa-heart-pulse"></i> Controles Prenatales</a>
+        <div class="nav-lbl">Sistema</div>
+        <a href="{% url 'auditoria_admin' %}" class="nav-item"><i class="fa-solid fa-shield-halved"></i> Auditoría</a>
+    </nav>
+    <div class="sb-footer">
+        <a href="{% url 'logout' %}" class="btn-logout"><i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar sesión</a>
+    </div>
+</aside>
+ 
+<main class="main">
+    <div class="page-header">
+        <div class="page-header-left">
+            <h1>Médicos</h1>
+            <p>Listado de médicos registrados en el sistema</p>
+        </div>
+        <div class="page-header-actions">
+            <a href="{% url 'admin_crear_medico' %}" class="btn-new">
+                <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Nuevo médico
+            </a>
+            <a href="{% url 'admin_dashboard' %}" class="btn-back">
+                <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                Volver
+            </a>
+        </div>
+    </div>
+ 
+    <div class="table-card">
+        <div class="table-search">
+            <div class="search-wrap">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" id="searchInput" placeholder="Buscar médico...">
+            </div>
+            <span class="table-count">{{ medicos|length }} médico{{ medicos|length|pluralize:"s" }}</span>
+        </div>
+        <div class="table-wrapper">
+            <table id="medicosTable">
+                <thead>
+                    <tr>
+                        <th>Médico</th>
+                        <th>Usuario</th>
+                        <th>Especialidad</th>
+                        <th>Teléfono</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in medicos %}
+                    <tr>
+                        <td>
+                            <div class="medico-cell">
+                                <div class="medico-avatar">{{ m.usuario.first_name|slice:":1" }}{{ m.usuario.last_name|slice:":1" }}</div>
+                                <div>
+                                    <strong>{{ m.usuario.get_full_name|default:m.usuario.username }}</strong><br>
+                                    <span style="font-size:0.78rem;color:var(--muted)">{{ m.usuario.email|default:"" }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="color:var(--muted)">{{ m.usuario.username }}</td>
+                        <td><span class="badge-esp">{{ m.especialidad|default:"—" }}</span></td>
+                        <td>{{ m.telefono|default:"—" }}</td>
+                        <td>
+                            <div class="td-actions">
+                                <a href="{% url 'admin_editar_medico' m.id %}" class="btn-sm btn-secondary">Editar</a>
+                                <a href="{% url 'admin_eliminar_medico' m.id %}" class="btn-sm btn-danger">Eliminar</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5"><div class="empty-state"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><p>No hay médicos registrados.</p></div></td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+ 
+<script>
+// ── Hamburguesa móvil ──
+function toggleSidebar() {
+    const sb = document.getElementById('sidebar');
+    const ov = document.getElementById('overlay');
+    const hb = document.getElementById('hamburger');
+    sb.classList.toggle('open');
+    ov.classList.toggle('active');
+    hb.classList.toggle('open');
+}
+function closeSidebar() {
+    const sb = document.getElementById('sidebar');
+    const ov = document.getElementById('overlay');
+    const hb = document.getElementById('hamburger');
+    sb.classList.remove('open');
+    ov.classList.remove('active');
+    hb.classList.remove('open');
+}
+
+document.getElementById('searchInput').addEventListener('input', function() {
+    const q = this.value.toLowerCase();
+    document.querySelectorAll('#medicosTable tbody tr').forEach(r => {
+        r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+});
+</script>
+</body>
+</html>

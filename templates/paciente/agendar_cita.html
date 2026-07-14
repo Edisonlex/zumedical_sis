@@ -1,0 +1,298 @@
+﻿<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agendar Cita — Zumedical</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root{
+      --mg:#b03580;--mg-l:#cc4d99;--mg-d:#8a2563;
+      --mg-bg:#fbf0f7;--mg-border:#e8aad4;
+      --text:#2a1020;--muted:#8a6070;--white:#fff;--bg:#fdf5fa;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:"DM Sans",sans-serif;background:var(--bg);min-height:100vh;display:flex;}
+
+    /* SIDEBAR */
+    .sidebar{width:260px;min-height:100vh;background:linear-gradient(175deg,#8a2563 0%,#b03580 55%,#cc4d99 100%);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:200;}
+    .sb-brand{padding:2rem 1.5rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:.75rem;}
+    .sb-logo{width:44px;height:44px;background:white;border-radius:50%;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+    .sb-logo img{width:40px;height:40px;object-fit:contain;}
+    .sb-brand h2{font-family:"Cormorant Garamond",serif;font-size:1.4rem;font-weight:600;color:white;line-height:1;}
+    .sb-brand span{font-size:.72rem;color:rgba(255,255,255,.7);letter-spacing:.1em;text-transform:uppercase;}
+    .sb-user{padding:1.2rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:.75rem;text-decoration:none;}
+    .sb-av{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:500;color:white;text-transform:uppercase;flex-shrink:0;}
+    .sb-user-info p{font-size:.78rem;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.08em;}
+    .sb-user-info h3{font-size:.9rem;font-weight:500;color:white;}
+    .sb-nav{flex:1;padding:1rem .75rem;}
+    .nav-lbl{font-size:.7rem;color:rgba(255,255,255,.5);letter-spacing:.1em;text-transform:uppercase;padding:.5rem .75rem;margin-top:.5rem;}
+    .nav-item{display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;border-radius:10px;color:rgba(255,255,255,.85);text-decoration:none;font-size:.9rem;font-weight:400;transition:all .2s;margin-bottom:.25rem;}
+    .nav-item:hover,.nav-item.active{background:rgba(255,255,255,.18);color:white;}
+    .sb-footer{padding:1rem .75rem;border-top:1px solid rgba(255,255,255,.12);}
+    .btn-logout{display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;border-radius:10px;color:rgba(255,255,255,.8);text-decoration:none;font-size:.9rem;transition:all .2s;}
+    .btn-logout:hover{background:rgba(255,255,255,.15);color:white;}
+
+    /* MAIN */
+    .main{margin-left:260px;flex:1;padding:2.5rem;}
+    .page-header{margin-bottom:2rem;}
+    .page-header .sub{font-size:.85rem;color:var(--muted);font-weight:300;margin-bottom:.3rem;}
+    .page-header h1{font-family:"Cormorant Garamond",serif;font-size:2.2rem;font-weight:600;color:var(--text);}
+
+    /* MENSAJES */
+    .msg{display:flex;align-items:center;gap:.65rem;padding:.9rem 1.2rem;border-radius:12px;font-size:.88rem;font-weight:500;margin-bottom:.75rem;}
+    .msg-success{background:#edfaf3;color:#1a7a4a;border:1px solid #a8dfc0;}
+    .msg-error{background:#fdf0f0;color:#b03030;border:1px solid #f0b8b8;}
+
+    /* CARD FORMULARIO */
+    .card{background:var(--white);border-radius:16px;border:1px solid var(--mg-border);overflow:hidden;box-shadow:0 2px 12px rgba(176,53,128,.06);}
+    .card-header{padding:1.5rem 2rem;border-bottom:1px solid var(--mg-border);background:var(--mg-bg);display:flex;align-items:center;gap:.75rem;}
+    .card-header h2{font-family:"Cormorant Garamond",serif;font-size:1.4rem;font-weight:600;color:var(--text);}
+    .card-body{padding:2rem;}
+
+    /* STEPS */
+    .steps{display:flex;align-items:center;gap:0;margin-bottom:2rem;background:var(--mg-bg);border:1px solid var(--mg-border);border-radius:12px;overflow:hidden;}
+    .step{flex:1;display:flex;align-items:center;justify-content:center;gap:.5rem;padding:.75rem;font-size:.82rem;font-weight:500;color:var(--muted);position:relative;}
+    .step.active{background:var(--white);color:var(--mg-d);font-weight:600;}
+    .step.done{color:var(--mg);}
+    .step-num{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--mg-border);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;flex-shrink:0;}
+    .step.active .step-num{background:var(--mg);border-color:var(--mg);color:white;}
+    .step.done .step-num{background:var(--mg-bg);border-color:var(--mg);color:var(--mg);}
+
+    /* GRID MÉDICOS */
+    .medicos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;margin-bottom:1.5rem;}
+    .medico-card{border:1.5px solid var(--mg-border);border-radius:12px;padding:1.1rem;cursor:pointer;transition:all .2s;background:white;text-align:left;}
+    .medico-card:hover{border-color:var(--mg);box-shadow:0 4px 12px rgba(176,53,128,.12);}
+    .medico-card.selected{border-color:var(--mg);background:var(--mg-bg);box-shadow:0 4px 16px rgba(176,53,128,.18);}
+    .medico-av{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--mg-d),var(--mg-l));display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:600;color:white;margin-bottom:.65rem;text-transform:uppercase;}
+    .medico-nombre{font-size:.88rem;font-weight:600;color:var(--text);margin-bottom:.2rem;}
+    .medico-esp{font-size:.75rem;color:var(--muted);}
+
+    /* FORM FIELDS */
+    .form-group{margin-bottom:1.25rem;}
+    .form-group label{display:block;font-size:.82rem;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.45rem;}
+    .form-group input,.form-group select,.form-group textarea{
+      width:100%;padding:.8rem 1rem;border:1.5px solid var(--mg-border);
+      border-radius:10px;font-family:"DM Sans",sans-serif;font-size:.93rem;
+      color:var(--text);background:white;outline:none;transition:all .2s;
+    }
+    .form-group input:focus,.form-group select:focus,.form-group textarea:focus{
+      border-color:var(--mg);box-shadow:0 0 0 3px rgba(176,53,128,.1);
+    }
+    .form-group textarea{resize:vertical;min-height:80px;}
+    .form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+
+    /* HORAS GRID */
+    .horas-grid{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.5rem;}
+    .hora-btn{padding:.45rem .9rem;border:1.5px solid var(--mg-border);border-radius:8px;font-size:.83rem;font-weight:500;color:var(--text);background:white;cursor:pointer;transition:all .15s;}
+    .hora-btn:hover{border-color:var(--mg);color:var(--mg);}
+    .hora-btn.selected{background:var(--mg);border-color:var(--mg);color:white;}
+    .hora-btn:disabled,.hora-btn.ocupada{background:#f5f5f5;border-color:#e0e0e0;color:#bbb;cursor:not-allowed;text-decoration:line-through;}
+    .horas-loading{font-size:.85rem;color:var(--muted);padding:.5rem 0;display:none;}
+
+    /* ACCIONES */
+    .form-actions{display:flex;gap:1rem;align-items:center;margin-top:1.5rem;flex-wrap:wrap;}
+    .btn-primary{background:linear-gradient(135deg,var(--mg-d),var(--mg-l));color:white;border:none;padding:.9rem 2rem;border-radius:10px;font-size:.95rem;font-weight:500;cursor:pointer;transition:all .2s;font-family:"DM Sans",sans-serif;}
+    .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(176,53,128,.25);}
+    .btn-primary:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+    .btn-secondary{background:white;color:var(--mg);border:1px solid var(--mg-border);padding:.9rem 1.5rem;border-radius:10px;text-decoration:none;font-size:.9rem;font-weight:500;display:inline-flex;align-items:center;}
+
+    /* HIDDEN INPUT */
+    input[type=hidden]{}
+
+    @media(max-width:768px){
+      .sidebar{display:none;}
+      .main{margin-left:0;padding:1.25rem;}
+      .form-grid-2{grid-template-columns:1fr;}
+      .medicos-grid{grid-template-columns:1fr 1fr;}
+    }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sb-brand">
+    <div class="sb-logo"><img src="/static/img/Logo.png" alt="Zumedical" /></div>
+    <div><h2>Zumedical</h2><span>Paciente</span></div>
+  </div>
+  <a href="{% url 'mi_perfil' %}" class="sb-user">
+    <div class="sb-av">{% if request.user.first_name %}{{ request.user.first_name|slice:":1" }}{{ request.user.last_name|slice:":1" }}{% else %}{{ request.user.username|slice:":1"|upper }}{% endif %}</div>
+    <div class="sb-user-info"><p>Mi perfil</p><h3>{{ request.user.get_full_name|default:request.user.username }}</h3></div>
+  </a>
+  <nav class="sb-nav">
+    <div class="nav-lbl">Menú</div>
+    <a href="{% url 'paciente_dashboard' %}" class="nav-item">🏠 Inicio</a>
+    <a href="{% url 'agendar_cita' %}" class="nav-item active">📅 Agendar Cita</a>
+    <a href="{% url 'ver_citas' %}" class="nav-item">🗓 Mis Citas</a>
+    <div class="nav-lbl">Inteligencia Artificial</div>
+    <a href="{% url 'chatbot_page' %}" class="nav-item">💬 Asistente Virtual</a>
+    <a href="{% url 'evaluar_riesgo' %}" class="nav-item">🧬 Evaluación de Riesgo</a>
+  </nav>
+  <div class="sb-footer">
+    <a href="{% url 'logout' %}" class="btn-logout">🚪 Cerrar sesión</a>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="page-header">
+    <p class="sub">Consulta prenatal</p>
+    <h1>Agendar Cita</h1>
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+    <div class="msg {% if message.tags == 'success' %}msg-success{% else %}msg-error{% endif %}">
+      {{ message }}
+    </div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="card">
+    <div class="card-header">
+      <span style="font-size:1.4rem;">📅</span>
+      <h2>Nueva Cita Prenatal</h2>
+    </div>
+    <div class="card-body">
+
+      <form method="post" id="cita-form">
+        {% csrf_token %}
+        <input type="hidden" name="medico_id" id="medico_id_input" />
+        <input type="hidden" name="hora" id="hora_input" />
+
+        <!-- PASO 1: MÉDICO -->
+        <div style="margin-bottom:1.5rem;">
+          <div style="font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:.85rem;padding-bottom:.4rem;border-bottom:1px solid var(--mg-border);">
+            1. Selecciona tu médico obstetra
+          </div>
+          <div class="medicos-grid" id="medicos-grid">
+            {% for medico in medicos %}
+            <div class="medico-card" data-id="{{ medico.usuario.id }}" onclick="seleccionarMedico(this)">
+              <div class="medico-av">{{ medico.usuario.first_name|slice:":1" }}{{ medico.usuario.last_name|slice:":1" }}</div>
+              <div class="medico-nombre">Dr(a). {{ medico.usuario.get_full_name }}</div>
+              <div class="medico-esp">{{ medico.especialidad.nombre|default:"Obstetricia" }}</div>
+            </div>
+            {% empty %}
+            <p style="color:var(--muted);font-size:.9rem;">No hay médicos disponibles en este momento.</p>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- PASO 2: FECHA -->
+        <div class="form-grid-2" style="margin-bottom:1.5rem;">
+          <div class="form-group">
+            <label>2. Fecha de la cita</label>
+            <input type="date" name="fecha" id="fecha-input"
+              min="{{ today|default:'' }}"
+              onchange="cargarHoras()" required />
+          </div>
+          <div class="form-group">
+            <label>Motivo de consulta (opcional)</label>
+            <textarea name="motivo" placeholder="Describe brevemente el motivo..."></textarea>
+          </div>
+        </div>
+
+        <!-- PASO 3: HORA -->
+        <div style="margin-bottom:1.5rem;">
+          <div style="font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:.85rem;padding-bottom:.4rem;border-bottom:1px solid var(--mg-border);">
+            3. Selecciona una hora disponible
+          </div>
+          <div class="horas-loading" id="horas-loading">⏳ Cargando horas disponibles...</div>
+          <div class="horas-grid" id="horas-grid">
+            <p style="font-size:.88rem;color:var(--muted);">Primero selecciona un médico y una fecha.</p>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-primary" id="btn-agendar" disabled>
+            📅 Confirmar cita
+          </button>
+          <a href="{% url 'paciente_dashboard' %}" class="btn-secondary">← Volver</a>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</main>
+
+<script>
+  // Fijar fecha mínima = hoy
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('fecha-input').setAttribute('min', today);
+
+  let medicoSeleccionado = null;
+
+  function seleccionarMedico(card) {
+    document.querySelectorAll('.medico-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    medicoSeleccionado = card.dataset.id;
+    document.getElementById('medico_id_input').value = medicoSeleccionado;
+    const fecha = document.getElementById('fecha-input').value;
+    if (fecha) cargarHoras();
+    verificarFormulario();
+  }
+
+  function cargarHoras() {
+    const fecha = document.getElementById('fecha-input').value;
+    if (!fecha || !medicoSeleccionado) return;
+
+    const grid = document.getElementById('horas-grid');
+    const loading = document.getElementById('horas-loading');
+    grid.innerHTML = '';
+    loading.style.display = 'block';
+
+    fetch(`/horas-disponibles/?medico=${medicoSeleccionado}&fecha=${fecha}`)
+      .then(r => r.json())
+      .then(data => {
+        loading.style.display = 'none';
+        const todasHoras = [
+          '08:30','09:00','09:30','10:00','10:30','11:00','11:30',
+          '12:00','12:30','14:00','14:30','15:00','15:30','16:00','16:30'
+        ];
+        const disponibles = data.horas || [];
+
+        if (disponibles.length === 0) {
+          grid.innerHTML = '<p style="font-size:.88rem;color:var(--muted);">No hay horas disponibles para esta fecha.</p>';
+          return;
+        }
+
+        todasHoras.forEach(h => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'hora-btn';
+          btn.textContent = h;
+          if (!disponibles.includes(h)) {
+            btn.disabled = true;
+            btn.classList.add('ocupada');
+          } else {
+            btn.onclick = () => seleccionarHora(btn, h);
+          }
+          grid.appendChild(btn);
+        });
+      })
+      .catch(() => {
+        loading.style.display = 'none';
+        grid.innerHTML = '<p style="font-size:.88rem;color:var(--muted);">Error al cargar horas. Intenta de nuevo.</p>';
+      });
+  }
+
+  function seleccionarHora(btn, hora) {
+    document.querySelectorAll('.hora-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    document.getElementById('hora_input').value = hora;
+    verificarFormulario();
+  }
+
+  function verificarFormulario() {
+    const medico = document.getElementById('medico_id_input').value;
+    const hora   = document.getElementById('hora_input').value;
+    const fecha  = document.getElementById('fecha-input').value;
+    const btn    = document.getElementById('btn-agendar');
+    btn.disabled = !(medico && hora && fecha);
+  }
+
+  document.getElementById('fecha-input').addEventListener('change', verificarFormulario);
+</script>
+</body>
+</html>

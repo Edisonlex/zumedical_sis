@@ -1,0 +1,1187 @@
+﻿{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zumedical — Auditoría del Sistema</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script>
+        // Carga de Chart.js con reintento real entre CDNs (jsDelivr primero, cdnjs como respaldo).
+        // window.chartJsReady es una Promise que el resto del JS espera antes de dibujar gráficos.
+        window.chartJsReady = new Promise(function (resolve) {
+            var sources = [
+                'https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js',
+                'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js'
+            ];
+            function tryLoad(i) {
+                if (i >= sources.length) {
+                    console.error('No se pudo cargar Chart.js desde ningún CDN. Los gráficos quedarán desactivados, el resto del panel seguirá funcionando.');
+                    resolve(false);
+                    return;
+                }
+                var s = document.createElement('script');
+                s.src = sources[i];
+                s.onload = function () { resolve(true); };
+                s.onerror = function () { tryLoad(i + 1); };
+                document.head.appendChild(s);
+            }
+            tryLoad(0);
+        });
+    </script>
+    <style>
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        :root{
+            --mg:#B03580;--mg-l:#CC4D99;--mg-d:#8A2563;
+            --mg-bg:#FBF0F7;--mg-border:#E8AAD4;
+            --text:#2A1020;--muted:#8A6070;--white:#fff;--bg:#FDF5FA;
+            --sw:260px;
+            --green:#1a7a4a;--green-bg:#edfaf3;--green-border:#a8dfc0;
+            --amber:#92600a;--amber-bg:#fff8ed;--amber-border:#f5d08a;
+            --red:#b03030;--red-bg:#fdf0f0;--red-border:#f0b8b8;
+            --blue:#1565c0;--blue-bg:#e3f2fd;--blue-border:#90caf9;
+        }
+        html,body{height:100%}
+        body{font-family:'DM Sans',sans-serif;background:var(--bg);display:flex;opacity:0;animation:fadeIn .4s ease .05s forwards}
+        @keyframes fadeIn{to{opacity:1}}
+        @keyframes slideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+        /* ── SIDEBAR ── */
+        .sidebar{
+            width:var(--sw);height:100vh;
+            background:linear-gradient(175deg,#8A2563 0%,#B03580 55%,#CC4D99 100%);
+            display:flex;flex-direction:column;
+            position:sticky;top:0;flex-shrink:0;
+            box-shadow:4px 0 24px rgba(138,37,99,.2);
+            transition:transform .3s ease;
+            z-index:200;
+        }
+        .sb-brand{padding:1.75rem 1.5rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:.75rem}
+        .sb-logo{width:42px;height:42px;background:white;border-radius:50%;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+        .sb-logo img{width:38px;height:38px;object-fit:contain}
+        .sb-brand-text h2{font-family:'Cormorant Garamond',serif;font-size:1.35rem;font-weight:600;color:white;line-height:1}
+        .sb-brand-text span{font-size:.7rem;color:rgba(255,255,255,.65);letter-spacing:.1em;text-transform:uppercase}
+        .sb-user{padding:1rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:.7rem}
+        .sb-avatar{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:600;color:white;flex-shrink:0;text-transform:uppercase}
+        .sb-user-info p{font-size:.7rem;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.1rem}
+        .sb-user-info h3{font-size:.88rem;font-weight:500;color:white}
+        .sb-nav{flex:1;padding:1rem .75rem;overflow-y:auto}
+        .nav-lbl{font-size:.68rem;color:rgba(255,255,255,.45);letter-spacing:.1em;text-transform:uppercase;padding:.5rem .75rem;margin-top:.75rem}
+        .nav-item{display:flex;align-items:center;gap:.7rem;padding:.72rem 1rem;border-radius:10px;color:rgba(255,255,255,.82);text-decoration:none;font-size:.88rem;transition:all .2s;margin-bottom:.2rem}
+        .nav-item:hover,.nav-item.active{background:rgba(255,255,255,.18);color:white}
+        .nav-item i{width:18px;text-align:center;font-size:15px}
+        .nav-badge{margin-left:auto;background:rgba(255,255,255,.25);color:white;font-size:.68rem;font-weight:600;padding:.15rem .5rem;border-radius:999px;min-width:20px;text-align:center}
+        .nav-badge-alert{background:#e74c3c}
+        .sb-footer{padding:1rem .75rem;border-top:1px solid rgba(255,255,255,.12)}
+        .btn-logout{display:flex;align-items:center;gap:.7rem;padding:.72rem 1rem;border-radius:10px;color:rgba(255,255,255,.75);text-decoration:none;font-size:.88rem;transition:all .2s}
+        .btn-logout:hover{background:rgba(255,255,255,.15);color:white}
+
+        /* ── TOPBAR MÓVIL ── */
+        .mobile-topbar{display:none;align-items:center;justify-content:space-between;padding:1rem 1.25rem;background:linear-gradient(135deg,#8A2563,#CC4D99);position:fixed;top:0;left:0;right:0;z-index:300}
+        .mobile-topbar-brand{display:flex;align-items:center;gap:.6rem}
+        .mobile-topbar-brand img{width:32px;height:32px;background:white;border-radius:50%;padding:2px;object-fit:contain}
+        .mobile-topbar-brand span{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;color:white}
+        .hamburger{background:rgba(255,255,255,.15);border:none;border-radius:8px;padding:.5rem .65rem;cursor:pointer;display:flex;flex-direction:column;gap:4px}
+        .hamburger span{display:block;width:20px;height:2px;background:white;border-radius:2px;transition:all .3s}
+        .hamburger.open span:nth-child(1){transform:translateY(6px) rotate(45deg)}
+        .hamburger.open span:nth-child(2){opacity:0}
+        .hamburger.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+        .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;opacity:0;pointer-events:none;transition:opacity .3s}
+        .sidebar-overlay.active{opacity:1;pointer-events:auto}
+
+        /* ── MAIN ── */
+        .main{flex:1;padding:2rem 2.5rem;height:100vh;overflow-y:auto}
+
+        /* ── TOPBAR ── */
+        .topbar{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;gap:1rem;flex-wrap:wrap}
+        .topbar-left .breadcrumb{font-size:.8rem;color:var(--muted);margin-bottom:.3rem;display:flex;align-items:center;gap:.4rem}
+        .topbar-left .breadcrumb a{color:var(--mg);text-decoration:none}
+        .topbar-left .breadcrumb a:hover{text-decoration:underline}
+        .topbar-left h1{font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:600;color:var(--text);line-height:1.1;margin-bottom:.3rem}
+        .topbar-left .sub{color:var(--muted);font-size:.85rem}
+        .topbar-right{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap}
+        .btn-export{display:inline-flex;align-items:center;gap:.5rem;padding:.55rem 1.1rem;background:var(--white);border:1px solid var(--mg-border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.83rem;font-weight:500;cursor:pointer;color:var(--mg);text-decoration:none;transition:all .2s}
+        .btn-export:hover{background:var(--mg-bg);border-color:var(--mg)}
+
+        /* ── KPI MINI ── */
+        .audit-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem}
+        .audit-kpi{background:var(--white);border-radius:14px;padding:1.2rem 1.4rem;border:1px solid var(--mg-border);display:flex;align-items:center;gap:.9rem;animation:slideIn .4s ease both}
+        .audit-kpi:nth-child(1){animation-delay:.05s}
+        .audit-kpi:nth-child(2){animation-delay:.1s}
+        .audit-kpi:nth-child(3){animation-delay:.15s}
+        .audit-kpi:nth-child(4){animation-delay:.2s}
+        .audit-kpi-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+        .audit-kpi-info p{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.2rem}
+        .audit-kpi-info h3{font-family:'Cormorant Garamond',serif;font-size:1.7rem;font-weight:600;color:var(--text);line-height:1}
+
+        /* ── FILTROS ── */
+        .filters-card{background:var(--white);border-radius:16px;border:1px solid var(--mg-border);padding:1.25rem 1.5rem;margin-bottom:1.5rem;animation:slideIn .4s ease .25s both}
+        .filters-row{display:flex;gap:.75rem;flex-wrap:wrap;align-items:flex-end}
+        .filter-group{display:flex;flex-direction:column;gap:.3rem;flex:1;min-width:160px}
+        .filter-group label{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:500}
+        .filter-group select,
+        .filter-group input{padding:.55rem .85rem;border:1px solid var(--mg-border);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.85rem;color:var(--text);background:var(--bg);outline:none;transition:border-color .2s}
+        .filter-group select:focus,
+        .filter-group input:focus{border-color:var(--mg)}
+        .btn-filter{padding:.55rem 1.2rem;background:linear-gradient(135deg,var(--mg-d),var(--mg-l));color:white;border:none;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:500;cursor:pointer;transition:all .2s;white-space:nowrap}
+        .btn-filter:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(176,53,128,.3)}
+        .btn-clear{padding:.55rem 1rem;background:var(--white);color:var(--muted);border:1px solid var(--mg-border);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.85rem;cursor:pointer;transition:all .2s;white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center;gap:.4rem}
+        .btn-clear:hover{color:var(--red);border-color:var(--red-border)}
+
+        /* ── TABLA ── */
+        .table-card{background:var(--white);border-radius:16px;border:1px solid var(--mg-border);overflow:hidden;animation:slideIn .4s ease .3s both}
+        .table-header{padding:1.1rem 1.5rem;border-bottom:1px solid var(--mg-border);display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+        .table-header-left{display:flex;align-items:center;gap:.65rem}
+        .table-header-icon{width:32px;height:32px;background:var(--mg-bg);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--mg);font-size:13px}
+        .table-header h3{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:var(--text)}
+        .table-count{font-size:.78rem;color:var(--muted);background:var(--bg);padding:.2rem .6rem;border-radius:999px;border:1px solid var(--mg-border)}
+        .table-scroll{overflow-x:auto}
+        table{width:100%;border-collapse:collapse}
+        thead tr{background:var(--mg-bg);border-bottom:1px solid var(--mg-border)}
+        th{padding:.75rem 1rem;text-align:left;font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:600;white-space:nowrap}
+        td{padding:.85rem 1rem;border-bottom:1px solid #F5E8F2;font-size:.85rem;color:var(--text);vertical-align:middle}
+        tbody tr:last-child td{border-bottom:none}
+        tbody tr{transition:background .15s}
+        tbody tr:hover{background:#FDF0FA}
+
+        /* ── BADGES DE ACCIÓN ── */
+        .badge{display:inline-flex;align-items:center;gap:.3rem;padding:.25rem .65rem;border-radius:999px;font-size:.72rem;font-weight:600;white-space:nowrap}
+        .badge-login{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-border)}
+        .badge-logout{background:#f3e8ff;color:#6b21a8;border:1px solid #d8b4fe}
+        .badge-create{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+        .badge-update{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border)}
+        .badge-delete{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border)}
+        .badge-view{background:var(--mg-bg);color:var(--mg);border:1px solid var(--mg-border)}
+        .badge-error{background:#1c1c1c;color:#f87171;border:1px solid #7f1d1d}
+
+        /* ── SEVERIDAD ── */
+        .sev-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:.3rem;flex-shrink:0}
+        .sev-info .sev-dot{background:var(--blue)}
+        .sev-warning .sev-dot{background:#d97706}
+        .sev-critical .sev-dot{background:var(--red)}
+        .sev-text{font-size:.78rem;font-weight:500}
+        .sev-info .sev-text{color:var(--blue)}
+        .sev-warning .sev-text{color:#92600a}
+        .sev-critical .sev-text{color:var(--red)}
+        .sev-cell{display:flex;align-items:center}
+
+        /* ── IP PILL ── */
+        .ip-pill{font-family:monospace;font-size:.78rem;background:var(--bg);border:1px solid var(--mg-border);padding:.15rem .5rem;border-radius:6px;color:var(--muted)}
+
+        /* ── USER CELL ── */
+        .user-cell{display:flex;align-items:center;gap:.6rem}
+        .user-avatar-sm{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--mg-d),var(--mg-l));display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:600;color:white;flex-shrink:0;text-transform:uppercase}
+        .user-cell-name{font-weight:500;color:var(--text);line-height:1.2}
+        .user-cell-role{font-size:.72rem;color:var(--muted)}
+
+        /* ── DETALLE BTN ── */
+        .btn-detail{background:none;border:1px solid var(--mg-border);border-radius:7px;padding:.3rem .6rem;font-size:.75rem;color:var(--mg);cursor:pointer;transition:all .2s}
+        .btn-detail:hover{background:var(--mg-bg);border-color:var(--mg)}
+
+        /* ── MODAL DETALLE ── */
+        .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:center;justify-content:center;padding:1rem}
+        .modal-overlay.open{display:flex}
+        .modal{background:var(--white);border-radius:18px;padding:0;max-width:560px;width:100%;box-shadow:0 20px 60px rgba(138,37,99,.2);animation:slideIn .25s ease}
+        .modal-head{padding:1.25rem 1.5rem;border-bottom:1px solid var(--mg-border);display:flex;align-items:center;justify-content:space-between}
+        .modal-head h3{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:600;color:var(--text)}
+        .modal-close{background:none;border:none;font-size:1.2rem;color:var(--muted);cursor:pointer;padding:.25rem;line-height:1;transition:color .2s}
+        .modal-close:hover{color:var(--red)}
+        .modal-body{padding:1.5rem}
+        .modal-row{display:flex;gap:.5rem;margin-bottom:.85rem;align-items:flex-start}
+        .modal-row:last-child{margin-bottom:0}
+        .modal-key{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;min-width:110px;padding-top:.1rem;font-weight:500}
+        .modal-val{font-size:.88rem;color:var(--text);flex:1;word-break:break-all}
+        .modal-desc{background:var(--bg);border:1px solid var(--mg-border);border-radius:9px;padding:.85rem 1rem;font-size:.85rem;color:var(--text);line-height:1.6;font-family:monospace}
+
+        /* ── PAGINACIÓN ── */
+        .pagination{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;border-top:1px solid var(--mg-border);flex-wrap:wrap;gap:.75rem}
+        .pagination-info{font-size:.8rem;color:var(--muted)}
+        .pagination-btns{display:flex;gap:.4rem}
+        .page-btn{padding:.4rem .75rem;border:1px solid var(--mg-border);border-radius:8px;background:var(--white);color:var(--text);font-size:.82rem;cursor:pointer;text-decoration:none;transition:all .2s;display:inline-flex;align-items:center}
+        .page-btn:hover,.page-btn.active{background:var(--mg);color:white;border-color:var(--mg)}
+        .page-btn.disabled{opacity:.4;pointer-events:none}
+
+        /* ── EMPTY STATE ── */
+        .empty-state{padding:3rem;text-align:center;color:var(--muted)}
+        .empty-state i{font-size:2.5rem;color:var(--mg-border);margin-bottom:1rem}
+        .empty-state p{font-size:.9rem}
+
+        /* ── GRÁFICOS ── */
+        .charts-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:1.25rem;margin-bottom:1.5rem}
+        .chart-card{background:var(--white);border-radius:16px;border:1px solid var(--mg-border);padding:1.25rem 1.4rem;animation:slideIn .4s ease .2s both}
+        .chart-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem;gap:.5rem;flex-wrap:wrap}
+        .chart-card-head h3{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:var(--text);display:flex;align-items:center;gap:.5rem}
+        .chart-card-head h3 i{color:var(--mg);font-size:.95rem}
+        .chart-total-pill{font-size:.75rem;color:var(--muted);background:var(--bg);padding:.2rem .6rem;border-radius:999px;border:1px solid var(--mg-border)}
+        .chart-wrap{position:relative;height:230px}
+        .chart-wrap.donut{height:230px;display:flex;align-items:center;justify-content:center}
+        .chart-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--muted);gap:.5rem}
+        .chart-empty i{font-size:1.6rem;color:var(--mg-border)}
+        .chart-empty span{font-size:.8rem}
+
+        /* ── LIVE STATUS / AUTO-REFRESH ── */
+        .live-status{display:inline-flex;align-items:center;gap:.4rem;font-size:.74rem;color:var(--muted);padding:.4rem .7rem;border:1px solid var(--mg-border);border-radius:999px;background:var(--white);cursor:pointer;user-select:none;transition:all .2s;white-space:nowrap}
+        .live-status:hover{border-color:var(--mg)}
+        .live-dot{width:7px;height:7px;border-radius:50%;background:#9ca3af;flex-shrink:0;transition:background .2s}
+        .live-status.on .live-dot{background:#22c55e;box-shadow:0 0 0 0 rgba(34,197,94,.5);animation:pulse 1.8s infinite}
+        @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.45)}70%{box-shadow:0 0 0 6px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
+        .btn-refresh-now{background:none;border:none;color:var(--mg);cursor:pointer;font-size:.8rem;padding:.2rem;display:inline-flex;align-items:center}
+        .btn-refresh-now.spinning i{animation:spin .7s linear infinite}
+        @keyframes spin{to{transform:rotate(360deg)}}
+
+        /* ── BÚSQUEDA EN TIEMPO REAL ── */
+        .search-group{position:relative;flex:1.4;min-width:200px}
+        .search-group i.fa-magnifying-glass{position:absolute;left:.85rem;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.8rem;pointer-events:none}
+        .search-group input{width:100%;padding:.55rem .85rem .55rem 2.2rem;border:1px solid var(--mg-border);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.85rem;color:var(--text);background:var(--bg);outline:none;transition:border-color .2s}
+        .search-group input:focus{border-color:var(--mg)}
+        .search-clear{position:absolute;right:.6rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:.75rem;display:none;padding:.2rem}
+        .search-group.has-text .search-clear{display:block}
+
+        /* ── TABLA: estado cargando / sin resultados dinámico ── */
+        .table-loading-row td{padding:2.5rem 1rem;text-align:center;color:var(--muted);font-size:.85rem}
+        .table-loading-row i{margin-right:.5rem;animation:spin 1s linear infinite}
+        tbody.tbody-fading{opacity:.4;transition:opacity .15s}
+
+        /* ── RESPONSIVE ── */
+        @media(max-width:1100px){
+            .audit-kpis{grid-template-columns:repeat(2,1fr)}
+            .charts-grid{grid-template-columns:1fr}
+        }
+        @media(max-width:768px){
+            body{flex-direction:column}
+            .sidebar{position:fixed;top:64px;left:0;height:calc(100vh - 64px);transform:translateX(-100%);z-index:250}
+            .sidebar.open{transform:translateX(0)}
+            .sidebar-overlay{display:block;z-index:200}
+            .mobile-topbar{display:flex}
+            .main{padding:1.25rem;padding-top:calc(1.25rem + 64px);height:auto;overflow-y:visible}
+            .topbar{flex-direction:column;gap:.75rem}
+            .topbar-right{width:100%;justify-content:space-between}
+            .audit-kpis{grid-template-columns:repeat(2,1fr)}
+            .charts-grid{grid-template-columns:1fr;gap:1rem}
+            .chart-wrap,.chart-wrap.donut{height:200px}
+            .search-group{min-width:100%;order:-1}
+            .filters-row{flex-direction:column}
+            .filter-group{min-width:100%}
+            th:nth-child(5),td:nth-child(5),
+            th:nth-child(6),td:nth-child(6){display:none}
+        }
+        @media(max-width:480px){
+            .audit-kpis{grid-template-columns:1fr}
+            th:nth-child(4),td:nth-child(4){display:none}
+        }
+        /* CONFIG PANEL */
+        .config-panel{background:var(--white);border:1px solid var(--mg-border);border-radius:16px;padding:1.5rem;margin-bottom:1.5rem;display:none;animation:slideIn .25s ease}
+        .config-panel.open{display:block}
+        .config-panel-title{font-family:"Cormorant Garamond",serif;font-size:1.15rem;font-weight:600;color:var(--text);margin-bottom:1.1rem;display:flex;align-items:center;gap:.5rem}
+        .config-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem}
+        .config-box{background:var(--bg);border:1px solid var(--mg-border);border-radius:12px;padding:1.1rem 1.25rem}
+        .config-box h4{font-size:.78rem;font-weight:700;color:var(--mg);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.75rem;display:flex;align-items:center;gap:.4rem}
+        .retencion-opts{display:flex;flex-direction:column;gap:.5rem}
+        .retencion-opt{display:flex;align-items:center;gap:.6rem;padding:.5rem .75rem;border-radius:9px;cursor:pointer;transition:background .2s;font-size:.88rem;color:var(--text)}
+        .retencion-opt:hover{background:var(--mg-bg)}
+        .retencion-opt input[type=radio]{accent-color:var(--mg);width:15px;height:15px}
+        .btn-config{display:inline-flex;align-items:center;gap:.5rem;padding:.55rem 1.1rem;border-radius:10px;font-family:"DM Sans",sans-serif;font-size:.83rem;font-weight:500;cursor:pointer;border:none;transition:all .2s}
+        .btn-config-primary{background:linear-gradient(135deg,var(--mg-d),var(--mg-l));color:white}
+        .btn-config-primary:hover{opacity:.88;transform:translateY(-1px)}
+        .btn-config-danger{background:#fdf0f0;color:var(--red);border:1px solid #f0b8b8}
+        .btn-config-danger:hover{background:var(--red);color:white}
+        .config-actions{display:flex;gap:.75rem;margin-top:.75rem;flex-wrap:wrap}
+        .btn-cfg-toggle{display:inline-flex;align-items:center;gap:.5rem;padding:.55rem 1.1rem;background:var(--white);border:1px solid var(--mg-border);border-radius:10px;font-family:"DM Sans",sans-serif;font-size:.83rem;font-weight:500;cursor:pointer;color:var(--text);transition:all .2s;text-decoration:none}
+        .btn-cfg-toggle:hover{background:var(--mg-bg);border-color:var(--mg);color:var(--mg)}
+        .alert-amber{background:var(--amber-bg);border:1px solid var(--amber-border);border-radius:9px;padding:.75rem 1rem;font-size:.8rem;color:var(--amber);display:flex;align-items:flex-start;gap:.5rem;}
+        /* ── TOASTS ── */
+        .toast-wrap{position:fixed;top:1.2rem;right:1.2rem;z-index:9999;display:flex;flex-direction:column;gap:.6rem;pointer-events:none}
+        .toast{display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;border-radius:12px;font-size:.85rem;font-weight:500;min-width:260px;max-width:360px;box-shadow:0 4px 20px rgba(0,0,0,.13);pointer-events:all;animation:toastIn .3s ease;transition:opacity .3s,transform .3s}
+        .toast.out{opacity:0;transform:translateX(110%)}
+        .toast-success{background:#fff;border-left:4px solid #1A7A4A;color:#1A7A4A}
+        .toast-error{background:#fff;border-left:4px solid var(--red);color:var(--red)}
+        .toast-warning{background:#fff;border-left:4px solid var(--amber);color:var(--amber)}
+        .toast-info{background:#fff;border-left:4px solid var(--mg);color:var(--mg)}
+        .toast i{font-size:1rem;flex-shrink:0}
+        .toast-msg{flex:1;color:var(--text)}
+        .toast-close{background:none;border:none;cursor:pointer;color:var(--muted);font-size:.75rem;padding:.2rem}
+        @keyframes toastIn{from{opacity:0;transform:translateX(110%)}to{opacity:1;transform:translateX(0)}}
+        /* ── CONFIG RESPONSIVE ── */
+        @media(max-width:640px){
+            .config-grid{grid-template-columns:1fr}
+            .config-panel{padding:1rem}
+            .config-actions{flex-direction:column}
+            .config-actions .btn-config{width:100%;justify-content:center}
+            .toast-wrap{top:auto;bottom:1rem;right:.75rem;left:.75rem}
+            .toast{max-width:100%}
+        }
+    </style>
+</head>
+<body>
+
+<!-- TOASTS (mensajes Django) -->
+<div class="toast-wrap" id="toastWrap"></div>
+{% if messages %}
+<div id="djangoMessages" style="display:none">
+    {% for message in messages %}
+    <span data-level="{{ message.tags }}">{{ message }}</span>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- SIDEBAR OVERLAY (móvil) -->
+<div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<!-- TOPBAR MÓVIL -->
+<div class="mobile-topbar">
+    <div class="mobile-topbar-brand">
+        <img src="{% static 'img/Logo.png' %}" alt="Zumedical">
+        <span>Zumedical</span>
+    </div>
+    <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
+        <span></span><span></span><span></span>
+    </button>
+</div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+    <div class="sb-brand">
+        <div class="sb-logo"><img src="{% static 'img/Logo.png' %}" alt="Zumedical"></div>
+        <div class="sb-brand-text"><h2>Zumedical</h2><span>Administrador</span></div>
+    </div>
+    <div class="sb-user">
+        <div class="sb-avatar">{% if request.user.first_name %}{{ request.user.first_name|slice:":1" }}{{ request.user.last_name|slice:":1" }}{% else %}{{ request.user.username|slice:":1"|upper }}{% endif %}</div>
+        <div class="sb-user-info"><p>Sesión activa</p><h3>{{ request.user.get_full_name|default:request.user.username }}</h3></div>
+    </div>
+    <nav class="sb-nav">
+        <div class="nav-lbl">Panel</div>
+        <a href="{% url 'admin_dashboard' %}" class="nav-item">
+            <i class="fa-solid fa-grid-2"></i> Inicio
+        </a>
+        <div class="nav-lbl">Gestión</div>
+        <a href="{% url 'lista_usuarios' %}" class="nav-item">
+            <i class="fa-solid fa-users"></i> Usuarios
+        </a>
+        <a href="{% url 'lista_medicos' %}" class="nav-item">
+            <i class="fa-solid fa-user-doctor"></i> Médicos
+        </a>
+        <a href="{% url 'lista_pacientes' %}" class="nav-item">
+            <i class="fa-solid fa-hospital-user"></i> Pacientes
+        </a>
+        <a href="{% url 'todas_citas' %}" class="nav-item">
+            <i class="fa-regular fa-calendar-check"></i> Citas
+            {% if citas_pendientes %}<span class="nav-badge-alert">{{ citas_pendientes }}</span>{% endif %}
+        </a>
+        <a href="{% url 'controles_admin' %}" class="nav-item">
+            <i class="fa-solid fa-heart-pulse"></i> Controles Prenatales
+        </a>
+        <div class="nav-lbl">Sistema</div>
+        <a href="{% url 'auditoria_admin' %}" class="nav-item active">
+            <i class="fa-solid fa-shield-halved"></i> Auditoría
+        </a>
+    </nav>
+    <div class="sb-footer">
+        <a href="{% url 'logout' %}" class="btn-logout">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar sesión
+        </a>
+    </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <div class="topbar-left">
+            <div class="breadcrumb">
+                <a href="{% url 'admin_dashboard' %}"><i class="fa-solid fa-house"></i> Inicio</a>
+                <i class="fa-solid fa-chevron-right" style="font-size:.65rem"></i>
+                <span>Auditoría</span>
+            </div>
+            <h1><i class="fa-solid fa-shield-halved" style="font-size:1.6rem;color:var(--mg);margin-right:.4rem"></i>Auditoría del Sistema</h1>
+            <p class="sub">Registro completo de acciones realizadas en el sistema</p>
+        </div>
+        <div class="topbar-right">
+            <div class="live-status" id="liveStatus" title="Click para activar/desactivar actualización automática">
+                <span class="live-dot"></span>
+                <span id="liveStatusText">Auto-actualizar: OFF</span>
+            </div>
+            <button class="btn-refresh-now" id="btnRefreshNow" title="Actualizar ahora">
+                <i class="fa-solid fa-rotate"></i>
+            </button>
+            <a href="#" onclick="exportarExcel(event)" class="btn-export">
+                <i class="fa-solid fa-file-excel"></i> Exportar Excel
+            </a>
+            <button class="btn-cfg-toggle" id="btnToggleConfig" onclick="toggleConfig()">
+                <i class="fa-solid fa-gear"></i> Configuración
+            </button>
+        </div>
+    </div>
+
+    <!-- PANEL CONFIGURACION -->
+    <div class="config-panel" id="configPanel">
+        <div class="config-panel-title"><i class="fa-solid fa-gear" style="color:var(--mg)"></i> Configuración de Auditoría</div>
+        <div class="config-grid">
+
+            <div class="config-box">
+                <h4><i class="fa-regular fa-clock"></i> Retención de registros</h4>
+                <form method="POST" action="{% url 'auditoria_config' %}">
+                    {% csrf_token %}
+                    <div class="retencion-opts">
+                        <label class="retencion-opt"><input type="radio" name="retencion" value="30" {% if config_retencion == "30" %}checked{% endif %}> 30 días</label>
+                        <label class="retencion-opt"><input type="radio" name="retencion" value="90" {% if config_retencion == "90" or not config_retencion %}checked{% endif %}> 90 días</label>
+                        <label class="retencion-opt"><input type="radio" name="retencion" value="180" {% if config_retencion == "180" %}checked{% endif %}> 180 días</label>
+                        <label class="retencion-opt"><input type="radio" name="retencion" value="365" {% if config_retencion == "365" %}checked{% endif %}> 1 año</label>
+                        <label class="retencion-opt"><input type="radio" name="retencion" value="0" {% if config_retencion == "0" %}checked{% endif %}> Nunca eliminar</label>
+                    </div>
+                    <div class="config-actions">
+                        <button type="submit" class="btn-config btn-config-primary"><i class="fa-solid fa-floppy-disk"></i> Guardar configuración</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="config-box">
+                <h4><i class="fa-solid fa-trash-can"></i> Limpiar registros</h4>
+                <p style="font-size:.83rem;color:var(--muted);margin-bottom:1rem;line-height:1.6;">
+                    Elimina los registros más antiguos que el período de retención configurado.
+                    <strong>Esta acción es permanente.</strong> Exporta el CSV antes si necesitas conservarlos.
+                </p>
+                <div class="alert-amber" style="margin-bottom:1rem;">
+                    <i class="fa-solid fa-triangle-exclamation" style="flex-shrink:0;"></i>
+                    Los registros de un centro médico pueden tener valor legal. Consulta antes de eliminar.
+                </div>
+                <div style="display:flex;gap:.75rem;flex-wrap:wrap;">
+                    <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}export=csv" class="btn-config btn-config-primary" style="text-decoration:none;">
+                        <i class="fa-solid fa-file-csv"></i> Exportar todo primero
+                    </a>
+                    <form method="POST" action="{% url 'auditoria_limpiar' %}" onsubmit="return confirm('¿Seguro que deseas eliminar los registros antiguos? Esta acción no se puede deshacer.');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-config btn-config-danger"><i class="fa-solid fa-trash-can"></i> Eliminar antiguas ahora</button>
+                    </form>
+                </div>
+                {% if config_retencion and config_retencion != "0" %}
+                <p style="font-size:.75rem;color:var(--muted);margin-top:.75rem;"><i class="fa-solid fa-circle-info"></i> Se eliminarán registros con más de {{ config_retencion }} días.</p>
+                {% elif config_retencion == "0" %}
+                <p style="font-size:.75rem;color:var(--green);margin-top:.75rem;"><i class="fa-solid fa-shield-check"></i> Configurado para nunca eliminar.</p>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+
+    <!-- KPIs AUDITORÍA -->
+    <div class="audit-kpis">
+        <div class="audit-kpi">
+            <div class="audit-kpi-icon" style="background:var(--blue-bg);color:var(--blue)"><i class="fa-solid fa-list-check"></i></div>
+            <div class="audit-kpi-info">
+                <p>Total Registros</p>
+                <h3 id="kpiTotalLogs">{{ total_logs }}</h3>
+            </div>
+        </div>
+        <div class="audit-kpi">
+            <div class="audit-kpi-icon" style="background:var(--red-bg);color:var(--red)"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <div class="audit-kpi-info">
+                <p>Críticos Hoy</p>
+                <h3 id="kpiCriticosHoy">{{ logs_criticos_hoy }}</h3>
+            </div>
+        </div>
+        <div class="audit-kpi">
+            <div class="audit-kpi-icon" style="background:var(--green-bg);color:var(--green)"><i class="fa-solid fa-arrow-right-to-bracket"></i></div>
+            <div class="audit-kpi-info">
+                <p>Inicios de Sesión Hoy</p>
+                <h3 id="kpiLoginsHoy">{{ logins_hoy }}</h3>
+            </div>
+        </div>
+        <div class="audit-kpi">
+            <div class="audit-kpi-icon" style="background:var(--mg-bg);color:var(--mg)"><i class="fa-solid fa-users"></i></div>
+            <div class="audit-kpi-info">
+                <p>Usuarios Activos Hoy</p>
+                <h3 id="kpiUsuariosActivos">{{ usuarios_activos_hoy }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- GRÁFICOS -->
+    <div class="charts-grid">
+        <div class="chart-card">
+            <div class="chart-card-head">
+                <h3><i class="fa-solid fa-chart-line"></i> Actividad — Últimos 7 días</h3>
+                <span class="chart-total-pill" id="chartActividadTotal">—</span>
+            </div>
+            <div class="chart-wrap"><canvas id="chartActividad"></canvas></div>
+        </div>
+        <div class="chart-card">
+            <div class="chart-card-head">
+                <h3><i class="fa-solid fa-chart-pie"></i> Por Tipo de Acción</h3>
+            </div>
+            <div class="chart-wrap donut"><canvas id="chartAcciones"></canvas></div>
+        </div>
+    </div>
+
+    <!-- FILTROS -->
+    <div class="filters-card">
+        <form method="get" id="filterForm">
+            <div class="filters-row">
+                <div class="search-group" id="searchGroup">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="searchInput" placeholder="Buscar por usuario, módulo, IP o descripción..." autocomplete="off">
+                    <button type="button" class="search-clear" id="searchClear"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="filter-group">
+                    <label><i class="fa-solid fa-bolt"></i> Acción</label>
+                    <select name="accion" id="filtroAccion">
+                        <option value="">Todas</option>
+                        <option value="LOGIN" {% if request.GET.accion == "LOGIN" %}selected{% endif %}>Login</option>
+                        <option value="LOGOUT" {% if request.GET.accion == "LOGOUT" %}selected{% endif %}>Logout</option>
+                        <option value="CREATE" {% if request.GET.accion == "CREATE" %}selected{% endif %}>Creación</option>
+                        <option value="UPDATE" {% if request.GET.accion == "UPDATE" %}selected{% endif %}>Actualización</option>
+                        <option value="DELETE" {% if request.GET.accion == "DELETE" %}selected{% endif %}>Eliminación</option>
+                        <option value="VIEW" {% if request.GET.accion == "VIEW" %}selected{% endif %}>Visualización</option>
+                        <option value="ERROR" {% if request.GET.accion == "ERROR" %}selected{% endif %}>Error</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label><i class="fa-solid fa-shield-halved"></i> Severidad</label>
+                    <select name="severidad" id="filtroSeveridad">
+                        <option value="">Todas</option>
+                        <option value="INFO" {% if request.GET.severidad == "INFO" %}selected{% endif %}>Info</option>
+                        <option value="WARNING" {% if request.GET.severidad == "WARNING" %}selected{% endif %}>Advertencia</option>
+                        <option value="CRITICAL" {% if request.GET.severidad == "CRITICAL" %}selected{% endif %}>Crítico</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label><i class="fa-solid fa-user"></i> Usuario</label>
+                    <select name="usuario" id="filtroUsuario">
+                        <option value="">Todos</option>
+                        {% for u in usuarios_lista %}
+                        <option value="{{ u.id }}" {% if request.GET.usuario == u.id|stringformat:"s" %}selected{% endif %}>{{ u.get_full_name|default:u.username }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label><i class="fa-regular fa-calendar"></i> Desde</label>
+                    <input type="date" name="desde" id="filtroDesde" value="{{ request.GET.desde }}">
+                </div>
+                <div class="filter-group">
+                    <label><i class="fa-regular fa-calendar"></i> Hasta</label>
+                    <input type="date" name="hasta" id="filtroHasta" value="{{ request.GET.hasta }}">
+                </div>
+                <button type="submit" class="btn-filter"><i class="fa-solid fa-magnifying-glass"></i> Filtrar</button>
+                <a href="{% url 'auditoria_admin' %}" class="btn-clear" id="btnClear"><i class="fa-solid fa-xmark"></i> Limpiar</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- TABLA -->
+    <div class="table-card">
+        <div class="table-header">
+            <div class="table-header-left">
+                <div class="table-header-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                <h3>Registro de Eventos</h3>
+            </div>
+            <span class="table-count" id="tableCount">{{ logs.paginator.count }} registro{{ logs.paginator.count|pluralize }}</span>
+        </div>
+
+        <div class="table-scroll" id="tableScroll" {% if not logs %}style="display:none"{% endif %}>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Fecha y Hora</th>
+                        <th>Usuario</th>
+                        <th>Acción</th>
+                        <th>Módulo</th>
+                        <th>IP</th>
+                        <th>Severidad</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="tbodyLogs">
+                    {% for log in logs %}
+                    <tr>
+                        <td style="color:var(--muted);font-size:.78rem">{{ log.id }}</td>
+                        <td style="white-space:nowrap;font-size:.8rem">
+                            <div style="font-weight:500">{{ log.fecha|date:"d/m/Y" }}</div>
+                            <div style="color:var(--muted);font-size:.75rem">{{ log.fecha|time:"H:i:s" }}</div>
+                        </td>
+                        <td>
+                            <div class="user-cell">
+                                <div class="user-avatar-sm">{% if log.usuario %}{{ log.usuario.first_name|slice:":1"|default:"?" }}{% else %}?{% endif %}</div>
+                                <div>
+                                    <div class="user-cell-name">{% if log.usuario %}{{ log.usuario.get_full_name|default:log.usuario.username }}{% else %}Usuario eliminado{% endif %}</div>
+                                    <div class="user-cell-role">{% if log.usuario %}{{ log.usuario.groups.first.name|default:"Usuario" }}{% else %}—{% endif %}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if log.accion == "LOGIN" %}
+                                <span class="badge badge-login"><i class="fa-solid fa-arrow-right-to-bracket"></i> Login</span>
+                            {% elif log.accion == "LOGOUT" %}
+                                <span class="badge badge-logout"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</span>
+                            {% elif log.accion == "CREATE" %}
+                                <span class="badge badge-create"><i class="fa-solid fa-plus"></i> Creación</span>
+                            {% elif log.accion == "UPDATE" %}
+                                <span class="badge badge-update"><i class="fa-solid fa-pen"></i> Edición</span>
+                            {% elif log.accion == "DELETE" %}
+                                <span class="badge badge-delete"><i class="fa-solid fa-trash"></i> Eliminación</span>
+                            {% elif log.accion == "VIEW" %}
+                                <span class="badge badge-view"><i class="fa-solid fa-eye"></i> Vista</span>
+                            {% elif log.accion == "ERROR" %}
+                                <span class="badge badge-error"><i class="fa-solid fa-xmark"></i> Error</span>
+                            {% else %}
+                                <span class="badge badge-view">{{ log.accion }}</span>
+                            {% endif %}
+                        </td>
+                        <td style="font-size:.82rem;color:var(--muted)">{{ log.modulo|default:"—" }}</td>
+                        <td><span class="ip-pill">{{ log.ip_address|default:"—" }}</span></td>
+                        <td>
+                            {% if log.severidad == "CRITICAL" %}
+                                <div class="sev-cell sev-critical"><span class="sev-dot"></span><span class="sev-text">Crítico</span></div>
+                            {% elif log.severidad == "WARNING" %}
+                                <div class="sev-cell sev-warning"><span class="sev-dot"></span><span class="sev-text">Advertencia</span></div>
+                            {% else %}
+                                <div class="sev-cell sev-info"><span class="sev-dot"></span><span class="sev-text">Info</span></div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button class="btn-detail open-modal"
+                                data-id="{{ log.id }}"
+                                data-fecha="{{ log.fecha|date:'d/m/Y H:i:s' }}"
+                                data-usuario="{% if log.usuario %}{{ log.usuario.get_full_name|default:log.usuario.username }}{% else %}Usuario eliminado{% endif %}"
+                                data-accion="{{ log.accion }}"
+                                data-modulo="{{ log.modulo|default:'Sin modulo' }}"
+                                data-ip="{{ log.ip_address|default:'No registrada' }}"
+                                data-severidad="{{ log.severidad }}"
+                                data-desc="{{ log.descripcion|default:'Sin descripcion' }}">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- PAGINACIÓN -->
+        <div class="pagination" id="paginationWrap"
+             data-current="{{ logs.number|default:1 }}"
+             data-pages="{{ logs.paginator.num_pages|default:1 }}"
+             {% if not logs.has_other_pages %}style="display:none"{% endif %}>
+            <span class="pagination-info" id="paginationInfo">
+                {% if logs %}Página {{ logs.number }} de {{ logs.paginator.num_pages }} — {{ logs.paginator.count }} registros{% endif %}
+            </span>
+            <div class="pagination-btns" id="paginationBtns">
+                {% if logs.has_other_pages %}
+                {% if logs.has_previous %}
+                    <a href="?page=1{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}" class="page-btn"><i class="fa-solid fa-angles-left"></i></a>
+                    <a href="?page={{ logs.previous_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}" class="page-btn"><i class="fa-solid fa-angle-left"></i></a>
+                {% else %}
+                    <span class="page-btn disabled"><i class="fa-solid fa-angles-left"></i></span>
+                    <span class="page-btn disabled"><i class="fa-solid fa-angle-left"></i></span>
+                {% endif %}
+
+                {% for num in logs.paginator.page_range %}
+                    {% if num >= logs.number|add:"-2" and num <= logs.number|add:"2" %}
+                        <a href="?page={{ num }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}"
+                           class="page-btn {% if num == logs.number %}active{% endif %}">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if logs.has_next %}
+                    <a href="?page={{ logs.next_page_number }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}" class="page-btn"><i class="fa-solid fa-angle-right"></i></a>
+                    <a href="?page={{ logs.paginator.num_pages }}{% for k,v in request.GET.items %}{% if k != 'page' %}&{{ k }}={{ v }}{% endif %}{% endfor %}" class="page-btn"><i class="fa-solid fa-angles-right"></i></a>
+                {% else %}
+                    <span class="page-btn disabled"><i class="fa-solid fa-angle-right"></i></span>
+                    <span class="page-btn disabled"><i class="fa-solid fa-angles-right"></i></span>
+                {% endif %}
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="empty-state" id="emptyState" {% if logs %}style="display:none"{% endif %}>
+            <i class="fa-solid fa-shield-halved"></i>
+            <p>No hay registros de auditoría con los filtros aplicados.</p>
+        </div>
+    </div>
+
+</main>
+
+<!-- MODAL DETALLE -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+    <div class="modal">
+        <div class="modal-head">
+            <h3><i class="fa-solid fa-circle-info" style="color:var(--mg);margin-right:.4rem"></i>Detalle del Evento</h3>
+            <button class="modal-close" onclick="closeModalDirect()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="modal-row">
+                <span class="modal-key">ID</span>
+                <span class="modal-val" id="mId"></span>
+            </div>
+            <div class="modal-row">
+                <span class="modal-key">Fecha y Hora</span>
+                <span class="modal-val" id="mFecha"></span>
+            </div>
+            <div class="modal-row">
+                <span class="modal-key">Usuario</span>
+                <span class="modal-val" id="mUsuario"></span>
+            </div>
+            <div class="modal-row">
+                <span class="modal-key">Acción</span>
+                <span class="modal-val" id="mAccion"></span>
+            </div>
+            <div class="modal-row">
+                <span class="modal-key">Módulo</span>
+                <span class="modal-val" id="mModulo"></span>
+            </div>
+            <div class="modal-row">
+                <span class="modal-key">IP</span>
+                <span class="modal-val" id="mIp"></span>
+            </div>
+            <div class="modal-row">
+                <span class="modal-key">Severidad</span>
+                <span class="modal-val" id="mSeveridad"></span>
+            </div>
+            <div class="modal-row" style="flex-direction:column;gap:.5rem">
+                <span class="modal-key">Descripción</span>
+                <div class="modal-desc" id="mDesc"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleSidebar() {
+    const sb = document.getElementById('sidebar');
+    const ov = document.getElementById('overlay');
+    const hb = document.getElementById('hamburger');
+    sb.classList.toggle('open');
+    ov.classList.toggle('active');
+    hb.classList.toggle('open');
+}
+function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('overlay').classList.remove('active');
+    document.getElementById('hamburger').classList.remove('open');
+}
+
+// Modal: leer datos desde data-attributes del botón (evita conflictos con Django templates)
+document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.open-modal');
+    if (btn) {
+        document.getElementById('mId').textContent      = '#' + btn.dataset.id;
+        document.getElementById('mFecha').textContent   = btn.dataset.fecha;
+        document.getElementById('mUsuario').textContent = btn.dataset.usuario;
+        document.getElementById('mAccion').textContent  = btn.dataset.accion;
+        document.getElementById('mModulo').textContent  = btn.dataset.modulo;
+        document.getElementById('mIp').textContent      = btn.dataset.ip;
+        document.getElementById('mSeveridad').textContent = btn.dataset.severidad;
+        document.getElementById('mDesc').textContent    = btn.dataset.desc;
+        document.getElementById('modalOverlay').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+});
+
+function closeModal(e) {
+    if (e.target === document.getElementById('modalOverlay')) closeModalDirect();
+}
+function closeModalDirect() {
+    document.getElementById('modalOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModalDirect(); });
+
+/* ════════════════════════════════════════════════════════════
+   PANEL DINÁMICO: gráficos, búsqueda en tiempo real, auto-refresh
+   ════════════════════════════════════════════════════════════ */
+(function () {
+    const DATA_URL = "{% url 'auditoria_admin_data' %}";
+
+    const ACCION_BADGES = {
+        LOGIN:  ['badge-login',  'fa-arrow-right-to-bracket', 'Login'],
+        LOGOUT: ['badge-logout', 'fa-arrow-right-from-bracket', 'Logout'],
+        CREATE: ['badge-create', 'fa-plus', 'Creación'],
+        UPDATE: ['badge-update', 'fa-pen', 'Edición'],
+        DELETE: ['badge-delete', 'fa-trash', 'Eliminación'],
+        VIEW:   ['badge-view',   'fa-eye', 'Vista'],
+        ERROR:  ['badge-error',  'fa-xmark', 'Error'],
+    };
+    const SEV_CLASS = { CRITICAL: 'sev-critical', WARNING: 'sev-warning', INFO: 'sev-info' };
+    const SEV_LABEL = { CRITICAL: 'Crítico', WARNING: 'Advertencia', INFO: 'Info' };
+
+    const els = {
+        search:        document.getElementById('searchInput'),
+        searchGroup:   document.getElementById('searchGroup'),
+        searchClear:   document.getElementById('searchClear'),
+        accion:        document.getElementById('filtroAccion'),
+        severidad:     document.getElementById('filtroSeveridad'),
+        usuario:       document.getElementById('filtroUsuario'),
+        desde:         document.getElementById('filtroDesde'),
+        hasta:         document.getElementById('filtroHasta'),
+        btnClear:      document.getElementById('btnClear'),
+        tbody:         document.getElementById('tbodyLogs'),
+        tableScroll:   document.getElementById('tableScroll'),
+        tableCount:    document.getElementById('tableCount'),
+        paginationWrap:document.getElementById('paginationWrap'),
+        emptyState:    document.getElementById('emptyState'),
+        tableCard:     document.querySelector('.table-card'),
+        liveStatus:    document.getElementById('liveStatus'),
+        liveStatusText:document.getElementById('liveStatusText'),
+        btnRefreshNow: document.getElementById('btnRefreshNow'),
+        kpiTotal:      document.getElementById('kpiTotalLogs'),
+        kpiCriticos:   document.getElementById('kpiCriticosHoy'),
+        kpiLogins:     document.getElementById('kpiLoginsHoy'),
+        kpiUsuarios:   document.getElementById('kpiUsuariosActivos'),
+        chartActividadTotal: document.getElementById('chartActividadTotal'),
+    };
+
+    let currentPage = 1;
+    let autoRefreshOn = false;
+    let autoRefreshTimer = null;
+    let fetchToken = 0; // evita carreras entre requests
+
+    /* ── Construir querystring a partir de filtros actuales ── */
+    function buildParams(page) {
+        const p = new URLSearchParams();
+        if (els.accion.value)    p.set('accion', els.accion.value);
+        if (els.severidad.value) p.set('severidad', els.severidad.value);
+        if (els.usuario.value)   p.set('usuario', els.usuario.value);
+        if (els.desde.value)     p.set('desde', els.desde.value);
+        if (els.hasta.value)     p.set('hasta', els.hasta.value);
+        if (els.search.value.trim()) p.set('q', els.search.value.trim());
+        p.set('page', page || 1);
+        return p;
+    }
+
+    /* ── Render de filas de tabla ── */
+    function escapeHtml(str) {
+        const d = document.createElement('div');
+        d.textContent = str == null ? '' : String(str);
+        return d.innerHTML;
+    }
+
+    function renderRows(rows) {
+        if (!rows.length) {
+            els.tbody.innerHTML = '';
+            els.tableScroll.style.display = 'none';
+            els.paginationWrap.style.display = 'none';
+            els.emptyState.style.display = 'block';
+            return;
+        }
+        els.emptyState.style.display = 'none';
+        els.tableScroll.style.display = '';
+
+        els.tbody.innerHTML = rows.map(r => {
+            const b = ACCION_BADGES[r.accion] || ['badge-view', 'fa-circle', r.accion_display];
+            const sevClass = SEV_CLASS[r.severidad] || 'sev-info';
+            const sevLabel = SEV_LABEL[r.severidad] || r.severidad_display;
+            return `
+            <tr>
+                <td style="color:var(--muted);font-size:.78rem">${r.id}</td>
+                <td style="white-space:nowrap;font-size:.8rem">
+                    <div style="font-weight:500">${escapeHtml(r.fecha)}</div>
+                    <div style="color:var(--muted);font-size:.75rem">${escapeHtml(r.hora)}</div>
+                </td>
+                <td>
+                    <div class="user-cell">
+                        <div class="user-avatar-sm">${escapeHtml(r.usuario_inicial)}</div>
+                        <div>
+                            <div class="user-cell-name">${escapeHtml(r.usuario)}</div>
+                            <div class="user-cell-role">${escapeHtml(r.rol)}</div>
+                        </div>
+                    </div>
+                </td>
+                <td><span class="badge ${b[0]}"><i class="fa-solid ${b[1]}"></i> ${escapeHtml(b[2])}</span></td>
+                <td style="font-size:.82rem;color:var(--muted)">${escapeHtml(r.modulo)}</td>
+                <td><span class="ip-pill">${escapeHtml(r.ip)}</span></td>
+                <td>
+                    <div class="sev-cell ${sevClass}"><span class="sev-dot"></span><span class="sev-text">${escapeHtml(sevLabel)}</span></div>
+                </td>
+                <td>
+                    <button class="btn-detail open-modal"
+                        data-id="${escapeHtml(r.id)}"
+                        data-fecha="${escapeHtml(r.fecha)} ${escapeHtml(r.hora)}"
+                        data-usuario="${escapeHtml(r.usuario)}"
+                        data-accion="${escapeHtml(r.accion_display)}"
+                        data-modulo="${escapeHtml(r.modulo)}"
+                        data-ip="${escapeHtml(r.ip)}"
+                        data-severidad="${escapeHtml(sevLabel)}"
+                        data-desc="${escapeHtml(r.descripcion)}">
+                        <i class="fa-solid fa-eye"></i>
+                    </button>
+                </td>
+            </tr>`;
+        }).join('');
+    }
+
+    /* ── Render de paginación (mismo markup que el server) ── */
+    function renderPagination(pg) {
+        currentPage = pg.current_page;
+        if (pg.num_pages <= 1) {
+            els.paginationWrap.style.display = 'none';
+            return;
+        }
+        els.paginationWrap.style.display = 'flex';
+        const info = els.paginationWrap.querySelector('#paginationInfo') ||
+                     els.paginationWrap.querySelector('.pagination-info');
+        const btnsWrap = els.paginationWrap.querySelector('#paginationBtns') ||
+                          els.paginationWrap.querySelector('.pagination-btns');
+        info.textContent = `Página ${pg.current_page} de ${pg.num_pages} — ${pg.count} registros`;
+
+        function btn(page, icon, disabled) {
+            if (disabled) return `<span class="page-btn disabled"><i class="fa-solid ${icon}"></i></span>`;
+            return `<a href="#" class="page-btn" data-page="${page}"><i class="fa-solid ${icon}"></i></a>`;
+        }
+        let html = '';
+        html += btn(1, 'fa-angles-left', !pg.has_previous);
+        html += btn(pg.current_page - 1, 'fa-angle-left', !pg.has_previous);
+        const start = Math.max(1, pg.current_page - 2);
+        const end = Math.min(pg.num_pages, pg.current_page + 2);
+        for (let n = start; n <= end; n++) {
+            html += `<a href="#" class="page-btn ${n === pg.current_page ? 'active' : ''}" data-page="${n}">${n}</a>`;
+        }
+        html += btn(pg.current_page + 1, 'fa-angle-right', !pg.has_next);
+        html += btn(pg.num_pages, 'fa-angles-right', !pg.has_next);
+        btnsWrap.innerHTML = html;
+    }
+
+    els.paginationWrap.addEventListener('click', function (e) {
+        const a = e.target.closest('a[data-page]');
+        if (!a) return;
+        e.preventDefault();
+        fetchAndRender(parseInt(a.dataset.page, 10), { scroll: true });
+    });
+
+    /* ── Gráficos ── */
+    let chartActividad, chartAcciones;
+    const palette = ['#B03580', '#1565C0', '#1A7A4A', '#92600A', '#6B21A8', '#B03030', '#CC4D99'];
+
+    function initCharts() {
+        if (typeof Chart === 'undefined') {
+            console.error('Chart.js no está disponible: se omite la inicialización de gráficos, el resto del panel sigue funcionando.');
+            return;
+        }
+        const ctx1 = document.getElementById('chartActividad').getContext('2d');
+        chartActividad = new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Eventos',
+                    data: [],
+                    borderColor: '#B03580',
+                    backgroundColor: 'rgba(176,53,128,.12)',
+                    fill: true,
+                    tension: .35,
+                    pointRadius: 3,
+                    pointBackgroundColor: '#B03580',
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, ticks: { precision: 0, color: '#8A6070' }, grid: { color: '#F5E8F2' } },
+                    x: { ticks: { color: '#8A6070' }, grid: { display: false } }
+                }
+            }
+        });
+
+        const ctx2 = document.getElementById('chartAcciones').getContext('2d');
+        chartAcciones = new Chart(ctx2, {
+            type: 'doughnut',
+            data: { labels: [], datasets: [{ data: [], backgroundColor: palette, borderWidth: 2, borderColor: '#fff' }] },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 10, font: { size: 11 }, color: '#2A1020' } } },
+                cutout: '62%'
+            }
+        });
+    }
+
+    function updateCharts(charts) {
+        if (!chartActividad || !chartAcciones) return; // Chart.js no cargó: se omite sin romper el resto
+        chartActividad.data.labels = charts.actividad_labels;
+        chartActividad.data.datasets[0].data = charts.actividad_data;
+        chartActividad.update();
+        els.chartActividadTotal.textContent = charts.actividad_data.reduce((a, b) => a + b, 0) + ' eventos';
+
+        if (charts.dona_data.length === 0) {
+            chartAcciones.data.labels = [];
+            chartAcciones.data.datasets[0].data = [];
+        } else {
+            chartAcciones.data.labels = charts.dona_labels;
+            chartAcciones.data.datasets[0].data = charts.dona_data;
+        }
+        chartAcciones.update();
+    }
+
+    /* ── KPIs ── */
+    function updateKpis(k) {
+        els.kpiTotal.textContent = k.total_logs;
+        els.kpiCriticos.textContent = k.logs_criticos_hoy;
+        els.kpiLogins.textContent = k.logins_hoy;
+        els.kpiUsuarios.textContent = k.usuarios_activos_hoy;
+    }
+
+    /* ── Fetch principal ── */
+    async function fetchAndRender(page, opts) {
+        opts = opts || {};
+        const token = ++fetchToken;
+        const params = buildParams(page || currentPage);
+        els.tbody.classList.add('tbody-fading');
+
+        try {
+            const resp = await fetch(`${DATA_URL}?${params.toString()}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            if (token !== fetchToken) return; // respuesta obsoleta
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            const data = await resp.json();
+
+            updateKpis(data.kpis);
+            updateCharts(data.charts);
+            renderRows(data.rows);
+            renderPagination(data.pagination);
+            els.tableCount.textContent = `${data.pagination.count} registro${data.pagination.count === 1 ? '' : 's'}`;
+
+            // refleja la URL sin recargar, para que filtros/búsqueda sean compartibles
+            const urlParams = buildParams(data.pagination.current_page);
+            const newUrl = `${window.location.pathname}?${urlParams.toString()}`;
+            window.history.replaceState({}, '', newUrl);
+
+            if (opts.scroll) {
+                els.tableCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        } catch (err) {
+            console.error('Error actualizando auditoría:', err);
+        } finally {
+            if (token === fetchToken) els.tbody.classList.remove('tbody-fading');
+        }
+    }
+
+    /* ── Búsqueda en tiempo real (debounce) ── */
+    let searchDebounce;
+    els.search.addEventListener('input', function () {
+        els.searchGroup.classList.toggle('has-text', !!els.search.value);
+        clearTimeout(searchDebounce);
+        searchDebounce = setTimeout(() => fetchAndRender(1), 350);
+    });
+    els.searchClear.addEventListener('click', function () {
+        els.search.value = '';
+        els.searchGroup.classList.remove('has-text');
+        fetchAndRender(1);
+    });
+
+    /* ── Filtros (selects + fechas) disparan fetch sin recargar ── */
+    [els.accion, els.severidad, els.usuario, els.desde, els.hasta].forEach(el => {
+        el.addEventListener('change', () => fetchAndRender(1));
+    });
+
+    /* ── Interceptar submit del form y botón Limpiar para no recargar ── */
+    document.getElementById('filterForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        fetchAndRender(1);
+    });
+    els.btnClear.addEventListener('click', function (e) {
+        e.preventDefault();
+        els.accion.value = '';
+        els.severidad.value = '';
+        els.usuario.value = '';
+        els.desde.value = '';
+        els.hasta.value = '';
+        els.search.value = '';
+        els.searchGroup.classList.remove('has-text');
+        fetchAndRender(1);
+    });
+
+    /* ── Auto-refresh cada 30s (no pierde filtros/scroll, solo refresca datos) ── */
+    function setAutoRefresh(on) {
+        autoRefreshOn = on;
+        els.liveStatus.classList.toggle('on', on);
+        els.liveStatusText.textContent = `Auto-actualizar: ${on ? 'ON' : 'OFF'}`;
+        clearInterval(autoRefreshTimer);
+        if (on) {
+            autoRefreshTimer = setInterval(() => fetchAndRender(currentPage), 30000);
+        }
+    }
+    els.liveStatus.addEventListener('click', () => setAutoRefresh(!autoRefreshOn));
+    els.btnRefreshNow.addEventListener('click', function () {
+        this.classList.add('spinning');
+        fetchAndRender(currentPage).finally(() => {
+            setTimeout(() => this.classList.remove('spinning'), 400);
+        });
+    });
+
+    /* ── Init ── */
+    // chartsReady se resuelve DESPUÉS de que initCharts() ya corrió (o se omitió si no hay Chart.js),
+    // así updateCharts() nunca se ejecuta antes de que chartActividad/chartAcciones existan.
+    const chartsReady = window.chartJsReady.then(initCharts);
+
+    // Trae datos frescos de gráficos/KPIs al cargar (la tabla ya viene del render server-side).
+    // Los KPIs se pintan apenas llega la respuesta; los gráficos solo cuando chartsReady resolvió.
+    fetch(`${DATA_URL}?${buildParams(currentPage).toString()}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(r => r.json())
+        .then(data => {
+            updateKpis(data.kpis);
+            chartsReady.then(() => updateCharts(data.charts));
+        })
+        .catch(err => console.error('Error cargando gráficos iniciales:', err));
+})();
+function exportarExcel(e) {
+    e.preventDefault();
+    const params = new URLSearchParams();
+    const accion = document.getElementById('filtroAccion');
+    const severidad = document.getElementById('filtroSeveridad');
+    const usuario = document.getElementById('filtroUsuario');
+    const desde = document.getElementById('filtroDesde');
+    const hasta = document.getElementById('filtroHasta');
+    const q = document.getElementById('searchInput');
+
+    if (accion && accion.value) params.set('accion', accion.value);
+    if (severidad && severidad.value) params.set('severidad', severidad.value);
+    if (usuario && usuario.value) params.set('usuario', usuario.value);
+    if (desde && desde.value) params.set('desde', desde.value);
+    if (hasta && hasta.value) params.set('hasta', hasta.value);
+    if (q && q.value.trim()) params.set('q', q.value.trim());
+    params.set('export', 'csv');
+
+    window.location.href = '?' + params.toString();
+}
+function toggleConfig() {
+    const panel = document.getElementById('configPanel');
+    const btn   = document.getElementById('btnToggleConfig');
+    panel.classList.toggle('open');
+    btn.innerHTML = panel.classList.contains('open')
+        ? '<i class="fa-solid fa-xmark"></i> Cerrar configuración'
+        : '<i class="fa-solid fa-gear"></i> Configuración';
+}
+</script>
+
+<script>
+/* ── SISTEMA DE TOASTS (mensajes Django) ── */
+(function(){
+    var ICONS = {
+        success:'fa-circle-check', error:'fa-circle-xmark',
+        warning:'fa-triangle-exclamation', info:'fa-circle-info', default:'fa-circle-info'
+    };
+    function showToast(msg, level) {
+        var wrap = document.getElementById('toastWrap');
+        if (!wrap) return;
+        var tag = (level && ICONS[level]) ? level : 'default';
+        var toast = document.createElement('div');
+        toast.className = 'toast toast-' + (tag === 'default' ? 'info' : tag);
+        toast.innerHTML = '<i class="fa-solid ' + ICONS[tag] + '"></i>'
+            + '<span class="toast-msg">' + msg + '</span>'
+            + '<button class="toast-close" onclick="this.parentElement.classList.add(\'out\');setTimeout(function(){this.remove()}.bind(this.parentElement),320)"><i class="fa-solid fa-xmark"></i></button>';
+        wrap.appendChild(toast);
+        setTimeout(function(){ toast.classList.add('out'); setTimeout(function(){ toast.remove(); }, 320); }, 4500);
+    }
+    var container = document.getElementById('djangoMessages');
+    if (container) {
+        container.querySelectorAll('span[data-level]').forEach(function(el){
+            showToast(el.textContent.trim(), el.dataset.level);
+        });
+    }
+})();
+</script>
+
+</body>
+
+</html>

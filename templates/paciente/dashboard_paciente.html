@@ -1,0 +1,1577 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Zumedical — Mi Panel</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --magenta: #b03580;
+        --magenta-light: #cc4d99;
+        --magenta-dark: #8a2563;
+        --magenta-bg: #fbf0f7;
+        --magenta-border: #e8aad4;
+        --text: #2a1020;
+        --text-muted: #8a6070;
+        --white: #ffffff;
+        --bg: #fdf5fa;
+        --sidebar-w: 260px;
+      }
+
+      body {
+        font-family: "DM Sans", sans-serif;
+        background: var(--bg);
+        min-height: 100vh;
+        display: flex;
+      }
+
+      /* ── SIDEBAR ── */
+      .sidebar {
+        width: var(--sidebar-w);
+        min-height: 100vh;
+        background: linear-gradient(
+          175deg,
+          #8a2563 0%,
+          #b03580 55%,
+          #cc4d99 100%
+        );
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 200;
+        transition: transform 0.3s ease;
+        overflow: hidden;
+      }
+      .sidebar-brand {
+        padding: 2rem 1.5rem 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+      .sidebar-brand-logo {
+        width: 44px;
+        height: 44px;
+        background: white;
+        border-radius: 50%;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+      .sidebar-brand-logo img {
+        width: 40px;
+        height: 40px;
+        object-fit: contain;
+      }
+      .sidebar-brand-text h2 {
+        font-family: "Cormorant Garamond", serif;
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: white;
+        line-height: 1;
+      }
+      .sidebar-brand-text span {
+        font-size: 0.72rem;
+        color: rgba(255, 255, 255, 0.7);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+      .sidebar-user {
+        padding: 1.2rem 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        transition: background 0.2s;
+      }
+      .sidebar-user:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+      .sidebar-avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: white;
+        flex-shrink: 0;
+        text-transform: uppercase;
+      }
+      .sidebar-user-info p {
+        font-size: 0.78rem;
+        color: rgba(255, 255, 255, 0.6);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 0.15rem;
+      }
+      .sidebar-user-info h3 {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: white;
+      }
+      .sidebar-nav {
+        flex: 1;
+        padding: 1rem 0.75rem;
+      }
+      .nav-label {
+        font-size: 0.7rem;
+        color: rgba(255, 255, 255, 0.5);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.5rem 0.75rem;
+        margin-top: 0.5rem;
+      }
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        border-radius: 10px;
+        color: rgba(255, 255, 255, 0.85);
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 400;
+        transition: all 0.2s;
+        margin-bottom: 0.25rem;
+      }
+      .nav-item:hover,
+      .nav-item.active {
+        background: rgba(255, 255, 255, 0.18);
+        color: white;
+      }
+      .nav-item svg {
+        width: 18px;
+        height: 18px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 1.8;
+        flex-shrink: 0;
+      }
+      .nav-badge {
+        margin-left: auto;
+        background: rgba(255, 255, 255, 0.25);
+        color: white;
+        font-size: 0.68rem;
+        font-weight: 500;
+        padding: 0.15rem 0.5rem;
+        border-radius: 20px;
+        letter-spacing: 0.05em;
+      }
+      .sidebar-footer {
+        padding: 1rem 0.75rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+        flex-shrink: 0;
+      }
+      .btn-logout {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        border-radius: 10px;
+        color: rgba(255, 255, 255, 0.8);
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+        width: 100%;
+      }
+      .btn-logout:hover {
+        background: rgba(255, 255, 255, 0.15);
+        color: white;
+      }
+      .btn-logout svg {
+        width: 18px;
+        height: 18px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 1.8;
+      }
+
+      /* ── MAIN ── */
+      .main {
+        margin-left: var(--sidebar-w);
+        flex: 1;
+        padding: 2.5rem;
+        min-height: 100vh;
+      }
+
+      /* ── MOBILE TOPBAR ── */
+      .mobile-topbar {
+        display: none;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 1.25rem;
+        background: linear-gradient(135deg, #8a2563, #cc4d99);
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 300;
+        height: 64px;
+      }
+      .mobile-topbar-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+      }
+      .mobile-topbar-logo {
+        width: 32px;
+        height: 32px;
+        background: white;
+        border-radius: 50%;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .mobile-topbar-logo img {
+        width: 28px;
+        height: 28px;
+        object-fit: contain;
+      }
+      .mobile-topbar-brand span {
+        font-family: "Cormorant Garamond", serif;
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: white;
+      }
+      .hamburger {
+        background: rgba(255, 255, 255, 0.15);
+        border: none;
+        border-radius: 8px;
+        padding: 0.5rem 0.65rem;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .hamburger span {
+        display: block;
+        width: 20px;
+        height: 2px;
+        background: white;
+        border-radius: 2px;
+        transition: all 0.3s;
+      }
+      .hamburger.open span:nth-child(1) {
+        transform: translateY(6px) rotate(45deg);
+      }
+      .hamburger.open span:nth-child(2) {
+        opacity: 0;
+      }
+      .hamburger.open span:nth-child(3) {
+        transform: translateY(-6px) rotate(-45deg);
+      }
+      .sidebar-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        z-index: 150;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s;
+      }
+      .sidebar-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .page-header {
+        margin-bottom: 2.5rem;
+      }
+      .page-header .greeting {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        font-weight: 300;
+        margin-bottom: 0.2rem;
+      }
+      .page-header h1 {
+        font-family: "Cormorant Garamond", serif;
+        font-size: 2.2rem;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 0.4rem;
+      }
+      .page-header p {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        font-weight: 300;
+      }
+
+      /* ── SECTION TITLE ── */
+      .section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        margin-bottom: 1.1rem;
+      }
+      .section-title h2 {
+        font-family: "Cormorant Garamond", serif;
+        font-size: 1.35rem;
+        font-weight: 600;
+        color: var(--text);
+      }
+      .badge-ia {
+        background: linear-gradient(
+          135deg,
+          var(--magenta-dark),
+          var(--magenta-light)
+        );
+        color: white;
+        font-size: 0.68rem;
+        font-weight: 500;
+        padding: 0.2rem 0.6rem;
+        border-radius: 20px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      /* ── PERFIL CLÍNICO ── */
+      .perfil-card {
+        background: var(--white);
+        border-radius: 16px;
+        border: 1px solid var(--magenta-border);
+        overflow: hidden;
+        position: relative;
+        margin-bottom: 2.5rem;
+      }
+
+      .perfil-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(
+          180deg,
+          var(--magenta-dark),
+          var(--magenta-light)
+        );
+      }
+
+      .perfil-card-header {
+        padding: 1.25rem 1.75rem;
+        border-bottom: 1px solid var(--magenta-border);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .perfil-card-header-icon {
+        width: 36px;
+        height: 36px;
+        background: var(--magenta-bg);
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+
+      .perfil-card-header-icon svg {
+        width: 18px;
+        height: 18px;
+        stroke: var(--magenta);
+        fill: none;
+        stroke-width: 1.8;
+      }
+
+      .perfil-card-header h3 {
+        font-family: "Cormorant Garamond", serif;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text);
+      }
+
+      .perfil-card-header p {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        font-weight: 300;
+      }
+
+      .perfil-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0;
+      }
+
+      .perfil-item {
+        padding: 1.25rem 1.75rem;
+        border-right: 1px solid var(--magenta-border);
+      }
+
+      .perfil-item:last-child {
+        border-right: none;
+      }
+
+      .perfil-item-label {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.72rem;
+        font-weight: 500;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 0.5rem;
+      }
+
+      .perfil-item-label svg {
+        width: 12px;
+        height: 12px;
+        stroke: var(--magenta-light);
+        fill: none;
+        stroke-width: 2;
+      }
+
+      .perfil-item-valor {
+        font-size: 1rem;
+        font-weight: 500;
+        color: var(--text);
+      }
+
+      .perfil-item-valor.sin-dato {
+        font-size: 0.875rem;
+        font-weight: 300;
+        color: var(--text-muted);
+        font-style: italic;
+      }
+
+      /* semanas destacadas */
+      .perfil-item.destacado {
+        background: var(--magenta-bg);
+      }
+
+      .perfil-item.destacado .perfil-item-valor {
+        font-family: "Cormorant Garamond", serif;
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: var(--magenta-dark);
+        line-height: 1;
+      }
+
+      .perfil-item.destacado .perfil-item-valor small {
+        font-family: "DM Sans", sans-serif;
+        font-size: 0.8rem;
+        font-weight: 400;
+        color: var(--text-muted);
+        margin-left: 0.2rem;
+      }
+
+      /* banner cuando no hay perfil */
+      .perfil-vacio {
+        padding: 1.5rem 1.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .perfil-vacio svg {
+        width: 16px;
+        height: 16px;
+        stroke: var(--magenta);
+        fill: none;
+        stroke-width: 2;
+        flex-shrink: 0;
+      }
+
+      .perfil-vacio p {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        font-weight: 300;
+      }
+
+      /* ── IA GRID ── */
+      .ia-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.25rem;
+        margin-bottom: 2.5rem;
+      }
+
+      .ia-card {
+        background: var(--white);
+        border-radius: 18px;
+        padding: 2rem;
+        border: 1px solid var(--magenta-border);
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        text-decoration: none;
+        display: block;
+      }
+      .ia-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(
+          90deg,
+          var(--magenta-dark),
+          var(--magenta-light)
+        );
+      }
+      .ia-card::after {
+        content: "";
+        position: absolute;
+        top: -60px;
+        right: -60px;
+        width: 180px;
+        height: 180px;
+        border-radius: 50%;
+        background: radial-gradient(
+          circle,
+          rgba(176, 53, 128, 0.07) 0%,
+          transparent 70%
+        );
+        pointer-events: none;
+      }
+      .ia-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 16px 40px rgba(176, 53, 128, 0.14);
+        border-color: var(--magenta);
+      }
+
+      .ia-card-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.25rem;
+      }
+      .ia-card-icon svg {
+        width: 28px;
+        height: 28px;
+        fill: none;
+        stroke-width: 1.6;
+      }
+      .icon-asistente {
+        background: linear-gradient(135deg, #f3e0ff, #e8aad4);
+      }
+      .icon-asistente svg {
+        stroke: var(--magenta-dark);
+      }
+      .icon-prediccion {
+        background: linear-gradient(135deg, #ffe0f0, #f5aacc);
+      }
+      .icon-prediccion svg {
+        stroke: #8a2563;
+      }
+
+      .ia-card h3 {
+        font-family: "Cormorant Garamond", serif;
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 0.5rem;
+      }
+      .ia-card p {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        font-weight: 300;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+      }
+
+      .ia-card-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .tag-ia {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        background: var(--magenta-bg);
+        border: 1px solid var(--magenta-border);
+        color: var(--magenta-dark);
+        font-size: 0.75rem;
+        font-weight: 500;
+        padding: 0.3rem 0.7rem;
+        border-radius: 20px;
+      }
+      .tag-ia svg {
+        width: 11px;
+        height: 11px;
+        stroke: var(--magenta);
+        fill: none;
+        stroke-width: 2;
+      }
+
+      .ia-arrow {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--magenta-bg);
+        border: 1px solid var(--magenta-border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+      }
+      .ia-card:hover .ia-arrow {
+        background: var(--magenta);
+        border-color: var(--magenta);
+      }
+      .ia-arrow svg {
+        width: 14px;
+        height: 14px;
+        stroke: var(--magenta-dark);
+        fill: none;
+        stroke-width: 2;
+        transition: stroke 0.2s;
+      }
+      .ia-card:hover .ia-arrow svg {
+        stroke: white;
+      }
+
+      .coming-soon {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: var(--magenta-bg);
+        border: 1px solid var(--magenta-border);
+        color: var(--magenta-dark);
+        font-size: 0.68rem;
+        font-weight: 500;
+        padding: 0.2rem 0.55rem;
+        border-radius: 20px;
+        letter-spacing: 0.05em;
+      }
+
+      /* ── ACCIONES ── */
+      .acciones-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1.1rem;
+        margin-bottom: 2rem;
+      }
+
+      .accion-card {
+        background: var(--white);
+        border-radius: 14px;
+        padding: 1.5rem;
+        border: 1px solid var(--magenta-border);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        text-decoration: none;
+        transition: all 0.22s ease;
+        position: relative;
+        overflow: hidden;
+      }
+      .accion-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(
+          180deg,
+          var(--magenta-dark),
+          var(--magenta-light)
+        );
+      }
+      .accion-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 24px rgba(176, 53, 128, 0.1);
+        border-color: var(--magenta);
+      }
+
+      .accion-icon {
+        width: 44px;
+        height: 44px;
+        background: var(--magenta-bg);
+        border-radius: 11px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .accion-icon svg {
+        width: 22px;
+        height: 22px;
+        stroke: var(--magenta);
+        fill: none;
+        stroke-width: 1.8;
+      }
+
+      .accion-info h3 {
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: var(--text);
+        margin-bottom: 0.2rem;
+      }
+      .accion-info p {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        font-weight: 300;
+      }
+
+      .accion-chevron {
+        margin-left: auto;
+        flex-shrink: 0;
+      }
+      .accion-chevron svg {
+        width: 16px;
+        height: 16px;
+        stroke: var(--magenta-border);
+        fill: none;
+        stroke-width: 2;
+        transition: stroke 0.2s;
+      }
+      .accion-card:hover .accion-chevron svg {
+        stroke: var(--magenta);
+      }
+
+      /* ── NOTA ── */
+      .nota {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.7rem;
+        background: var(--magenta-bg);
+        border: 1px solid var(--magenta-border);
+        border-radius: 10px;
+        padding: 0.9rem 1.1rem;
+        max-width: 780px;
+      }
+      .nota svg {
+        width: 16px;
+        height: 16px;
+        stroke: var(--magenta);
+        fill: none;
+        stroke-width: 2;
+        flex-shrink: 0;
+        margin-top: 0.1rem;
+      }
+      .nota p {
+        font-size: 0.85rem;
+        color: var(--magenta-dark);
+        font-weight: 400;
+        line-height: 1.5;
+      }
+
+      /* ── ANIMACIONES DE ENTRADA ── */
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(22px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      @keyframes slideInLeft {
+        from {
+          opacity: 0;
+          transform: translateX(-18px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      /* Sidebar */
+      .sidebar {
+        animation: slideInLeft 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+      }
+
+      /* Nav items stagger */
+      .nav-item {
+        opacity: 0;
+        animation: fadeIn 0.4s ease forwards;
+        position: relative;
+      }
+      .nav-item:nth-child(1) {
+        animation-delay: 0.15s;
+      }
+      .nav-item:nth-child(2) {
+        animation-delay: 0.22s;
+      }
+      .nav-item:nth-child(3) {
+        animation-delay: 0.29s;
+      }
+      .nav-item:nth-child(4) {
+        animation-delay: 0.36s;
+      }
+      .nav-item:nth-child(5) {
+        animation-delay: 0.43s;
+      }
+
+      /* Indicador lateral en nav */
+      .nav-item::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%) scaleY(0);
+        width: 3px;
+        height: 60%;
+        background: white;
+        border-radius: 0 3px 3px 0;
+        transition: transform 0.2s ease;
+      }
+      .nav-item:hover::after,
+      .nav-item.active::after {
+        transform: translateY(-50%) scaleY(1);
+      }
+
+      /* Contenido principal */
+      .page-header {
+        animation: fadeUp 0.55s 0.1s ease both;
+      }
+      .section-title {
+        animation: fadeUp 0.5s 0.2s ease both;
+      }
+      .perfil-card {
+        animation: fadeUp 0.55s 0.25s ease both;
+      }
+
+      /* Perfil items stagger */
+      .perfil-item {
+        opacity: 0;
+        animation: fadeUp 0.45s ease forwards;
+      }
+      .perfil-item:nth-child(1) {
+        animation-delay: 0.35s;
+      }
+      .perfil-item:nth-child(2) {
+        animation-delay: 0.45s;
+      }
+      .perfil-item:nth-child(3) {
+        animation-delay: 0.55s;
+      }
+      .perfil-item:nth-child(4) {
+        animation-delay: 0.65s;
+      }
+      .perfil-item:not(.destacado):hover {
+        background: var(--magenta-bg);
+      }
+
+      /* Fecha de parto con shimmer */
+      .perfil-item.destacado .perfil-item-valor {
+        background: linear-gradient(
+          90deg,
+          var(--magenta-dark) 0%,
+          var(--magenta-light) 50%,
+          var(--magenta-dark) 100%
+        );
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: shimmer 3s linear infinite 1s;
+      }
+      @keyframes shimmer {
+        0% {
+          background-position: 200% center;
+        }
+        100% {
+          background-position: -200% center;
+        }
+      }
+
+      /* IA cards stagger */
+      .ia-card {
+        opacity: 0;
+        animation: fadeUp 0.5s ease forwards;
+      }
+      .ia-card:nth-child(1) {
+        animation-delay: 0.4s;
+      }
+      .ia-card:nth-child(2) {
+        animation-delay: 0.52s;
+      }
+
+      /* IA card icon rebote al hover */
+      .ia-card-icon {
+        transition: transform 0.3s ease;
+      }
+      .ia-card:hover .ia-card-icon {
+        transform: scale(1.1) rotate(-4deg);
+        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+
+      /* Badge IA pulso */
+      .badge-ia {
+        animation: pulseBadge 2.5s ease-in-out infinite;
+      }
+      @keyframes pulseBadge {
+        0%,
+        100% {
+          box-shadow: 0 0 0 0 rgba(176, 53, 128, 0.4);
+        }
+        50% {
+          box-shadow: 0 0 0 6px rgba(176, 53, 128, 0);
+        }
+      }
+
+      /* Coming soon parpadeo */
+      .coming-soon {
+        animation: blink 2.2s ease-in-out infinite;
+      }
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.55;
+        }
+      }
+
+      /* Acciones stagger */
+      .accion-card {
+        opacity: 0;
+        animation: fadeUp 0.48s ease forwards;
+      }
+      .accion-card:nth-child(1) {
+        animation-delay: 0.55s;
+      }
+      .accion-card:nth-child(2) {
+        animation-delay: 0.65s;
+      }
+
+      /* Ícono acción rebote */
+      .accion-icon {
+        transition:
+          transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+          background 0.25s;
+      }
+      .accion-card:hover .accion-icon {
+        transform: scale(1.12);
+        background: var(--magenta-border);
+      }
+
+      /* Chevron se desliza */
+      .accion-chevron svg {
+        transition:
+          stroke 0.2s,
+          transform 0.2s ease;
+      }
+      .accion-card:hover .accion-chevron svg {
+        transform: translateX(4px);
+      }
+
+      /* Nota */
+      .nota {
+        animation: fadeUp 0.45s 0.7s ease both;
+        opacity: 0;
+      }
+
+      /* Avatar hover */
+      .sidebar-avatar {
+        transition:
+          transform 0.2s ease,
+          box-shadow 0.2s;
+      }
+      .sidebar-user:hover .sidebar-avatar {
+        transform: scale(1.08);
+        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.35);
+      }
+
+      /* ── RESPONSIVE ── */
+      @media (max-width: 900px) {
+        .perfil-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+        .perfil-item {
+          border-bottom: 1px solid var(--magenta-border);
+        }
+        .perfil-item:nth-child(2n) {
+          border-right: none;
+        }
+      }
+
+      @media (max-width: 768px) {
+        body {
+          flex-direction: column;
+        }
+        .sidebar {
+          width: var(--sidebar-w);
+          min-height: 0;
+          position: fixed;
+          top: 64px;
+          left: 0;
+          height: calc(100vh - 64px);
+          transform: translateX(-100%);
+          z-index: 250;
+          overflow-y: auto;
+        }
+        .sidebar.open {
+          transform: translateX(0);
+        }
+        .sidebar-overlay {
+          display: block;
+          z-index: 200;
+        }
+        .mobile-topbar {
+          display: flex;
+        }
+        .main {
+          margin-left: 0;
+          padding: 1.1rem;
+          padding-top: calc(1.1rem + 64px);
+          min-height: auto;
+        }
+        .ia-grid {
+          grid-template-columns: 1fr;
+        }
+        .perfil-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+        .sidebar {
+          animation: none !important;
+        }
+        .page-header h1 {
+          font-size: 1.8rem;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .perfil-grid {
+          grid-template-columns: 1fr;
+        }
+        .perfil-card-header {
+          padding: 1rem 1.25rem;
+          flex-wrap: wrap;
+        }
+        .ia-card {
+          padding: 1.5rem;
+        }
+      }
+
+      /* ── Mensajes Django ── */
+      .msg-alert {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        padding: 0.9rem 1.2rem;
+        border-radius: 12px;
+        font-size: 0.88rem;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+      }
+      .msg-alert svg {
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+      }
+      .msg-success {
+        background: #edfaf3;
+        color: #1a7a4a;
+        border: 1px solid #a8dfc0;
+      }
+      .msg-error {
+        background: #fdf0f0;
+        color: #b03030;
+        border: 1px solid #f0b8b8;
+      }
+      .msg-info {
+        background: #e3f2fd;
+        color: #1565c0;
+        border: 1px solid #90caf9;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- OVERLAY -->
+    <div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
+
+    <!-- MOBILE TOPBAR -->
+    <div class="mobile-topbar">
+      <div class="mobile-topbar-brand">
+        <div class="mobile-topbar-logo">
+          <img src="/static/img/logo.png" alt="Zumedical" />
+        </div>
+        <span>Zumedical</span>
+      </div>
+      <button
+        type="button"
+        class="hamburger"
+        id="hamburger"
+        onclick="toggleSidebar()"
+      >
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-logo">
+          <img src="/static/img/logo.png" alt="Zumedical" />
+        </div>
+        <div class="sidebar-brand-text">
+          <h2>Zumedical</h2>
+          <span>Paciente</span>
+        </div>
+      </div>
+
+      <a
+        href="{% url 'mi_perfil' %}"
+        class="sidebar-user"
+        style="text-decoration: none; cursor: pointer"
+      >
+        <div class="sidebar-avatar">{% if request.user.first_name %}{{ request.user.first_name|slice:":1" }}{{ request.user.last_name|slice:":1" }}{% else %}{{ request.user.username|slice:":1"|upper }}{% endif %}</div>
+        <div class="sidebar-user-info">
+          <p>Mi perfil</p>
+          <h3>{{ request.user.get_full_name|default:request.user.username }}</h3>
+        </div>
+      </a>
+
+      <nav class="sidebar-nav">
+        <div class="nav-label">Menú</div>
+
+        <a href="{% url 'paciente_dashboard' %}" class="nav-item active">
+          <svg viewBox="0 0 24 24">
+            <rect x="3" y="3" width="7" height="7" />
+            <rect x="14" y="3" width="7" height="7" />
+            <rect x="3" y="14" width="7" height="7" />
+            <rect x="14" y="14" width="7" height="7" />
+          </svg>
+          Inicio
+        </a>
+
+        <a href="{% url 'agendar_cita' %}" class="nav-item">
+          <svg viewBox="0 0 24 24">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+          Agendar Cita
+        </a>
+
+        <a href="{% url 'ver_citas' %}" class="nav-item">
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+            />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="16" y1="13" x2="8" y2="13" />
+            <line x1="16" y1="17" x2="8" y2="17" />
+          </svg>
+          Mis Citas
+        </a>
+
+        {% if request.user.tipo_paciente == 'general' %}
+        <a href="{% url 'paciente_general_dashboard' %}" class="nav-item">
+          <svg viewBox="0 0 24 24">
+            <rect x="3" y="3" width="7" height="7" />
+            <rect x="14" y="3" width="7" height="7" />
+            <rect x="3" y="14" width="7" height="7" />
+            <rect x="14" y="14" width="7" height="7" />
+          </svg>
+          Panel General
+        </a>
+        {% endif %}
+
+        <div class="nav-label">Inteligencia Artificial</div>
+
+        <a href="{% url 'chatbot_page' %}" class="nav-item">
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+            />
+          </svg>
+          Asistente Virtual
+          <span class="nav-badge">IA</span>
+        </a>
+
+        <a href="{% url 'evaluar_riesgo' %}" class="nav-item">
+          <svg viewBox="0 0 24 24">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+          </svg>
+          Evaluar Riesgo
+          <span class="nav-badge">IA</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <a href="{% url 'logout' %}" class="btn-logout">
+          <svg viewBox="0 0 24 24">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+          Cerrar sesión
+        </a>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+      <!-- HEADER -->
+      <div class="page-header">
+        <p class="greeting">Bienvenida</p>
+        <h1>{{ request.user.get_full_name|default:request.user.username }}</h1>
+        <p>
+          Gestiona tus citas y accede a las herramientas de inteligencia
+          artificial
+        </p>
+      </div>
+
+      <!-- MENSAJES DJANGO -->
+      {% if messages %}
+      <div style="margin-bottom: 1.5rem">
+        {% for message in messages %}
+        <div
+          class="msg-alert {% if message.tags == 'success' %}msg-success{% elif message.tags == 'error' %}msg-error{% else %}msg-info{% endif %}"
+        >
+          {% if message.tags == 'success' %}
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+          {% else %}
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+          {% endif %} {{ message }}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- ── PERFIL CLÍNICO ── -->
+      <div class="section-title">
+        <h2>Mi embarazo</h2>
+      </div>
+
+      {% if parto_programado %}
+      <!-- ── PARTO PROGRAMADO ── -->
+      <div style="background:linear-gradient(135deg,#8a2563,#b03580);border-radius:18px;padding:1.5rem 1.75rem;margin-bottom:1.5rem;color:white;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:-20px;right:-20px;width:120px;height:120px;background:rgba(255,255,255,.08);border-radius:50%;"></div>
+        <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1rem;">
+          <span style="font-size:1.5rem">🤰</span>
+          <div>
+            <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.7)">Programación de {{ parto_programado.get_tipo_display }}</div>
+            <div style="font-size:1.2rem;font-weight:600;font-family:'Cormorant Garamond',serif;">{{ parto_programado.get_tipo_display }}</div>
+          </div>
+          <span style="margin-left:auto;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:.25rem .75rem;font-size:.75rem;font-weight:600;">{{ parto_programado.get_estado_display }}</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:{% if parto_programado.indicaciones %}1rem{% else %}0{% endif %}">
+          <div style="background:rgba(255,255,255,.12);border-radius:10px;padding:.75rem 1rem;">
+            <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.7);margin-bottom:.2rem;">Fecha programada</div>
+            <div style="font-size:1.1rem;font-weight:600;">{{ parto_programado.fecha_programada|date:"d 'de' F 'de' Y" }}</div>
+          </div>
+          <div style="background:rgba(255,255,255,.12);border-radius:10px;padding:.75rem 1rem;">
+            <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.7);margin-bottom:.2rem;">Hora</div>
+            <div style="font-size:1.1rem;font-weight:600;">{{ parto_programado.hora_programada|time:"H:i" }} hrs</div>
+          </div>
+          <div style="background:rgba(255,255,255,.12);border-radius:10px;padding:.75rem 1rem;">
+            <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.7);margin-bottom:.2rem;">Lugar</div>
+            <div style="font-size:.9rem;font-weight:500;">{{ parto_programado.lugar }}</div>
+          </div>
+          {% if parto_programado.semanas_gestacion %}
+          <div style="background:rgba(255,255,255,.12);border-radius:10px;padding:.75rem 1rem;">
+            <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.7);margin-bottom:.2rem;">Semanas</div>
+            <div style="font-size:.9rem;font-weight:500;">Semana {{ parto_programado.semanas_gestacion }}</div>
+          </div>
+          {% endif %}
+        </div>
+        {% if parto_programado.indicaciones %}
+        <div style="background:rgba(255,255,255,.1);border-radius:10px;padding:.85rem 1rem;border-left:3px solid rgba(255,255,255,.5);">
+          <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.7);margin-bottom:.3rem;">📋 Indicaciones de tu médico</div>
+          <div style="font-size:.88rem;line-height:1.6;color:rgba(255,255,255,.95);">{{ parto_programado.indicaciones }}</div>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <!-- ── IA SECCIÓN PRINCIPAL ── -->
+      <div class="section-title">
+        <h2>Herramientas con IA</h2>
+        <span class="badge-ia">Nuevo</span>
+      </div>
+
+      <div class="ia-grid">
+        <a href="{% url 'chatbot_page' %}" class="ia-card">
+          <div class="ia-card-icon icon-asistente">
+            <svg viewBox="0 0 24 24">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              <line x1="9" y1="10" x2="15" y2="10" />
+              <line x1="9" y1="14" x2="13" y2="14" />
+            </svg>
+          </div>
+          <h3>Asistente Virtual</h3>
+          <p>
+            Consulta tus dudas sobre el embarazo en cualquier momento. Nuestro
+            asistente con IA está disponible para orientarte de forma segura y
+            personalizada.
+          </p>
+          <div class="ia-card-footer">
+            <span class="tag-ia">
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+              Chat inteligente
+            </span>
+            <div class="ia-arrow">
+              <svg viewBox="0 0 24 24">
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
+            </div>
+          </div>
+        </a>
+
+        <a href="{% url 'evaluar_riesgo' %}" class="ia-card">
+          <div class="ia-card-icon icon-prediccion">
+            <svg viewBox="0 0 24 24">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+            </svg>
+          </div>
+          <h3>Evaluación de Riesgo</h3>
+          <p>
+            Analiza tus datos clínicos con inteligencia artificial para
+            identificar posibles factores de riesgo durante tu embarazo y
+            recibir recomendaciones a tiempo.
+          </p>
+          <div class="ia-card-footer">
+            <span class="tag-ia">
+              <svg viewBox="0 0 24 24">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+              </svg>
+              Predicción clínica
+            </span>
+            <div class="ia-arrow">
+              <svg viewBox="0 0 24 24">
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <!-- ── ACCIONES ── -->
+      <div class="section-title">
+        <h2>Mis opciones</h2>
+      </div>
+
+      <div class="acciones-grid">
+        <a href="{% url 'agendar_cita' %}" class="accion-card">
+          <div class="accion-icon">
+            <svg viewBox="0 0 24 24">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+              <line x1="16" y1="2" x2="16" y2="6" />
+              <line x1="8" y1="2" x2="8" y2="6" />
+              <line x1="3" y1="10" x2="21" y2="10" />
+              <line x1="12" y1="14" x2="12" y2="18" />
+              <line x1="10" y1="16" x2="14" y2="16" />
+            </svg>
+          </div>
+          <div class="accion-info">
+            <h3>Agendar cita</h3>
+            <p>Reserva tu próxima consulta</p>
+          </div>
+          <div class="accion-chevron">
+            <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6" /></svg>
+          </div>
+        </a>
+
+        <a href="{% url 'ver_citas' %}" class="accion-card">
+          <div class="accion-icon">
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+              />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="16" y1="13" x2="8" y2="13" />
+              <line x1="16" y1="17" x2="8" y2="17" />
+            </svg>
+          </div>
+          <div class="accion-info">
+            <h3>Ver mis citas</h3>
+            <p>Consulta y gestiona tus citas</p>
+          </div>
+          <div class="accion-chevron">
+            <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6" /></svg>
+          </div>
+        </a>
+
+        {% if request.user.tipo_paciente == 'general' %}
+        <a href="{% url 'paciente_general_dashboard' %}" class="accion-card">
+          <div class="accion-icon">
+            <svg viewBox="0 0 24 24">
+              <rect x="3" y="3" width="7" height="7" />
+              <rect x="14" y="3" width="7" height="7" />
+              <rect x="3" y="14" width="7" height="7" />
+              <rect x="14" y="14" width="7" height="7" />
+            </svg>
+          </div>
+          <div class="accion-info">
+            <h3>Panel general</h3>
+            <p>Consulta tus citas y servicios generales</p>
+          </div>
+          <div class="accion-chevron">
+            <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6" /></svg>
+          </div>
+        </a>
+        {% endif %}
+      </div>
+
+      <!-- NOTA -->
+      <div class="nota">
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+        <p>
+          Tu historial clínico completo y los controles prenatales son
+          gestionados directamente por tu médico tratante. Los datos de tu
+          perfil se actualizan después de cada consulta.
+        </p>
+      </div>
+    </main>
+
+    <script>
+      function toggleSidebar() {
+        document.getElementById("sidebar").classList.toggle("open");
+        document.getElementById("overlay").classList.toggle("active");
+        document.getElementById("hamburger").classList.toggle("open");
+      }
+      function closeSidebar() {
+        document.getElementById("sidebar").classList.remove("open");
+        document.getElementById("overlay").classList.remove("active");
+        document.getElementById("hamburger").classList.remove("open");
+      }
+      document
+        .querySelectorAll(".nav-item, .sidebar-user, .btn-logout")
+        .forEach(function (el) {
+          el.addEventListener("click", closeSidebar);
+        });
+      (() => {
+        /* ── Ripple en tarjetas ── */
+        document.querySelectorAll(".accion-card, .ia-card").forEach((card) => {
+          card.addEventListener("click", function (e) {
+            const ripple = document.createElement("span");
+            const rect = this.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            ripple.style.cssText = `
+                    position:absolute; border-radius:50%; pointer-events:none;
+                    width:${size}px; height:${size}px;
+                    left:${e.clientX - rect.left - size / 2}px;
+                    top:${e.clientY - rect.top - size / 2}px;
+                    background:rgba(176,53,128,0.12);
+                    transform:scale(0); animation:rippleAnim 0.5s ease forwards;
+                `;
+            this.appendChild(ripple);
+            setTimeout(() => ripple.remove(), 500);
+          });
+        });
+
+        /* ── Saludo dinámico según la hora ── */
+        const greeting = document.querySelector(".page-header .greeting");
+        if (greeting) {
+          const hora = new Date().getHours();
+          if (hora >= 5 && hora < 12) greeting.textContent = "🌸 Buenos días";
+          else if (hora >= 12 && hora < 19)
+            greeting.textContent = "☀️ Buenas tardes";
+          else greeting.textContent = "🌙 Buenas noches";
+        }
+
+        /* ── Tooltip en etiquetas de perfil ── */
+        const tooltipLabels = {
+          Cédula: "Número de identificación",
+          Teléfono: "Número de contacto registrado",
+          "Última menstruación": "Fecha de inicio del último período",
+          "Fecha probable de parto": "Calculada por tu médico tratante",
+        };
+        document.querySelectorAll(".perfil-item-label").forEach((label) => {
+          const texto = label.textContent.trim();
+          if (tooltipLabels[texto]) {
+            label.title = tooltipLabels[texto];
+            label.style.cursor = "help";
+          }
+        });
+
+        /* ── Contador animado en la fecha de parto ── */
+        const fechaEl = document.querySelector(
+          ".perfil-item.destacado .perfil-item-valor",
+        );
+        if (fechaEl && fechaEl.textContent.trim() !== "Pendiente") {
+          fechaEl.style.opacity = "0";
+          setTimeout(() => {
+            fechaEl.style.transition =
+              "opacity 0.6s ease, transform 0.6s cubic-bezier(0.34,1.56,0.64,1)";
+            fechaEl.style.transform = "scale(0.85)";
+            setTimeout(() => {
+              fechaEl.style.opacity = "1";
+              fechaEl.style.transform = "scale(1)";
+            }, 50);
+          }, 700);
+        }
+      })();
+    </script>
+
+    <style>
+      @keyframes rippleAnim {
+        to {
+          transform: scale(2.5);
+          opacity: 0;
+        }
+      }
+    </style>
+  </body>
+</html>

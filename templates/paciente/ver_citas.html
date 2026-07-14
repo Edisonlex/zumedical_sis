@@ -1,0 +1,767 @@
+﻿{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zumedical — Mis Citas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --magenta: #B03580;
+            --magenta-light: #CC4D99;
+            --magenta-dark: #8A2563;
+            --magenta-bg: #FBF0F7;
+            --magenta-border: #E8AAD4;
+            --text: #2A1020;
+            --text-muted: #8A6070;
+            --white: #FFFFFF;
+            --bg: #FDF5FA;
+            --sidebar-w: 260px;
+            --green: #1a7a4a;
+            --green-bg: #edfaf3;
+            --green-border: #a8e6c8;
+            --yellow: #92600a;
+            --yellow-bg: #fef8ec;
+            --yellow-border: #f5d98a;
+            --red: #b03030;
+            --red-bg: #fdf0f0;
+            --red-border: #f5aaaa;
+        }
+
+        body { font-family: 'DM Sans', sans-serif; background: var(--bg); min-height: 100vh; display: flex; }
+
+        /* ── SIDEBAR ── */
+        .sidebar { width: var(--sidebar-w); min-height: 100vh; background: linear-gradient(175deg, #8A2563 0%, #B03580 55%, #CC4D99 100%); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 200; transition: transform 0.3s ease; overflow: hidden; }
+        .sidebar-brand { padding: 2rem 1.5rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.12); display: flex; align-items: center; gap: 0.75rem; }
+        .sidebar-brand-logo { width: 44px; height: 44px; background: white; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .sidebar-brand-logo img { width: 40px; height: 40px; object-fit: contain; }
+        .sidebar-brand-text h2 { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 600; color: white; line-height: 1; }
+        .sidebar-brand-text span { font-size: 0.72rem; color: rgba(255,255,255,0.7); letter-spacing: 0.1em; text-transform: uppercase; }
+        .sidebar-user { padding: 1.2rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.12); display: flex; align-items: center; gap: 0.75rem; text-decoration: none; transition: background 0.2s; }
+        .sidebar-user:hover { background: rgba(255,255,255,0.1); }
+        .sidebar-avatar { width: 38px; height: 38px; border-radius: 50%; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 500; color: white; flex-shrink: 0; text-transform: uppercase; }
+        .sidebar-user-info { flex: 1; min-width: 0; }
+        .sidebar-user-info p { font-size: 0.78rem; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.15rem; }
+        .sidebar-user-info h3 { font-size: 0.9rem; font-weight: 500; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sidebar-user-arrow { flex-shrink: 0; opacity: 0.5; transition: opacity 0.2s; }
+        .sidebar-user:hover .sidebar-user-arrow { opacity: 1; }
+        .sidebar-user-arrow svg { width: 14px; height: 14px; stroke: white; fill: none; stroke-width: 2; }
+        .sidebar-nav { flex: 1; padding: 1rem 0.75rem; }
+        .nav-label { font-size: 0.7rem; color: rgba(255,255,255,0.5); letter-spacing: 0.1em; text-transform: uppercase; padding: 0.5rem 0.75rem; margin-top: 0.5rem; }
+        .nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 10px; color: rgba(255,255,255,0.85); text-decoration: none; font-size: 0.9rem; font-weight: 400; transition: all 0.2s; margin-bottom: 0.25rem; }
+        .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.18); color: white; }
+        .nav-item svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; flex-shrink: 0; }
+        .nav-badge { margin-left: auto; background: rgba(255,255,255,0.25); color: white; font-size: 0.68rem; font-weight: 500; padding: 0.15rem 0.5rem; border-radius: 20px; letter-spacing: 0.05em; }
+        .sidebar-footer { padding: 1rem 0.75rem; border-top: 1px solid rgba(255,255,255,0.12); flex-shrink: 0; }
+        .btn-logout { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 10px; color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.9rem; transition: all 0.2s; width: 100%; }
+        .btn-logout:hover { background: rgba(255,255,255,0.15); color: white; }
+        .btn-logout svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+
+        /* ── MOBILE TOPBAR ── */
+        .mobile-topbar { display: none; align-items: center; justify-content: space-between; padding: 1rem 1.25rem; background: linear-gradient(135deg, #8A2563, #CC4D99); position: fixed; top: 0; left: 0; right: 0; z-index: 300; height: 64px; }
+        .mobile-topbar-brand { display: flex; align-items: center; gap: 0.6rem; }
+        .mobile-topbar-logo { width: 32px; height: 32px; background: white; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .mobile-topbar-logo img { width: 28px; height: 28px; object-fit: contain; }
+        .mobile-topbar-brand span { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; font-weight: 600; color: white; }
+        .hamburger { background: rgba(255,255,255,0.15); border: none; border-radius: 8px; padding: 0.5rem 0.65rem; cursor: pointer; display: flex; flex-direction: column; gap: 4px; }
+        .hamburger span { display: block; width: 20px; height: 2px; background: white; border-radius: 2px; transition: all 0.3s; }
+        .hamburger.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+        .hamburger.open span:nth-child(2) { opacity: 0; }
+        .hamburger.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+        .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 150; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+        .sidebar-overlay.active { opacity: 1; pointer-events: auto; }
+
+        /* ── MAIN ── */
+        .main { margin-left: var(--sidebar-w); flex: 1; padding: 2.5rem; min-height: 100vh; }
+
+        .page-header { margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap; padding-bottom: 1.5rem; border-bottom: 1px solid var(--magenta-border); }
+        .page-header h1 { font-family: 'Cormorant Garamond', serif; font-size: 2.2rem; font-weight: 600; color: var(--text); margin-bottom: 0.3rem; }
+        .page-header p { color: var(--text-muted); font-size: 0.9rem; font-weight: 300; }
+
+        .btn-nueva-cita { display: inline-flex; align-items: center; gap: 0.55rem; padding: 0.85rem 1.75rem; background: linear-gradient(135deg, var(--magenta-dark), var(--magenta-light)); color: white; border-radius: 14px; text-decoration: none; font-size: 0.9rem; font-weight: 600; box-shadow: 0 6px 18px rgba(176,53,128,0.32); transition: all 0.2s; white-space: nowrap; position: relative; overflow: hidden; flex-shrink: 0; }
+        .btn-nueva-cita:hover { opacity: 0.94; transform: translateY(-2px); box-shadow: 0 8px 22px rgba(176,53,128,0.38); }
+        .btn-nueva-cita svg { width: 17px; height: 17px; stroke: white; fill: none; stroke-width: 2.4; }
+
+        /* ── RESUMEN ── */
+        .resumen-strip { display: flex; gap: 0.75rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+        .resumen-chip { display: flex; align-items: center; gap: 0.5rem; padding: 0.45rem 1rem; border-radius: 30px; font-size: 0.8rem; font-weight: 500; border: 1.5px solid; cursor: pointer; transition: all .18s; background: none; font-family: 'DM Sans', sans-serif; }
+        .resumen-chip .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+        .chip-total    { background: var(--magenta-bg);  border-color: var(--magenta-border);  color: var(--magenta-dark); }
+        .chip-total    .dot { background: var(--magenta); }
+        .chip-pendiente{ background: var(--yellow-bg);   border-color: var(--yellow-border);   color: var(--yellow); }
+        .chip-pendiente .dot { background: var(--yellow); }
+        .chip-atendido { background: var(--green-bg);    border-color: var(--green-border);    color: var(--green); }
+        .chip-atendido  .dot { background: var(--green); }
+        .chip-cancelado{ background: var(--red-bg);      border-color: var(--red-border);      color: var(--red); }
+        .chip-cancelado .dot { background: var(--red); }
+        .resumen-chip.active { box-shadow: 0 0 0 2px currentColor inset; transform: translateY(-1px); }
+        .resumen-chip:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(176,53,128,0.12); }
+
+        /* ── FILTROS ── */
+        .filtros-bar { display: flex; gap: 0.65rem; margin-bottom: 1.5rem; flex-wrap: wrap; align-items: center; }
+        .filtro-fecha-input { padding: 0.65rem 0.9rem; border: 1.5px solid var(--magenta-border); border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; color: var(--text); background: var(--white); outline: none; cursor: pointer; transition: border-color .2s; }
+        .filtro-fecha-input:focus { border-color: var(--magenta); }
+        .btn-limpiar-filtros { display: flex; align-items: center; gap: 0.35rem; padding: 0.65rem 1rem; background: var(--white); border: 1.5px solid var(--magenta-border); border-radius: 10px; color: var(--text-muted); font-size: 0.82rem; font-weight: 500; cursor: pointer; transition: all .2s; white-space: nowrap; }
+        .btn-limpiar-filtros:hover { color: var(--red); border-color: var(--red-border); background: var(--red-bg); }
+        .btn-limpiar-filtros svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2.2; }
+        .sin-resultados-filtro { background: var(--white); border: 1.5px dashed var(--magenta-border); border-radius: 16px; padding: 3rem 2rem; text-align: center; color: var(--text-muted); display: none; }
+        .sin-resultados-filtro svg { width: 32px; height: 32px; stroke: var(--magenta-border); fill: none; stroke-width: 1.5; margin-bottom: 0.75rem; }
+        .sin-resultados-filtro p { font-size: 0.9rem; }
+
+        /* ── LISTA POR MES ── */
+        .citas-lista { display: flex; flex-direction: column; gap: 2rem; }
+
+        /* Cabecera de mes */
+        .mes-grupo { display: flex; flex-direction: column; gap: 0; }
+
+        .mes-header {
+            display: flex; align-items: center; gap: 0.75rem;
+            margin-bottom: 0.85rem;
+        }
+        .mes-header-icon { width: 28px; height: 28px; background: var(--magenta-bg); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .mes-header-icon svg { width: 13px; height: 13px; stroke: var(--magenta); fill: none; stroke-width: 2; }
+        .mes-header-titulo { font-family: 'Cormorant Garamond', serif; font-size: 1.05rem; font-weight: 600; color: var(--text); text-transform: capitalize; }
+        .mes-header-count { font-size: 0.75rem; color: var(--text-muted); background: var(--magenta-bg); border: 1px solid var(--magenta-border); padding: 0.15rem 0.6rem; border-radius: 20px; }
+        .mes-header-linea { flex: 1; height: 1px; background: var(--magenta-border); opacity: 0.6; }
+
+        /* Contenedor de filas del mes */
+        .mes-citas {
+            background: var(--white);
+            border-radius: 16px;
+            border: 1px solid var(--magenta-border);
+            overflow: hidden;
+        }
+
+        /* Fila de cita */
+        .cita-fila {
+            display: flex; align-items: center; gap: 1rem;
+            padding: 1rem 1.25rem;
+            cursor: pointer;
+            transition: background 0.18s;
+            position: relative;
+            border-bottom: 1px solid var(--magenta-border);
+        }
+        .cita-fila:last-child { border-bottom: none; }
+        .cita-fila:hover { background: var(--magenta-bg); }
+
+        /* barra lateral de color */
+        .cita-fila::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 3px;
+            border-radius: 3px 0 0 3px;
+        }
+        .cita-fila.pendiente::before { background: linear-gradient(180deg, #e8a000, #f5c842); }
+        .cita-fila.confirmada::before{ background: linear-gradient(180deg, #1a6fa8, #42a5f5); }
+        .cita-fila.atendido::before  { background: linear-gradient(180deg, #1a7a4a, #2ecc71); }
+        .cita-fila.cancelado::before { background: linear-gradient(180deg, #b03030, #e74c3c); }
+
+        /* Bloque fecha cuadrado */
+        .cf-fecha {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            width: 52px; height: 52px; border-radius: 12px; flex-shrink: 0;
+        }
+        .cita-fila.pendiente .cf-fecha { background: var(--yellow-bg); border: 1.5px solid var(--yellow-border); }
+        .cita-fila.atendido  .cf-fecha { background: var(--green-bg);  border: 1.5px solid var(--green-border); }
+        .cita-fila.cancelado .cf-fecha { background: var(--red-bg);    border: 1.5px solid var(--red-border); }
+
+        .cf-fecha .cf-dia  { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-weight: 700; line-height: 1; }
+        .cf-fecha .cf-mes  { font-size: 0.6rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; margin-top: 0.1rem; }
+        .cita-fila.pendiente .cf-dia, .cita-fila.pendiente .cf-mes { color: #a06800; }
+        .cita-fila.atendido  .cf-dia, .cita-fila.atendido  .cf-mes { color: var(--green); }
+        .cita-fila.cancelado .cf-dia, .cita-fila.cancelado .cf-mes { color: var(--red); }
+
+        /* Info central */
+        .cf-info { flex: 1; min-width: 0; }
+        .cf-especialidad { font-size: 0.95rem; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .cf-medico { font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.3rem; margin-top: 0.2rem; }
+        .cf-medico svg { width: 11px; height: 11px; stroke: var(--magenta-light); fill: none; stroke-width: 2; flex-shrink: 0; }
+
+        /* Badge estado */
+        .cf-badge { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.28rem 0.75rem; border-radius: 30px; font-size: 0.75rem; font-weight: 500; border: 1px solid; flex-shrink: 0; white-space: nowrap; }
+        .cf-badge .bdot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+        .cf-badge.pendiente { background: var(--yellow-bg); color: var(--yellow); border-color: var(--yellow-border); }
+        .cf-badge.pendiente .bdot { background: var(--yellow); animation: pulse 2s infinite; }
+        .cf-badge.atendido  { background: var(--green-bg);  color: var(--green);  border-color: var(--green-border); }
+        .cf-badge.atendido  .bdot { background: var(--green); }
+        .cf-badge.cancelado { background: var(--red-bg);   color: var(--red);   border-color: var(--red-border); }
+        .cf-badge.cancelado .bdot { background: var(--red); }
+        .cf-badge.confirmada { background: #e8f4fd; color: #1a6fa8; border-color: #90caf9; }
+        .cf-badge.confirmada .bdot { background: #1a6fa8; }
+
+        /* Hora */
+        .cf-hora { display: flex; align-items: center; gap: 0.3rem; font-size: 0.82rem; color: var(--text-muted); flex-shrink: 0; }
+        .cf-hora svg { width: 12px; height: 12px; stroke: var(--magenta-light); fill: none; stroke-width: 2; }
+
+        /* Chevron */
+        .cf-chevron { flex-shrink: 0; opacity: 0.35; transition: opacity 0.18s, transform 0.18s; }
+        .cf-chevron svg { width: 15px; height: 15px; stroke: var(--magenta); fill: none; stroke-width: 2.2; }
+        .cita-fila:hover .cf-chevron { opacity: 0.9; transform: translateX(3px); }
+
+        @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.8)} }
+        @keyframes shimmer { from { background-position: 0% } to { background-position: 200% } }
+
+        /* ── EMPTY ── */
+        .empty-state { background: var(--white); border-radius: 20px; border: 1.5px dashed var(--magenta-border); padding: 5rem 2rem; text-align: center; max-width: 460px; }
+        .empty-icon { width: 80px; height: 80px; background: var(--magenta-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; }
+        .empty-icon svg { width: 36px; height: 36px; stroke: var(--magenta); fill: none; stroke-width: 1.4; }
+        .empty-state h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-weight: 600; color: var(--text); margin-bottom: 0.6rem; }
+        .empty-state p { color: var(--text-muted); font-size: 0.88rem; margin-bottom: 2rem; line-height: 1.6; }
+        .empty-state a { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.8rem 1.75rem; background: linear-gradient(135deg, var(--magenta-dark), var(--magenta-light)); color: white; border-radius: 12px; text-decoration: none; font-size: 0.9rem; font-weight: 500; box-shadow: 0 4px 14px rgba(176,53,128,0.3); transition: all 0.2s; }
+        .empty-state a svg { width: 16px; height: 16px; stroke: white; fill: none; stroke-width: 2.2; }
+
+        .back-link { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--text-muted); text-decoration: none; font-size: 0.85rem; margin-top: 1.75rem; transition: color 0.2s; }
+        .back-link:hover { color: var(--magenta); }
+        .back-link svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; transition: transform 0.2s ease; }
+        .back-link:hover svg { transform: translateX(-3px); }
+
+        /* ── MODAL ── */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(42,16,32,0.45); backdrop-filter: blur(4px); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 1.5rem; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
+        .modal-overlay.visible { opacity: 1; pointer-events: all; }
+        .modal { background: white; border-radius: 22px; width: 100%; max-width: 520px; overflow: hidden; box-shadow: 0 24px 60px rgba(42,16,32,0.2); transform: translateY(20px) scale(0.97); transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.25s ease; opacity: 0; }
+        .modal-overlay.visible .modal { transform: translateY(0) scale(1); opacity: 1; }
+
+        .modal-tira { height: 5px; }
+        .modal-tira.pendiente { background: linear-gradient(90deg, #e8a000, #f5c842, #e8a000); background-size: 200%; animation: shimmer 3s infinite linear; }
+        .modal-tira.atendido  { background: linear-gradient(90deg, #1a7a4a, #2ecc71); }
+        .modal-tira.cancelado { background: linear-gradient(90deg, #b03030, #e74c3c); }
+
+        .modal-header { padding: 1.75rem 2rem 1.25rem; display: flex; align-items: flex-start; gap: 1.25rem; border-bottom: 1px solid var(--magenta-border); }
+        .modal-fecha-bloque { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 70px; height: 70px; border-radius: 14px; flex-shrink: 0; }
+        .modal-fecha-bloque.pendiente { background: var(--yellow-bg); border: 1.5px solid var(--yellow-border); }
+        .modal-fecha-bloque.atendido  { background: var(--green-bg);  border: 1.5px solid var(--green-border); }
+        .modal-fecha-bloque.cancelado { background: var(--red-bg);    border: 1.5px solid var(--red-border); }
+        .modal-dia { font-family: 'Cormorant Garamond', serif; font-size: 1.9rem; font-weight: 700; line-height: 1; }
+        .modal-fecha-bloque.pendiente .modal-dia { color: #a06800; }
+        .modal-fecha-bloque.atendido  .modal-dia { color: var(--green); }
+        .modal-fecha-bloque.cancelado .modal-dia { color: var(--red); }
+        .modal-mes { font-size: 0.64rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; }
+        .modal-fecha-bloque.pendiente .modal-mes { color: #a06800; }
+        .modal-fecha-bloque.atendido  .modal-mes { color: var(--green); }
+        .modal-fecha-bloque.cancelado .modal-mes { color: var(--red); }
+        .modal-anio { font-size: 0.62rem; color: var(--text-muted); margin-top: -0.1rem; }
+        .modal-header-info { flex: 1; min-width: 0; }
+        .modal-label { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.3rem; }
+        .modal-motivo { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-weight: 600; color: var(--text); margin-bottom: 0.5rem; line-height: 1.2; }
+        .modal-badge { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.8rem; border-radius: 30px; font-size: 0.75rem; font-weight: 500; border: 1px solid; }
+        .modal-badge .bdot { width: 7px; height: 7px; border-radius: 50%; }
+        .modal-badge.pendiente { background: var(--yellow-bg); color: var(--yellow); border-color: var(--yellow-border); }
+        .modal-badge.pendiente .bdot { background: var(--yellow); animation: pulse 2s infinite; }
+        .modal-badge.atendido  { background: var(--green-bg);  color: var(--green);  border-color: var(--green-border); }
+        .modal-badge.atendido  .bdot { background: var(--green); }
+        .modal-badge.cancelado { background: var(--red-bg);   color: var(--red);   border-color: var(--red-border); }
+        .modal-badge.cancelado .bdot { background: var(--red); }
+        .modal-close { background: var(--magenta-bg); border: 1px solid var(--magenta-border); border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: all 0.2s; }
+        .modal-close:hover { background: var(--magenta); border-color: var(--magenta); }
+        .modal-close:hover svg { stroke: white; }
+        .modal-close svg { width: 15px; height: 15px; stroke: var(--magenta); fill: none; stroke-width: 2.2; transition: stroke 0.2s; }
+        .modal-body { padding: 1.5rem 2rem; display: flex; flex-direction: column; gap: 1rem; }
+        .modal-fila { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .modal-item { background: var(--bg); border: 1px solid var(--magenta-border); border-radius: 12px; padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: 0.4rem; }
+        .modal-item-full { grid-column: 1 / -1; }
+        .modal-item-label { display: flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+        .modal-item-label svg { width: 13px; height: 13px; stroke: var(--magenta-light); fill: none; stroke-width: 2; }
+        .modal-item-valor { font-size: 0.95rem; font-weight: 500; color: var(--text); }
+        .modal-footer { padding: 1.25rem 2rem 1.75rem; display: flex; justify-content: flex-end; }
+        .modal-btn-cerrar { padding: 0.7rem 1.75rem; background: linear-gradient(135deg, var(--magenta-dark), var(--magenta-light)); color: white; border: none; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; font-weight: 500; cursor: pointer; transition: opacity 0.2s; box-shadow: 0 4px 12px rgba(176,53,128,0.25); }
+        .modal-btn-cerrar:hover { opacity: 0.9; }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .sidebar { width: var(--sidebar-w); min-height: 0; position: fixed; top: 64px; left: 0; height: calc(100vh - 64px); transform: translateX(-100%); z-index: 250; overflow-y: auto; }
+            .sidebar.open { transform: translateX(0); }
+            .sidebar-overlay { display: block; z-index: 200; }
+            .mobile-topbar { display: flex; }
+            .main { margin-left: 0; padding: 1.1rem; padding-top: calc(1.1rem + 64px); min-height: auto; }
+            .sidebar { animation: none !important; }
+            .page-header { flex-direction: column; align-items: stretch; gap: 0.85rem; padding-bottom: 1.25rem; }
+            .page-header h1 { font-size: 1.8rem; }
+            .btn-nueva-cita { width: 100%; justify-content: center; }
+            .resumen-strip { gap: 0.5rem; }
+            .resumen-chip { font-size: 0.75rem; padding: 0.4rem 0.8rem; }
+            .filtros-bar { flex-direction: column; align-items: stretch; }
+            .filtro-fecha-input { width: 100%; }
+            /* Fila cita en móvil: ocultar hora, achica badge */
+            .cf-hora { display: none; }
+            .modal-fila { grid-template-columns: 1fr; }
+            .modal-header { padding: 1.25rem 1.25rem 1rem; gap: 0.75rem; }
+            .modal-body { padding: 1rem 1.25rem; }
+            .modal-footer { padding: 1rem 1.25rem 1.5rem; }
+        }
+
+        @media (max-width: 420px) {
+            .cf-badge { display: none; }
+            .cf-fecha { width: 46px; height: 46px; }
+        }
+
+        /* ── ANIMACIONES ── */
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideInLeft { from { opacity: 0; transform: translateX(-18px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes popIn { from { opacity: 0; transform: scale(0.88); } to { opacity: 1; transform: scale(1); } }
+
+        .sidebar { animation: slideInLeft 0.5s cubic-bezier(0.22,1,0.36,1) both; }
+        .nav-item { opacity: 0; animation: fadeIn 0.4s ease forwards; position: relative; }
+        .nav-item:nth-child(1) { animation-delay: 0.15s; }
+        .nav-item:nth-child(2) { animation-delay: 0.22s; }
+        .nav-item:nth-child(3) { animation-delay: 0.29s; }
+        .nav-item:nth-child(4) { animation-delay: 0.36s; }
+        .nav-item:nth-child(5) { animation-delay: 0.43s; }
+        .nav-item::after { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%) scaleY(0); width: 3px; height: 60%; background: white; border-radius: 0 3px 3px 0; transition: transform 0.2s ease; }
+        .nav-item:hover::after, .nav-item.active::after { transform: translateY(-50%) scaleY(1); }
+        .sidebar-avatar { transition: transform 0.2s ease, box-shadow 0.2s; }
+        .sidebar-user:hover .sidebar-avatar { transform: scale(1.08); box-shadow: 0 0 0 3px rgba(255,255,255,0.35); }
+
+        .page-header   { animation: fadeUp 0.5s 0.1s ease both; }
+        .resumen-strip { animation: fadeUp 0.5s 0.18s ease both; }
+        .resumen-chip { opacity: 0; animation: popIn 0.4s ease forwards; }
+        .resumen-chip:nth-child(1) { animation-delay: 0.22s; }
+        .resumen-chip:nth-child(2) { animation-delay: 0.3s; }
+        .resumen-chip:nth-child(3) { animation-delay: 0.38s; }
+        .resumen-chip:nth-child(4) { animation-delay: 0.46s; }
+
+        .mes-grupo { animation: fadeUp 0.3s ease both; }
+
+        .empty-state { animation: fadeUp 0.6s 0.25s ease both; opacity: 0; }
+        #modal-overlay.visible #modal { animation: popIn 0.3s cubic-bezier(0.34,1.56,0.64,1) both; }
+        @keyframes rippleAnim { to { transform: scale(2.8); opacity: 0; } }
+
+        /* ── Mensajes Django ── */
+        .msg-alert{display:flex;align-items:center;gap:.65rem;padding:.9rem 1.2rem;border-radius:12px;font-size:.88rem;font-weight:500;margin-bottom:.5rem}
+        .msg-alert svg{width:16px;height:16px;flex-shrink:0}
+        .msg-success{background:#edfaf3;color:#1a7a4a;border:1px solid #a8dfc0}
+        .msg-error{background:#fdf0f0;color:#b03030;border:1px solid #f0b8b8}
+        .msg-info{background:#e3f2fd;color:#1565c0;border:1px solid #90caf9}
+    </style>
+</head>
+<body>
+
+    <!-- OVERLAY -->
+    <div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
+
+    <!-- MOBILE TOPBAR -->
+    <div class="mobile-topbar">
+        <div class="mobile-topbar-brand">
+            <div class="mobile-topbar-logo"><img src="/static/img/Logo.png" alt="Zumedical"></div>
+            <span>Zumedical</span>
+        </div>
+        <button type="button" class="hamburger" id="hamburger" onclick="toggleSidebar()">
+            <span></span><span></span><span></span>
+        </button>
+    </div>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <div class="sidebar-brand-logo"><img src="/static/img/Logo.png" alt="Zumedical"></div>
+            <div class="sidebar-brand-text"><h2>Zumedical</h2><span>Paciente</span></div>
+        </div>
+        <a href="{% url 'mi_perfil' %}" class="sidebar-user">
+            <div class="sidebar-avatar">{% if request.user.first_name %}{{ request.user.first_name|slice:":1" }}{{ request.user.last_name|slice:":1" }}{% else %}{{ request.user.username|slice:":1"|upper }}{% endif %}</div>
+            <div class="sidebar-user-info">
+                <p>Mi perfil</p>
+                <h3>{{ request.user.get_full_name|default:request.user.username }}</h3>
+            </div>
+            <div class="sidebar-user-arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </a>
+        <nav class="sidebar-nav">
+            <div class="nav-label">Menú</div>
+            <a href="{% url 'paciente_dashboard' %}" class="nav-item">
+                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Inicio
+            </a>
+            <a href="{% url 'agendar_cita' %}" class="nav-item">
+                <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Agendar Cita
+            </a>
+            <a href="{% url 'ver_citas' %}" class="nav-item active">
+                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Mis Citas
+            </a>
+            <div class="nav-label">Inteligencia Artificial</div>
+            <a href="{% url 'chatbot_page' %}" class="nav-item">
+                <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Asistente Virtual<span class="nav-badge">IA</span>
+            </a>
+            <a href="{% url 'evaluar_riesgo' %}" class="nav-item">
+                <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Evaluar Riesgo<span class="nav-badge">IA</span>
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="{% url 'logout' %}" class="btn-logout">
+                <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Cerrar sesión
+            </a>
+        </div>
+    </aside>
+
+    <main class="main">
+
+        <div class="page-header">
+            <div>
+                <h1>Mis citas</h1>
+                <p>Historial y estado de tus consultas médicas</p>
+            </div>
+            <a href="{% url 'agendar_cita' %}" class="btn-nueva-cita">
+                <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Nueva cita
+            </a>
+        </div>
+
+        {% if messages %}
+        <div style="margin-bottom:1.5rem;max-width:820px">
+            {% for message in messages %}
+            <div class="msg-alert {% if message.tags == 'success' %}msg-success{% elif message.tags == 'error' %}msg-error{% else %}msg-info{% endif %}">
+                {% if message.tags == 'success' %}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                {% else %}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                {% endif %}
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if citas %}
+
+        <div class="resumen-strip" id="resumen-strip">
+            <button type="button" class="resumen-chip chip-total active" data-filtro="todas">
+                <span class="dot"></span> <span id="cnt-total">{{ citas|length }}</span> en total
+            </button>
+            <button type="button" class="resumen-chip chip-pendiente" data-filtro="pendiente">
+                <span class="dot"></span> <span id="cnt-pendiente-txt">0 pendientes</span>
+            </button>
+            <button type="button" class="resumen-chip chip-atendido" data-filtro="atendido">
+                <span class="dot"></span> <span id="cnt-atendido-txt">0 atendidas</span>
+            </button>
+            <button type="button" class="resumen-chip chip-cancelado" data-filtro="cancelado">
+                <span class="dot"></span> <span id="cnt-cancelado-txt">0 canceladas</span>
+            </button>
+        </div>
+
+        <div class="filtros-bar">
+            <input type="date" id="filtro-desde" class="filtro-fecha-input" title="Desde">
+            <input type="date" id="filtro-hasta" class="filtro-fecha-input" title="Hasta">
+            <button type="button" class="btn-limpiar-filtros" id="btn-limpiar-filtros">
+                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                Limpiar filtros
+            </button>
+        </div>
+
+        <div class="sin-resultados-filtro" id="sin-resultados-filtro">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <p>No se encontraron citas con esos filtros.</p>
+        </div>
+
+        <div class="citas-lista" id="citas-lista"></div>
+
+        <!-- Datos crudos para que JS arme la lista (evita problemas del regroup de Django) -->
+        <script id="citas-json" type="application/json">
+        [
+            {% for cita in citas %}
+            {
+                "estado": "{{ cita.estado }}",
+                "fechaIso": "{{ cita.fecha|date:'Y-m-d' }}",
+                "fechaDisplay": "{{ cita.fecha|date:'d/m/Y' }}",
+                "dia": "{{ cita.fecha|date:'d' }}",
+                "mesCorto": "{{ cita.fecha|date:'M' }}",
+                "mesLargoAnio": "{{ cita.fecha|date:'F Y' }}",
+                "anio": "{{ cita.fecha|date:'Y' }}",
+                "hora": "{{ cita.hora }}",
+                "medico": "{{ cita.medico.get_full_name|default:cita.medico.username|escapejs }}",
+                "especialidad": "{{ cita.especialidad.nombre|default:'Consulta médica'|escapejs }}",
+                "motivo": "{{ cita.motivo|default:'Consulta médica'|escapejs }}"
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ]
+        </script>
+
+        <a href="{% url 'paciente_dashboard' %}" class="back-link">
+            <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Volver al panel
+        </a>
+
+        {% else %}
+
+        <div class="empty-state">
+            <div class="empty-icon">
+                <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
+            <h3>Sin citas registradas</h3>
+            <p>Aún no tienes ninguna consulta agendada.<br>Reserva tu primera cita con nosotros.</p>
+            <a href="{% url 'agendar_cita' %}">
+                <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Agendar mi primera cita
+            </a>
+        </div>
+
+        {% endif %}
+
+    </main>
+
+    <!-- MODAL -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal" id="modal">
+            <div class="modal-tira" id="modal-tira"></div>
+            <div class="modal-header">
+                <div class="modal-fecha-bloque" id="modal-fecha-bloque">
+                    <span class="modal-dia" id="modal-dia"></span>
+                    <span class="modal-mes" id="modal-mes"></span>
+                    <span class="modal-anio" id="modal-anio"></span>
+                </div>
+                <div class="modal-header-info">
+                    <p class="modal-label">Detalle de la cita</p>
+                    <h2 class="modal-motivo" id="modal-motivo"></h2>
+                    <span class="modal-badge" id="modal-badge"></span>
+                </div>
+                <button class="modal-close" id="modal-close-btn">
+                    <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-fila">
+                    <div class="modal-item">
+                        <span class="modal-item-label"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Fecha</span>
+                        <span class="modal-item-valor" id="modal-fecha-texto"></span>
+                    </div>
+                    <div class="modal-item">
+                        <span class="modal-item-label"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Hora</span>
+                        <span class="modal-item-valor" id="modal-hora"></span>
+                    </div>
+                </div>
+                <div class="modal-fila">
+                    <div class="modal-item">
+                        <span class="modal-item-label"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Médico asignado</span>
+                        <span class="modal-item-valor" id="modal-medico"></span>
+                    </div>
+                    <div class="modal-item">
+                        <span class="modal-item-label"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Estado</span>
+                        <span class="modal-item-valor" id="modal-estado-texto"></span>
+                    </div>
+                </div>
+                <div class="modal-item modal-item-full">
+                    <span class="modal-item-label"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Motivo de la consulta</span>
+                    <span class="modal-item-valor" id="modal-motivo-full"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn-cerrar" id="modal-footer-btn">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('open');
+        document.getElementById('overlay').classList.toggle('active');
+        document.getElementById('hamburger').classList.toggle('open');
+    }
+    function closeSidebar() {
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('overlay').classList.remove('active');
+        document.getElementById('hamburger').classList.remove('open');
+    }
+    document.querySelectorAll('.nav-item, .sidebar-user, .btn-logout').forEach(function(el) {
+        el.addEventListener('click', closeSidebar);
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // ── TRADUCCIÓN DE FECHAS EN → ES ──
+        const MESES_LARGOS = {
+            January:'Enero', February:'Febrero', March:'Marzo', April:'Abril',
+            May:'Mayo', June:'Junio', July:'Julio', August:'Agosto',
+            September:'Septiembre', October:'Octubre', November:'Noviembre', December:'Diciembre'
+        };
+        const MESES_CORTOS = {
+            Jan:'Ene', Feb:'Feb', Mar:'Mar', Apr:'Abr', May:'May', Jun:'Jun',
+            Jul:'Jul', Aug:'Ago', Sep:'Sep', Oct:'Oct', Nov:'Nov', Dec:'Dic'
+        };
+        function traducirMesAnio(txt) {
+            return txt.replace(/January|February|March|April|May|June|July|August|September|October|November|December/g,
+                m => MESES_LARGOS[m] || m);
+        }
+
+        const jsonEl = document.getElementById('citas-json');
+        let citas  = jsonEl ? JSON.parse(jsonEl.textContent) : [];
+        // Normalizar variantes de estado (la BD puede traer "cancelada" en vez de "cancelado")
+        citas = citas.map(c => ({ ...c, estado: c.estado === 'cancelada' ? 'cancelado' : c.estado }));
+        const estadosLabel = { pendiente: 'Pendiente', confirmada: 'Confirmada', atendido: 'Atendido', cancelado: 'Cancelado' };
+
+        // ── CONTADORES POR ESTADO ──
+        const conteo = { pendiente: 0, confirmada: 0, atendido: 0, cancelado: 0 };
+        citas.forEach(c => { if (conteo[c.estado] !== undefined) conteo[c.estado]++; });
+        if (document.getElementById('cnt-pendiente-txt')) {
+            document.getElementById('cnt-pendiente-txt').textContent = (conteo.pendiente + conteo.confirmada) + ((conteo.pendiente + conteo.confirmada) === 1 ? ' pendiente' : ' pendientes');
+            document.getElementById('cnt-atendido-txt').textContent  = conteo.atendido  + (conteo.atendido  === 1 ? ' atendida'  : ' atendidas');
+            document.getElementById('cnt-cancelado-txt').textContent = conteo.cancelado + (conteo.cancelado === 1 ? ' cancelada' : ' canceladas');
+        }
+
+        // ── SVGs reutilizables ──
+        const svgCalIcon = '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+        const svgMedico  = '<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+        const svgReloj   = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+        const svgChevron = '<svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>';
+
+        // ── RENDER ──
+        function renderCitas(lista) {
+            const cont = document.getElementById('citas-lista');
+            const sinResultados = document.getElementById('sin-resultados-filtro');
+            cont.innerHTML = '';
+
+            if (lista.length === 0) {
+                cont.style.display = 'none';
+                sinResultados.style.display = 'block';
+                return;
+            }
+            sinResultados.style.display = 'none';
+            cont.style.display = 'flex';
+
+            // Ordenar por fecha descendente (más reciente primero)
+            const ordenadas = lista.slice().sort((a, b) => b.fechaIso.localeCompare(a.fechaIso));
+
+            // Agrupar por mes-año
+            const grupos = {};
+            const ordenGrupos = [];
+            ordenadas.forEach(c => {
+                if (!grupos[c.mesLargoAnio]) { grupos[c.mesLargoAnio] = []; ordenGrupos.push(c.mesLargoAnio); }
+                grupos[c.mesLargoAnio].push(c);
+            });
+
+            ordenGrupos.forEach(function(mesAnio) {
+                const items = grupos[mesAnio];
+                const mesGrupo = document.createElement('div');
+                mesGrupo.className = 'mes-grupo';
+
+                let filasHtml = '';
+                items.forEach(function(c) {
+                    const badgeTxt = estadosLabel[c.estado] || c.estado;
+                    filasHtml += `
+                        <div class="cita-fila ${c.estado}">
+                            <div class="cf-fecha">
+                                <span class="cf-dia">${c.dia}</span>
+                                <span class="cf-mes">${MESES_CORTOS[c.mesCorto] || c.mesCorto}</span>
+                            </div>
+                            <div class="cf-info">
+                                <div class="cf-especialidad">${c.especialidad}</div>
+                                <div class="cf-medico">${svgMedico}${c.medico}</div>
+                            </div>
+                            <span class="cf-badge ${c.estado}"><span class="bdot"></span>${badgeTxt}</span>
+                            <div class="cf-hora">${svgReloj}${c.hora}</div>
+                            <div class="cf-chevron">${svgChevron}</div>
+                        </div>`;
+                });
+
+                mesGrupo.innerHTML = `
+                    <div class="mes-header">
+                        <div class="mes-header-icon">${svgCalIcon}</div>
+                        <span class="mes-header-titulo">${traducirMesAnio(mesAnio)}</span>
+                        <span class="mes-header-count">${items.length} ${items.length === 1 ? 'cita' : 'citas'}</span>
+                        <span class="mes-header-linea"></span>
+                    </div>
+                    <div class="mes-citas">${filasHtml}</div>`;
+
+                cont.appendChild(mesGrupo);
+            });
+
+            // Re-enganchar click en cada fila recién creada
+            const filasDom = cont.querySelectorAll('.cita-fila');
+            filasDom.forEach(function(filaDom, i) {
+                filaDom.addEventListener('click', function() { abrirModal(ordenadas[i]); });
+            });
+        }
+
+        // ── FILTROS (solo estado + rango de fechas) ──
+        let filtroEstado = 'todas';
+        const inputDesde = document.getElementById('filtro-desde');
+        const inputHasta = document.getElementById('filtro-hasta');
+
+        function aplicarFiltros() {
+            const desde = inputDesde ? inputDesde.value : '';
+            const hasta = inputHasta ? inputHasta.value : '';
+
+            const filtradas = citas.filter(function(c) {
+                if (filtroEstado !== 'todas' && c.estado !== filtroEstado) return false;
+                if (desde && c.fechaIso < desde) return false;
+                if (hasta && c.fechaIso > hasta) return false;
+                return true;
+            });
+
+            renderCitas(filtradas);
+        }
+
+        document.querySelectorAll('.resumen-chip').forEach(function(chip) {
+            chip.addEventListener('click', function() {
+                document.querySelectorAll('.resumen-chip').forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+                filtroEstado = chip.dataset.filtro;
+                aplicarFiltros();
+            });
+        });
+
+        if (inputDesde) inputDesde.addEventListener('change', aplicarFiltros);
+        if (inputHasta) inputHasta.addEventListener('change', aplicarFiltros);
+
+        const btnLimpiar = document.getElementById('btn-limpiar-filtros');
+        if (btnLimpiar) {
+            btnLimpiar.addEventListener('click', function() {
+                if (inputDesde) inputDesde.value = '';
+                if (inputHasta) inputHasta.value = '';
+                filtroEstado = 'todas';
+                document.querySelectorAll('.resumen-chip').forEach(c => c.classList.remove('active'));
+                document.querySelector('.chip-total').classList.add('active');
+                aplicarFiltros();
+            });
+        }
+
+        // ── MODAL ──
+        const overlay = document.getElementById('modal-overlay');
+
+        document.getElementById('modal-close-btn').addEventListener('click', cerrarModal);
+        document.getElementById('modal-footer-btn').addEventListener('click', cerrarModal);
+        overlay.addEventListener('click', function(e) { if (e.target === overlay) cerrarModal(); });
+        document.addEventListener('keydown', function(e) { if (e.key === 'Escape') cerrarModal(); });
+
+        function abrirModal(c) {
+            document.getElementById('modal-tira').className = 'modal-tira ' + c.estado;
+            var fb = document.getElementById('modal-fecha-bloque');
+            fb.className = 'modal-fecha-bloque ' + c.estado;
+            document.getElementById('modal-dia').textContent  = c.dia;
+            document.getElementById('modal-mes').textContent  = MESES_CORTOS[c.mesCorto] || c.mesCorto;
+            document.getElementById('modal-anio').textContent = c.anio;
+            document.getElementById('modal-motivo').textContent = c.especialidad || c.motivo;
+            var badge = document.getElementById('modal-badge');
+            badge.className = 'modal-badge ' + c.estado;
+            badge.innerHTML = '<span class="bdot"></span>' + (estadosLabel[c.estado] || c.estado);
+            document.getElementById('modal-fecha-texto').textContent  = c.fechaDisplay;
+            document.getElementById('modal-hora').textContent         = c.hora;
+            document.getElementById('modal-medico').textContent       = 'Dr(a). ' + c.medico;
+            document.getElementById('modal-estado-texto').textContent = estadosLabel[c.estado] || c.estado;
+            document.getElementById('modal-motivo-full').textContent  = c.motivo;
+            overlay.classList.add('visible');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function cerrarModal() {
+            overlay.classList.remove('visible');
+            document.body.style.overflow = '';
+        }
+
+        document.querySelectorAll('.btn-nueva-cita').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                var r = document.createElement('span');
+                var rect = this.getBoundingClientRect();
+                var size = Math.max(rect.width, rect.height);
+                r.style.cssText = 'position:absolute;border-radius:50%;pointer-events:none;width:'+size+'px;height:'+size+'px;left:'+(e.clientX-rect.left-size/2)+'px;top:'+(e.clientY-rect.top-size/2)+'px;background:rgba(255,255,255,0.25);transform:scale(0);animation:rippleAnim 0.5s ease forwards;';
+                this.appendChild(r);
+                setTimeout(function(){ r.remove(); }, 500);
+            });
+        });
+
+        // ── RENDER INICIAL ──
+        renderCitas(citas);
+    });
+    </script>
+
+</body>
+</html>

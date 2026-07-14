@@ -1,0 +1,586 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zumedical — Mis Citas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/sidebar_paciente.css' %}">
+    <style>
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        :root{
+            --mg:#B03580;--mg-l:#CC4D99;--mg-d:#8A2563;
+            --mg-bg:#FBF0F7;--mg-border:#E8AAD4;
+            --text:#2A1020;--muted:#8A6070;--white:#fff;--bg:#FDF5FA;
+            --sw:260px;
+            min-height: 100vh;
+        }
+        body{font-family:'DM Sans',sans-serif;display:flex;opacity:0;animation:fadeIn .4s ease .05s forwards}
+        @keyframes fadeIn{to{opacity:1}}
+        @keyframes slideUp{from{opacity:0}to{opacity:1}}
+        @keyframes modalIn{from{opacity:0;transform:scale(.96) translateY(12px)}to{opacity:1;transform:scale(1) translateY(0)}}
+
+        .sidebar{width:var(--sw);height:100vh;background:linear-gradient(175deg,#8A2563 0%,#B03580 55%,#CC4D99 100%);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:250;transition:transform .3s ease}
+        .sb-brand{padding:1.75rem 1.5rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:.75rem}
+        .sb-logo{width:42px;height:42px;background:white;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden}
+        .sb-logo img{width:38px;height:38px;object-fit:contain}
+        .sb-brand-text h2{font-family:'Cormorant Garamond',serif;font-size:1.35rem;font-weight:600;color:white;line-height:1}
+        .sb-brand-text span{font-size:.7rem;color:rgba(255,255,255,.65);letter-spacing:.1em;text-transform:uppercase}
+        .sb-user{padding:1rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:.7rem;text-decoration:none;transition:background .2s}
+        .sb-user:hover{background:rgba(255,255,255,.1)}
+        .sb-avatar{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:600;color:white;flex-shrink:0;text-transform:uppercase}
+        .sb-user-info p{font-size:.7rem;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.1rem}
+        .sb-user-info h3{font-size:.88rem;font-weight:500;color:white}
+        .sb-nav{flex:1;padding:1rem .75rem;overflow-y:auto}
+        .nav-lbl{font-size:.68rem;color:rgba(255,255,255,.45);letter-spacing:.1em;text-transform:uppercase;padding:.5rem .75rem;margin-top:.75rem}
+        .nav-item{display:flex;align-items:center;gap:.7rem;padding:.72rem 1rem;border-radius:10px;color:rgba(255,255,255,.82);text-decoration:none;font-size:.88rem;transition:all .2s;margin-bottom:.2rem}
+        .nav-item:hover,.nav-item.active{background:rgba(255,255,255,.18);color:white}
+        .nav-item i{width:18px;text-align:center;font-size:15px}
+        .nav-badge{margin-left:auto;background:#e74c3c;color:white;font-size:.68rem;font-weight:600;padding:.15rem .5rem;border-radius:999px;min-width:20px;text-align:center}
+        .sb-footer{padding:1rem .75rem;border-top:1px solid rgba(255,255,255,.12)}
+        .btn-logout{display:flex;align-items:center;gap:.7rem;padding:.72rem 1rem;border-radius:10px;color:rgba(255,255,255,.75);text-decoration:none;font-size:.88rem;transition:all .2s}
+        .btn-logout:hover{background:rgba(255,255,255,.15);color:white}
+
+        .sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;opacity:0;pointer-events:none;transition:opacity .3s ease}
+        .sidebar-overlay.active{opacity:1;pointer-events:auto}
+        .mobile-topbar{display:none;align-items:center;justify-content:space-between;padding:1rem 1.25rem;background:linear-gradient(135deg,#8A2563,#CC4D99);position:fixed;top:0;left:0;right:0;z-index:300;box-shadow:0 2px 10px rgba(0,0,0,0.1)}
+        .mobile-topbar-brand{display:flex;align-items:center;gap:.6rem}
+        .mobile-topbar-brand img{width:30px;height:30px;background:white;border-radius:50%;padding:2px;object-fit:contain}
+        .mobile-topbar-brand span{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;color:white}
+        .hamburger{background:rgba(255,255,255,.15);border:none;border-radius:8px;padding:.5rem .65rem;cursor:pointer;display:flex;flex-direction:column;gap:4px}
+        .hamburger span{display:block;width:20px;height:2px;background:white;border-radius:2px;transition:all .3s}
+        .hamburger.open span:nth-child(1){transform:translateY(6px) rotate(45deg)}
+        .hamburger.open span:nth-child(2){opacity:0}
+        .hamburger.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+
+        .main{margin-left:var(--sw);flex:1;padding:2.5rem;min-height:100vh}
+
+        .page-header{margin-bottom:1.75rem;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:1rem;animation:slideUp .4s ease .1s both}
+        .page-header h1{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:600;color:var(--text)}
+        .page-header p{color:var(--muted);font-size:.88rem;margin-top:.25rem}
+        .btn-nueva{display:inline-flex;align-items:center;gap:.5rem;padding:.65rem 1.4rem;border-radius:50px;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:500;background:linear-gradient(135deg,var(--mg-d),var(--mg-l));color:white;text-decoration:none;border:none;cursor:pointer;transition:all .2s;white-space:nowrap}
+        .btn-nueva:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(176,53,128,.35)}
+
+        .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.75rem;animation:slideUp .4s ease .15s both}
+        .stat-card{background:var(--white);border-radius:14px;border:1px solid var(--mg-border);padding:1.1rem 1.2rem;display:flex;align-items:center;gap:.9rem;transition:all .2s}
+        .stat-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(176,53,128,.1)}
+        .stat-ico{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+        .stat-ico.pend{background:#fff8e1;color:#f59e0b}
+        .stat-ico.atend{background:#e8f5e9;color:#2e7d32}
+        .stat-ico.canc{background:#fce4ec;color:#c62828}
+        .stat-ico.total{background:var(--mg-bg);color:var(--mg)}
+        .stat-info p{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+        .stat-info h3{font-size:1.35rem;font-family:'Cormorant Garamond',serif;font-weight:600;color:var(--text);line-height:1}
+
+        .filtros-wrap{background:var(--white);border:1px solid var(--mg-border);border-radius:14px;padding:1.1rem 1.4rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:.85rem;flex-wrap:wrap;animation:slideUp .4s ease .2s both}
+        .filtro-item{display:flex;align-items:center;gap:.5rem;flex:1;min-width:160px}
+        .filtro-item i{color:var(--muted);font-size:14px;flex-shrink:0}
+        .filtro-input{border:1.5px solid var(--mg-border);border-radius:999px;padding:.55rem 1.1rem;font-family:'DM Sans',sans-serif;font-size:.85rem;color:var(--text);width:100%;transition:border .2s;background:white}
+        .filtro-input:focus{outline:none;border-color:var(--mg);box-shadow:0 0 0 3px rgba(176,53,128,.08)}
+        .filtros-chips{display:flex;gap:.5rem;flex-wrap:wrap}
+        .chip{border:1.5px solid var(--mg-border);background:white;color:var(--muted);padding:.38rem .85rem;border-radius:999px;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .18s}
+        .chip.active,.chip:hover{background:var(--mg);border-color:var(--mg);color:white}
+        .btn-limpiar{border:none;background:none;color:var(--muted);font-size:.8rem;cursor:pointer;display:flex;align-items:center;gap:.3rem;padding:.38rem .6rem;border-radius:8px;transition:all .18s;white-space:nowrap}
+        .btn-limpiar:hover{color:var(--mg);background:var(--mg-bg)}
+
+        .conteo-label{font-size:.82rem;color:var(--muted);margin-bottom:.6rem;padding:0 .25rem}
+
+        .mes-grupo{margin-bottom:2rem;animation:slideUp .35s ease both}
+        .mes-header{display:flex;align-items:center;gap:.75rem;margin-bottom:.85rem}
+        .mes-header-line{flex:1;height:1px;background:var(--mg-border)}
+        .mes-titulo{display:flex;align-items:center;gap:.5rem;font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:600;color:var(--mg-d);white-space:nowrap}
+        .mes-titulo i{font-size:14px;color:var(--mg)}
+        .mes-badge{background:var(--mg-bg);color:var(--mg-d);font-size:.7rem;font-weight:600;padding:.15rem .55rem;border-radius:999px;font-family:'DM Sans',sans-serif}
+
+        .cita-row{background:var(--white);border:1px solid var(--mg-border);border-radius:14px;padding:1.1rem 1.4rem 1.1rem 1.6rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;position:relative;overflow:hidden;cursor:pointer;transition:all .2s;margin-bottom:.75rem}
+        .cita-row::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,var(--mg-d),var(--mg-l))}
+        .cita-row.pasada::before{background:linear-gradient(180deg,#bbb,#ddd)}
+        .cita-row:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(176,53,128,.1);border-color:var(--mg)}
+        .cita-row.pasada:hover{box-shadow:0 4px 14px rgba(0,0,0,.07);border-color:#ccc}
+        .cita-content{display:flex;align-items:center;gap:1.5rem;flex:1;flex-wrap:wrap}
+        .cita-fecha-blk{display:flex;flex-direction:column;align-items:center;background:var(--mg-bg);border:1px solid var(--mg-border);border-radius:10px;padding:.5rem .75rem;min-width:58px;flex-shrink:0}
+        .cita-fecha-blk .dia{font-size:1.4rem;font-family:'Cormorant Garamond',serif;font-weight:700;color:var(--mg-d);line-height:1}
+        .cita-fecha-blk .mes{font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+        .cita-row.pasada .cita-fecha-blk{background:#f5f5f5;border-color:#e0e0e0}
+        .cita-row.pasada .cita-fecha-blk .dia{color:#888}
+        .cita-row.pasada .cita-fecha-blk .mes{color:#aaa}
+        .cita-datos{flex:1;min-width:0}
+        .cita-titulo{font-size:.95rem;font-weight:600;color:var(--text);margin-bottom:.2rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .cita-sub{font-size:.8rem;color:var(--muted);display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+        .cita-sub i{font-size:11px}
+        .cita-hora{font-size:.8rem;font-weight:500;color:var(--mg-d);display:flex;align-items:center;gap:.3rem}
+        .cita-hora i{font-size:11px}
+        .estado-badge{display:inline-flex;align-items:center;gap:.3rem;font-size:.73rem;font-weight:600;padding:.25rem .7rem;border-radius:50px;white-space:nowrap}
+        .estado-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.7}
+        .e-pendiente{background:#fff8e1;color:#b45309}
+        .e-confirmada{background:#e8f5e9;color:#15803d}
+        .e-cancelada,.e-cancelado{background:#fce4ec;color:#c62828}
+        .e-atendido,.e-completada{background:#e3f2fd;color:#1565c0}
+        .cita-arrow{color:var(--mg-border);font-size:14px;flex-shrink:0;transition:all .2s}
+        .cita-row:hover .cita-arrow{color:var(--mg);transform:translateX(3px)}
+
+        .empty-state{text-align:center;padding:3rem;color:var(--muted);background:var(--white);border-radius:16px;border:1px solid var(--mg-border)}
+        .empty-state i{font-size:38px;color:var(--mg-border);margin-bottom:1rem;display:block}
+        .empty-state p{font-size:.92rem;margin-bottom:1rem}
+
+        .modal-overlay{position:fixed;inset:0;background:rgba(42,16,32,.45);backdrop-filter:blur(3px);z-index:500;display:flex;align-items:center;justify-content:center;padding:1.5rem;opacity:0;pointer-events:none;transition:opacity .2s}
+        .modal-overlay.open{opacity:1;pointer-events:all}
+        .modal{transform:translateY(14px) scale(.97);transition:transform .28s cubic-bezier(.34,1.56,.64,1),opacity .2s;opacity:0}
+        .modal-overlay.open .modal{transform:translateY(0) scale(1);opacity:1}
+        .modal{background:var(--white);border-radius:20px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;box-shadow:0 24px 60px rgba(42,16,32,.2);animation:modalIn .25s ease}
+        .modal-tira{height:5px;background:linear-gradient(90deg,var(--mg-d),var(--mg-l))}
+        .modal-tira.pasada{background:linear-gradient(90deg,#bbb,#ddd)}
+        .modal-head{padding:1.5rem 1.5rem 1rem;display:flex;align-items:flex-start;justify-content:space-between;gap:1rem}
+        .modal-head-info h2{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:600;color:var(--text)}
+        .modal-head-info p{font-size:.82rem;color:var(--muted);margin-top:.2rem}
+        .modal-close{width:32px;height:32px;border-radius:50%;border:1px solid var(--mg-border);background:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:14px;transition:all .2s;flex-shrink:0}
+        .modal-close:hover{background:var(--mg);border-color:var(--mg);color:white}
+        .modal-body{padding:0 1.5rem 1.5rem}
+        .modal-fecha-blk{background:var(--mg-bg);border:1px solid var(--mg-border);border-radius:12px;padding:1rem 1.25rem;display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem}
+        .modal-fecha-blk .big-dia{font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:700;color:var(--mg-d);line-height:1}
+        .modal-fecha-blk .fecha-info p{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+        .modal-fecha-blk .fecha-info h3{font-size:1rem;font-weight:600;color:var(--text)}
+        .modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1.25rem}
+        .modal-campo{background:#fafafa;border:1px solid #f0e8f0;border-radius:10px;padding:.7rem .9rem}
+        .modal-campo span{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:.2rem}
+        .modal-campo strong{font-size:.88rem;color:var(--text)}
+        .modal-motivo{background:var(--mg-bg);border:1px solid var(--mg-border);border-radius:10px;padding:.85rem 1rem;margin-bottom:1.25rem}
+        .modal-motivo span{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:.35rem}
+        .modal-motivo p{font-size:.88rem;color:var(--text);line-height:1.5}
+        .modal-footer{display:flex;gap:.75rem;align-items:center;justify-content:flex-end}
+        .btn-cancelar-modal{display:inline-flex;align-items:center;gap:.4rem;padding:.6rem 1.2rem;border-radius:50px;font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:500;background:#fff0f0;color:#c0392b;border:1px solid #f5c6c6;cursor:pointer;transition:all .2s}
+        .btn-cancelar-modal:hover{background:#fde8e8}
+        .btn-cerrar-modal{display:inline-flex;align-items:center;gap:.4rem;padding:.6rem 1.2rem;border-radius:50px;font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:500;background:var(--white);color:var(--muted);border:1px solid var(--mg-border);cursor:pointer;transition:all .2s}
+        .btn-cerrar-modal:hover{border-color:var(--mg);color:var(--mg)}
+
+        .modal-confirm{background:var(--white);border-radius:20px;width:100%;max-width:380px;box-shadow:0 24px 60px rgba(42,16,32,.2);animation:modalIn .25s ease;text-align:center;padding:2rem}
+        .modal-confirm i{font-size:38px;color:#e74c3c;margin-bottom:1rem;display:block}
+        .modal-confirm h3{font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:var(--text);margin-bottom:.6rem}
+        .modal-confirm p{color:var(--muted);font-size:.88rem;margin-bottom:1.5rem;line-height:1.5}
+        .modal-confirm-btns{display:flex;gap:.75rem;justify-content:center}
+
+        #noResultados{display:none;text-align:center;padding:2.5rem;color:var(--muted);background:var(--white);border-radius:14px;border:1px solid var(--mg-border)}
+        #noResultados i{font-size:32px;color:var(--mg-border);margin-bottom:.75rem;display:block}
+
+        @media(max-width:1024px){.stats-row{grid-template-columns:repeat(2,1fr)}}
+        @media(max-width:768px){
+            html, body { height: auto !important; overflow-x: hidden !important; overflow-y: auto !important; position: relative !important; }
+            body { flex-direction: column; }
+            .sidebar { position: fixed; top: 0; left: 0; height: 100vh; height: 100dvh; padding-top: 64px; transform: translateX(-100%); z-index: 250; overflow-y: auto; }
+            .sidebar.open { transform: translateX(0); }
+            .sb-nav { flex: 1; }
+            .mobile-topbar { display: flex; }
+            .main { margin-left: 0 !important; padding: 1.25rem !important; padding-top: calc(1.25rem + 64px) !important; height: auto !important; min-height: calc(100vh - 64px); overflow: visible !important; display: block; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .filtros-wrap { flex-direction: column; align-items: stretch; }
+            .filtro-item { min-width: unset; }
+            .cita-content { gap: .75rem; }
+            .modal-grid { grid-template-columns: 1fr; }
+            .modal-overlay { padding: .75rem; }
+            .modal { max-height: 95vh; }
+        }
+        @media(max-width:480px){
+            .stats-row { grid-template-columns: 1fr 1fr; }
+            .cita-hora { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<div class="mobile-topbar">
+    <div class="mobile-topbar-brand">
+        <img src="{% static 'img/logo.png' %}" alt="Zumedical">
+        <span>Zumedical</span>
+    </div>
+    <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
+        <span></span><span></span><span></span>
+    </button>
+</div>
+
+<aside class="sidebar" id="sidebar">
+    <div class="sb-brand">
+        <div class="sb-logo"><img src="{% static 'img/logo.png' %}" alt="Zumedical"></div>
+        <div class="sb-brand-text"><h2>Zumedical</h2><span>Paciente</span></div>
+    </div>
+    <a href="{% url 'paciente_general_perfil' %}" class="sb-user">
+        <div class="sb-avatar">{{ request.user.first_name|first }}{{ request.user.last_name|first }}</div>
+        <div class="sb-user-info"><p>Mi perfil</p><h3>{{ request.user.first_name }} {{ request.user.last_name }}</h3></div>
+    </a>
+    <nav class="sb-nav">
+        <div class="nav-lbl">Menú</div>
+        <a href="{% url 'paciente_general_dashboard' %}" class="nav-item"><i class="fa-solid fa-house"></i> Inicio</a>
+        <a href="{% url 'paciente_general_agendar' %}" class="nav-item"><i class="fa-regular fa-calendar-plus"></i> Agendar Cita</a>
+        <a href="{% url 'paciente_general_citas' %}" class="nav-item active"><i class="fa-regular fa-calendar-check"></i> Mis Citas
+            {% if citas_pendientes %}<span class="nav-badge">{{ citas_pendientes }}</span>{% endif %}
+        </a>
+    </nav>
+    <div class="sb-footer">
+        <a href="{% url 'logout' %}" class="btn-logout"><i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar sesión</a>
+    </div>
+</aside>
+
+<main class="main">
+    <div class="page-header">
+        <div>
+            <h1>Mis Citas</h1>
+            <p>Consulta y gestiona todas tus citas médicas</p>
+        </div>
+        <a href="{% url 'paciente_general_agendar' %}" class="btn-nueva">
+            <i class="fa-regular fa-calendar-plus"></i> Nueva cita
+        </a>
+    </div>
+
+    {% if messages %}
+    {% for msg in messages %}
+    <div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:10px;padding:.9rem 1.25rem;margin-bottom:1.25rem;color:#2e7d32;font-size:.9rem;display:flex;align-items:center;gap:.5rem;animation:slideUp .3s ease">
+        <i class="fa-solid fa-circle-check"></i> {{ msg }}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-ico total"><i class="fa-regular fa-calendar-check"></i></div>
+            <div class="stat-info"><p>Total</p><h3 id="stat-total">0</h3></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-ico pend"><i class="fa-regular fa-clock"></i></div>
+            <div class="stat-info"><p>Pendientes</p><h3 id="stat-pend">0</h3></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-ico atend"><i class="fa-solid fa-circle-check"></i></div>
+            <div class="stat-info"><p>Atendidas</p><h3 id="stat-atend">0</h3></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-ico canc"><i class="fa-solid fa-ban"></i></div>
+            <div class="stat-info"><p>Canceladas</p><h3 id="stat-canc">0</h3></div>
+        </div>
+    </div>
+
+    <div class="filtros-wrap">
+        <div class="filtro-item">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input class="filtro-input" type="text" id="filtroBuscar" placeholder="Buscar médico o especialidad...">
+        </div>
+        <div class="filtros-chips">
+            <button class="chip active" data-estado="todos">Todas</button>
+            <button class="chip" data-estado="pendiente">Pendiente</button>
+            <button class="chip" data-estado="confirmada">Confirmada</button>
+            <button class="chip" data-estado="atendido">Atendida</button>
+            <button class="chip" data-estado="cancelada">Cancelada</button>
+        </div>
+        <button class="btn-limpiar" id="btnLimpiar"><i class="fa-solid fa-xmark"></i> Limpiar</button>
+    </div>
+
+    <div class="conteo-label" id="conteoLabel"></div>
+    <div id="noResultados"><i class="fa-solid fa-filter-circle-xmark"></i><p>No se encontraron citas con ese filtro.</p></div>
+
+    <script type="application/json" id="citas-data">
+    [
+        {% for cita in citas_proximas %}
+        {
+            "id": {{ cita.id }},
+            "tipo": "proxima",
+            "estado": "{{ cita.estado }}",
+            "estadoLabel": "{{ cita.get_estado_display|default:cita.estado }}",
+            "medico": "{{ cita.medico.get_full_name|default:cita.medico.username|escapejs }}",
+            "especialidad": "{{ cita.especialidad|default:'—'|escapejs }}",
+            "fecha": "{{ cita.fecha|date:'Y-m-d' }}",
+            "fechaDisplay": "{{ cita.fecha|date:'d/m/Y' }}",
+            "dia": "{{ cita.fecha|date:'d' }}",
+            "mesCorto": "{{ cita.fecha|date:'M' }}",
+            "mesFull": "{{ cita.fecha|date:'F Y' }}",
+            "hora": "{{ cita.hora|time:'H:i' }}",
+            "motivo": "{{ cita.motivo|default:'Sin motivo especificado'|escapejs }}",
+            "cancelable": {% if cita.estado == 'pendiente' or cita.estado == 'confirmada' %}true{% else %}false{% endif %},
+            "cancelUrl": "{% url 'paciente_general_cancelar' cita.id %}"
+        }{% if not forloop.last or citas_pasadas %},{% endif %}
+        {% endfor %}
+        {% for cita in citas_pasadas %}
+        {
+            "id": {{ cita.id }},
+            "tipo": "pasada",
+            "estado": "{{ cita.estado }}",
+            "estadoLabel": "{{ cita.get_estado_display|default:cita.estado }}",
+            "medico": "{{ cita.medico.get_full_name|default:cita.medico.username|escapejs }}",
+            "especialidad": "{{ cita.especialidad|default:'—'|escapejs }}",
+            "fecha": "{{ cita.fecha|date:'Y-m-d' }}",
+            "fechaDisplay": "{{ cita.fecha|date:'d/m/Y' }}",
+            "dia": "{{ cita.fecha|date:'d' }}",
+            "mesCorto": "{{ cita.fecha|date:'M' }}",
+            "mesFull": "{{ cita.fecha|date:'F Y' }}",
+            "hora": "{{ cita.hora|time:'H:i' }}",
+            "motivo": "{{ cita.motivo|default:'Sin motivo especificado'|escapejs }}",
+            "cancelable": false,
+            "cancelUrl": ""
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ]
+    </script>
+
+    <script>var CITAS_DATA = JSON.parse(document.getElementById('citas-data').textContent);</script>
+    <script>
+    function getCookie(name){
+        var v=document.cookie.match('(^|;) ?'+name+'=([^;]*)(;|$)');
+        return v?v[2]:null;
+    }
+    var CSRF_TOKEN = getCookie('csrftoken');
+    </script>
+
+    <div id="citasContainer"></div>
+
+    {% if not citas_proximas and not citas_pasadas %}
+    <div class="empty-state" style="animation:slideUp .4s ease .25s both">
+        <i class="fa-regular fa-calendar-xmark"></i>
+        <p>Aún no tienes citas registradas.</p>
+        <a href="{% url 'paciente_general_agendar' %}" class="btn-nueva" style="display:inline-flex;margin-top:.5rem">
+            <i class="fa-regular fa-calendar-plus"></i> Agendar ahora
+        </a>
+    </div>
+    {% endif %}
+</main>
+
+<div class="modal-overlay" id="modalDetalle" onclick="cerrarModalDetalle(event)">
+    <div class="modal" id="modalContent">
+        <div class="modal-tira" id="modalTira"></div>
+        <div class="modal-head">
+            <div class="modal-head-info">
+                <h2 id="modalEsp">—</h2>
+                <p id="modalMed">—</p>
+            </div>
+            <button class="modal-close" onclick="cerrarModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="modal-fecha-blk" id="modalFechaBlk">
+                <div class="big-dia" id="modalDia">—</div>
+                <div class="fecha-info">
+                    <p id="modalMesAnio">—</p>
+                    <h3 id="modalHoraFull">—</h3>
+                </div>
+            </div>
+            <div class="modal-grid">
+                <div class="modal-campo"><span>Estado</span><strong id="modalEstado">—</strong></div>
+                <div class="modal-campo"><span>Hora</span><strong id="modalHora">—</strong></div>
+                <div class="modal-campo"><span>Fecha</span><strong id="modalFecha">—</strong></div>
+                <div class="modal-campo"><span>Tipo</span><strong id="modalTipo">—</strong></div>
+            </div>
+            <div class="modal-motivo">
+                <span><i class="fa-regular fa-comment-dots" style="margin-right:.3rem"></i>Motivo</span>
+                <p id="modalMotivo">—</p>
+            </div>
+            <div class="modal-footer" id="modalFooter"></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modalConfirm" onclick="cerrarConfirm(event)">
+    <div class="modal-confirm">
+        <i class="fa-regular fa-circle-xmark"></i>
+        <h3>¿Cancelar esta cita?</h3>
+        <p>Esta acción no se puede deshacer. La cita quedará marcada como cancelada.</p>
+        <div class="modal-confirm-btns">
+            <button class="btn-cerrar-modal" onclick="cerrarConfirm()">No, mantener</button>
+            <form id="formCancelar" method="POST" style="margin:0">
+                {% csrf_token %}
+                <button type="submit" class="btn-cancelar-modal"><i class="fa-solid fa-ban"></i> Sí, cancelar</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleSidebar(){
+    var isOpen = document.getElementById('sidebar').classList.contains('open');
+    if(isOpen) closeSidebar(); else abrirSidebar();
+}
+function abrirSidebar(){
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('overlay').classList.add('active');
+    document.getElementById('hamburger').classList.add('open');
+}
+function closeSidebar(){
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('overlay').classList.remove('active');
+    document.getElementById('hamburger').classList.remove('open');
+}
+
+var MESES_ES = {
+    'January':'Enero','February':'Febrero','March':'Marzo','April':'Abril',
+    'May':'Mayo','June':'Junio','July':'Julio','August':'Agosto',
+    'September':'Septiembre','October':'Octubre','November':'Noviembre','December':'Diciembre',
+    'Jan':'Ene','Feb':'Feb','Mar':'Mar','Apr':'Abr',
+    'Jun':'Jun','Jul':'Jul','Aug':'Ago','Sep':'Sep','Oct':'Oct','Nov':'Nov','Dec':'Dic'
+};
+
+function traducirFecha(str){
+    return str.replace(/January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Oct|Nov|Dec/g,
+        function(m){ return MESES_ES[m] || m; });
+}
+
+var ESTADO_LABELS = {pendiente:'Pendiente',confirmada:'Confirmada',atendido:'Atendido',cancelada:'Cancelada',cancelado:'Cancelada',completada:'Completada'};
+var ESTADO_CSS    = {pendiente:'e-pendiente',confirmada:'e-confirmada',atendido:'e-atendido',cancelada:'e-cancelada',cancelado:'e-cancelado',completada:'e-completada'};
+
+function estadoBadge(estado, label){
+    var cls = ESTADO_CSS[estado] || 'e-pendiente';
+    var lbl = label || ESTADO_LABELS[estado] || estado;
+    return '<span class="estado-badge '+cls+'">'+lbl+'</span>';
+}
+
+var filtroEstado = 'todos';
+var filtroBuscar = '';
+
+document.querySelectorAll('.chip').forEach(function(chip){
+    chip.addEventListener('click', function(){
+        document.querySelectorAll('.chip').forEach(function(c){ c.classList.remove('active'); });
+        this.classList.add('active');
+        filtroEstado = this.dataset.estado;
+        renderizarCitas();
+    });
+});
+
+document.getElementById('filtroBuscar').addEventListener('input', function(){
+    filtroBuscar = this.value.trim().toLowerCase();
+    renderizarCitas();
+});
+
+document.getElementById('btnLimpiar').addEventListener('click', function(){
+    filtroEstado='todos';
+    filtroBuscar='';
+    document.getElementById('filtroBuscar').value='';
+    document.querySelectorAll('.chip').forEach(function(c){ c.classList.remove('active'); });
+    document.querySelector('.chip[data-estado="todos"]').classList.add('active');
+    renderizarCitas();
+});
+
+function renderizarCitas(){
+    var filtradas = CITAS_DATA.filter(function(c){
+        var okEstado = filtroEstado==='todos' || c.estado===filtroEstado || (filtroEstado==='cancelada' && c.estado==='cancelado');
+        var okBuscar = !filtroBuscar || c.medico.toLowerCase().includes(filtroBuscar) || c.especialidad.toLowerCase().includes(filtroBuscar);
+        return okEstado && okBuscar;
+    });
+
+    var conteo = document.getElementById('conteoLabel');
+    var noRes  = document.getElementById('noResultados');
+    var cont   = document.getElementById('citasContainer');
+
+    conteo.textContent = 'Mostrando '+filtradas.length+' cita'+(filtradas.length!==1?'s':'');
+
+    if(filtradas.length===0){
+        cont.innerHTML='';
+        noRes.style.display='block';
+        return;
+    }
+    noRes.style.display='none';
+
+    var grupos = {};
+    var ordenGrupos = [];
+    filtradas.forEach(function(c){
+        if(!grupos[c.mesFull]){
+            grupos[c.mesFull] = [];
+            ordenGrupos.push(c.mesFull);
+        }
+        grupos[c.mesFull].push(c);
+    });
+
+    var html = '';
+    ordenGrupos.forEach(function(mes, gi){
+        var citas = grupos[mes];
+        html += '<div class="mes-grupo" style="animation-delay:'+(gi*0.05)+'s">';
+        html += '<div class="mes-header">';
+        html += '<div class="mes-titulo"><i class="fa-regular fa-calendar"></i>'+traducirFecha(mes)+'</div>';
+        html += '<span class="mes-badge">'+citas.length+' cita'+(citas.length!==1?'s':'')+'</span>';
+        html += '<div class="mes-header-line"></div>';
+        html += '</div>';
+
+        citas.forEach(function(c){
+            var esPasada = c.tipo==='pasada';
+            html += '<div class="cita-row'+(esPasada?' pasada':'')+'" onclick="abrirModal('+c.id+')">';
+            html += '<div class="cita-content">';
+            html += '<div class="cita-fecha-blk"><div class="dia">'+c.dia+'</div><div class="mes">'+traducirFecha(c.mesCorto)+'</div></div>';
+            html += '<div class="cita-datos">';
+            html += '<div class="cita-titulo">'+c.especialidad+'</div>';
+            html += '<div class="cita-sub"><i class="fa-solid fa-user-doctor"></i> '+c.medico+'</div>';
+            html += '</div>';
+            html += estadoBadge(c.estado, c.estadoLabel);
+            html += '<div class="cita-hora"><i class="fa-regular fa-clock"></i> '+c.hora+'</div>';
+            html += '</div>';
+            html += '<i class="fa-solid fa-chevron-right cita-arrow"></i>';
+            html += '</div>';
+        });
+
+        html += '</div>';
+    });
+
+    cont.innerHTML = html;
+}
+
+function abrirModal(id){
+    var c = CITAS_DATA.find(function(x){ return x.id===id; });
+    if(!c) return;
+
+    var esPasada = c.tipo==='pasada';
+    document.getElementById('modalTira').className = 'modal-tira'+(esPasada?' pasada':'');
+    document.getElementById('modalEsp').textContent = c.especialidad;
+    document.getElementById('modalMed').textContent = 'Dr(a). '+c.medico;
+    document.getElementById('modalDia').textContent = c.dia;
+    document.getElementById('modalMesAnio').textContent = traducirFecha(c.mesFull);
+    document.getElementById('modalHoraFull').textContent = c.hora+' hrs';
+    document.getElementById('modalHora').textContent = c.hora;
+    document.getElementById('modalFecha').textContent = c.fechaDisplay;
+    document.getElementById('modalTipo').textContent = esPasada ? 'Historial' : 'Próxima';
+    document.getElementById('modalMotivo').textContent = c.motivo;
+
+    var estadoEl = document.getElementById('modalEstado');
+    estadoEl.innerHTML = estadoBadge(c.estado, c.estadoLabel);
+
+    var footer = document.getElementById('modalFooter');
+    footer.innerHTML = '';
+    if(c.cancelable){
+        footer.innerHTML += '<button class="btn-cancelar-modal" onclick="pedirCancelacion(\''+c.cancelUrl+'\')"><i class="fa-solid fa-ban"></i> Cancelar cita</button>';
+    }
+    footer.innerHTML += '<button class="btn-cerrar-modal" onclick="cerrarModal()"><i class="fa-solid fa-xmark"></i> Cerrar</button>';
+
+    document.getElementById('modalDetalle').classList.add('open');
+}
+
+function cerrarModal(){
+    document.getElementById('modalDetalle').classList.remove('open');
+}
+function cerrarModalDetalle(e){
+    if(e.target===document.getElementById('modalDetalle')) cerrarModal();
+}
+
+function pedirCancelacion(url){
+    cerrarModal();
+    document.getElementById('formCancelar').action=url;
+    document.getElementById('modalConfirm').classList.add('open');
+}
+function cerrarConfirm(e){
+    if(!e || e.target===document.getElementById('modalConfirm')){
+        document.getElementById('modalConfirm').classList.remove('open');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+    var total = CITAS_DATA.length;
+    var pend  = CITAS_DATA.filter(function(c){ return c.estado==='pendiente'||c.estado==='confirmada'; }).length;
+    var atend = CITAS_DATA.filter(function(c){ return c.estado==='atendido'||c.estado==='completada'; }).length;
+    var canc  = CITAS_DATA.filter(function(c){ return c.estado==='cancelada'||c.estado==='cancelado'; }).length;
+    document.getElementById('stat-total').textContent = total;
+    document.getElementById('stat-pend').textContent  = pend;
+    document.getElementById('stat-atend').textContent = atend;
+    document.getElementById('stat-canc').textContent  = canc;
+
+    renderizarCitas();
+});
+
+document.addEventListener('keydown', function(e){
+    if(e.key==='Escape'){ cerrarModal(); cerrarConfirm(); }
+});
+</script>
+</body>
+</html>

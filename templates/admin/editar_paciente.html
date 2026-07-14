@@ -1,0 +1,395 @@
+﻿{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zumedical — Editar Paciente</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--mg:#B03580;--mg-l:#CC4D99;--mg-d:#8A2563;--mg-bg:#FBF0F7;--mg-border:#E8AAD4;--text:#2A1020;--muted:#8A6070;--white:#fff;--bg:#FDF5FA;--sw:260px;--success:#2E7D32;--success-bg:#E8F5E9;--error:#C0392B;--error-bg:#FFEBEE}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);min-height:100vh;display:flex;opacity:0;animation:fadeIn .4s ease .05s forwards}
+@keyframes fadeIn{to{opacity:1}}
+.sidebar{width:var(--sw);height:100vh;background:linear-gradient(175deg,#8A2563 0%,#B03580 55%,#CC4D99 100%);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:200;overflow:hidden;transition:transform .3s ease;box-shadow:4px 0 24px rgba(138,37,99,.2)}
+.sb-brand{padding:1.75rem 1.5rem 1.25rem;border-bottom:1px solid rgba(255,255,255,0.12);display:flex;align-items:center;gap:0.75rem}
+.sb-logo{width:42px;height:42px;background:white;border-radius:50%;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.sb-logo img{width:38px;height:38px;object-fit:contain}
+.sb-brand-text h2{font-family:'Cormorant Garamond',serif;font-size:1.35rem;font-weight:600;color:white;line-height:1}
+.sb-brand-text span{font-size:0.7rem;color:rgba(255,255,255,0.65);letter-spacing:0.1em;text-transform:uppercase}
+.sb-user{padding:1rem 1.5rem;border-bottom:1px solid rgba(255,255,255,0.12);display:flex;align-items:center;gap:0.7rem}
+.sb-avatar{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:500;color:white;flex-shrink:0;text-transform:uppercase}
+.sb-user-info p{font-size:0.72rem;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.1rem}
+.sb-user-info h3{font-size:0.88rem;font-weight:500;color:white}
+.sb-nav{flex:1;padding:1rem 0.75rem;overflow-y:auto}
+.nav-lbl{font-size:0.68rem;color:rgba(255,255,255,0.45);letter-spacing:0.1em;text-transform:uppercase;padding:0.5rem 0.75rem;margin-top:0.75rem}
+.nav-item{display:flex;align-items:center;gap:0.7rem;padding:0.7rem 1rem;border-radius:10px;color:rgba(255,255,255,0.82);text-decoration:none;font-size:0.88rem;transition:all 0.2s;margin-bottom:0.2rem}
+.nav-badge{margin-left:auto;background:rgba(255,255,255,.25);color:white;font-size:.68rem;font-weight:600;padding:.15rem .5rem;border-radius:999px;min-width:20px;text-align:center}
+.nav-badge-alert{background:#e74c3c}
+.nav-item:hover,.nav-item.active{background:rgba(255,255,255,0.18);color:white}
+.nav-item i{width:18px;text-align:center;font-size:15px;flex-shrink:0}
+.sb-footer{padding:1rem 0.75rem;border-top:1px solid rgba(255,255,255,0.12)}
+.btn-logout{display:flex;align-items:center;gap:0.7rem;padding:0.7rem 1rem;border-radius:10px;color:rgba(255,255,255,0.75);text-decoration:none;font-size:0.88rem;transition:all 0.2s}
+.btn-logout:hover{background:rgba(255,255,255,0.15);color:white}
+.btn-logout i{width:17px;text-align:center;font-size:15px}
+.mobile-topbar{display:none;align-items:center;justify-content:space-between;padding:1rem 1.25rem;background:linear-gradient(135deg,#8A2563,#CC4D99);position:fixed;top:0;left:0;right:0;z-index:300}
+.mobile-topbar-brand{display:flex;align-items:center;gap:.6rem}
+.mobile-topbar-brand img{width:32px;height:32px;background:white;border-radius:50%;padding:2px;object-fit:contain}
+.mobile-topbar-brand span{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;color:white}
+.hamburger{background:rgba(255,255,255,.15);border:none;border-radius:8px;padding:.5rem .65rem;cursor:pointer;display:flex;flex-direction:column;gap:4px}
+.hamburger span{display:block;width:20px;height:2px;background:white;border-radius:2px;transition:all .3s}
+.hamburger.open span:nth-child(1){transform:translateY(6px) rotate(45deg)}
+.hamburger.open span:nth-child(2){opacity:0}
+.hamburger.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:150;opacity:0;pointer-events:none;transition:opacity .3s}
+.sidebar-overlay.active{opacity:1;pointer-events:auto}
+.main{margin-left:var(--sw);flex:1;padding:2.5rem;min-height:100vh}
+.page-header{margin-bottom:2rem;display:flex;align-items:flex-end;gap:1.25rem;flex-wrap:wrap}
+.page-header h1{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:600;color:var(--text);margin-bottom:0.25rem}
+.page-header p{color:var(--muted);font-size:0.88rem;font-weight:300}
+.page-header-actions{display:flex;gap:0.75rem;flex-wrap:wrap;align-items:center}
+.alert{padding:0.85rem 1.25rem;border-radius:12px;font-size:0.88rem;display:flex;align-items:center;gap:0.6rem;margin-bottom:1.5rem;max-width:700px}
+.alert svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0}
+.alert-success{background:var(--success-bg);color:var(--success);border:1px solid #C8E6C9}
+.alert-error{background:var(--error-bg);color:var(--error);border:1px solid #FFCDD2}
+.form-card{background:var(--white);border-radius:16px;border:1px solid var(--mg-border);padding:2rem;max-width:700px;position:relative;overflow:hidden}
+.form-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:linear-gradient(180deg,var(--mg-d),var(--mg-l))}
+.form-card-title{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:600;color:var(--text);margin-bottom:1.5rem;padding-bottom:0.75rem;border-bottom:1px solid var(--mg-border);display:flex;align-items:center;gap:0.5rem}
+.form-card-title svg{width:18px;height:18px;stroke:var(--mg);fill:none;stroke-width:1.8}
+.form-section{margin-bottom:1.5rem;padding-bottom:1.5rem;border-bottom:1px solid rgba(232,170,212,0.4)}
+.form-section:last-of-type{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.form-section-title{font-size:0.78rem;font-weight:500;color:var(--mg-d);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:1rem}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.form-group{margin-bottom:1.1rem}
+.form-group label{display:block;font-size:0.72rem;font-weight:500;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.45rem}
+.input-wrap{position:relative}
+.input-wrap svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;stroke:var(--mg-l);fill:none;stroke-width:1.8;pointer-events:none}
+.form-group input,.form-group select{width:100%;padding:0.8rem 1rem 0.8rem 2.5rem;border:1.5px solid var(--mg-border);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:0.9rem;color:var(--text);background:var(--white);transition:all 0.2s;outline:none}
+.form-group input:focus,.form-group select:focus{border-color:var(--mg);box-shadow:0 0 0 4px rgba(176,53,128,0.08)}
+.form-group input::placeholder{color:#D4A8C4}
+.form-group select{cursor:pointer}
+.input-hint{font-size:0.75rem;color:var(--muted);margin-top:0.35rem}
+.field-msg{font-size:0.75rem;margin-top:0.35rem;min-height:1em}
+.field-msg.error{color:#C0392B}
+.field-msg.ok{color:#2E7D32}
+.input-wrap input.invalid{border-color:#E08A8A;background:#FFF6F6}
+.input-wrap input.valid{border-color:#9CCBA3}
+.pwd-meter{height:5px;border-radius:4px;background:#F1DCE7;margin-top:0.5rem;overflow:hidden}
+.pwd-meter-bar{height:100%;width:0%;border-radius:4px;background:#C0392B;transition:width 0.25s ease,background 0.25s ease}
+.pwd-checklist{list-style:none;margin-top:0.5rem;display:flex;flex-direction:column;gap:0.25rem}
+.pwd-checklist li{font-size:0.74rem;color:var(--muted);display:flex;align-items:center;gap:0.4rem}
+.pwd-checklist li i{font-size:0.7rem;color:#C0392B}
+.pwd-checklist li.ok{color:#2E7D32}
+.pwd-checklist li.ok i{color:#2E7D32}
+.btn-primary:disabled{opacity:0.5;cursor:not-allowed}
+.btn-primary:disabled:hover{opacity:0.5}
+.form-actions{display:flex;gap:0.75rem;align-items:center;margin-top:1.75rem;flex-wrap:wrap}
+.btn-primary{display:inline-flex;align-items:center;gap:0.5rem;padding:0.8rem 1.6rem;background:linear-gradient(135deg,var(--mg-d),var(--mg-l));color:white;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:500;cursor:pointer;transition:opacity 0.2s;text-decoration:none}
+.btn-primary:hover{opacity:0.9}
+.btn-primary svg{width:15px;height:15px;stroke:white;fill:none;stroke-width:2}
+.btn-secondary{display:inline-flex;align-items:center;gap:0.5rem;padding:0.8rem 1.4rem;background:var(--white);color:var(--muted);border:1.5px solid var(--mg-border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:400;text-decoration:none;transition:all 0.2s}
+.btn-secondary:hover{border-color:var(--mg);color:var(--mg)}
+.btn-secondary svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}
+.btn-danger{display:inline-flex;align-items:center;gap:0.5rem;padding:0.8rem 1.4rem;background:#FFEBEE;color:var(--error);border:1.5px solid #FFCDD2;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:500;cursor:pointer;text-decoration:none;transition:all 0.2s}
+.btn-danger:hover{background:#FFCDD2}
+.btn-danger svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}
+.btn-sm{padding:0.45rem 0.9rem;font-size:0.78rem;border-radius:8px}
+.btn-new{display:inline-flex;align-items:center;gap:0.5rem;padding:0.7rem 1.3rem;background:linear-gradient(135deg,var(--mg-d),var(--mg-l));color:white;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:500;cursor:pointer;text-decoration:none;transition:opacity 0.2s}
+.btn-new:hover{opacity:0.9}
+.btn-new svg{width:15px;height:15px;stroke:white;fill:none;stroke-width:2.5}
+.back-btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;background:var(--white);color:var(--mg);border:1.5px solid var(--mg-border);border-radius:10px;text-decoration:none;font-size:0.85rem;font-weight:500;transition:all 0.2s}
+.back-btn:hover{background:var(--mg-bg);border-color:var(--mg)}
+.back-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}
+.table-card{background:var(--white);border-radius:16px;border:1px solid var(--mg-border);overflow:hidden}
+.table-toolbar{padding:1.25rem 1.5rem;border-bottom:1px solid var(--mg-border);display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.search-wrap{position:relative;flex:1;min-width:200px}
+.search-wrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:15px;height:15px;stroke:var(--muted);fill:none;stroke-width:1.8}
+.search-wrap input{width:100%;padding:0.6rem 1rem 0.6rem 2.3rem;border:1.5px solid var(--mg-border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.88rem;color:var(--text);outline:none;transition:all 0.2s}
+.search-wrap input:focus{border-color:var(--mg);box-shadow:0 0 0 3px rgba(176,53,128,0.08)}
+.table-count{font-size:0.82rem;color:var(--muted);white-space:nowrap}
+table{width:100%;border-collapse:collapse}
+thead tr{background:var(--mg-bg)}
+th{padding:0.85rem 1.25rem;text-align:left;font-size:0.7rem;font-weight:500;color:var(--mg-d);text-transform:uppercase;letter-spacing:0.08em;border-bottom:1px solid var(--mg-border)}
+td{padding:0.9rem 1.25rem;font-size:0.88rem;color:var(--text);border-bottom:1px solid rgba(232,170,212,0.3)}
+tr:last-child td{border-bottom:none}
+tbody tr{transition:background 0.15s}
+tbody tr:hover{background:var(--mg-bg)}
+.td-actions{display:flex;gap:0.5rem;align-items:center}
+.badge{display:inline-flex;padding:0.22rem 0.65rem;border-radius:20px;font-size:0.7rem;font-weight:500}
+.badge-admin{background:#FBF0F7;color:#8A2563}
+.badge-medico{background:#E8F5E9;color:#2E7D32}
+.badge-secretaria{background:#E3F2FD;color:#1565C0}
+.badge-paciente{background:#FFF3E0;color:#E65100}
+.badge-pendiente{background:#FFF3E0;color:#E65100}
+.badge-atendido{background:#E8F5E9;color:#2E7D32}
+.badge-cancelado{background:#FFEBEE;color:#C62828}
+.avatar-cell{display:flex;align-items:center;gap:0.7rem}
+.mini-avatar{width:32px;height:32px;border-radius:50%;background:var(--mg-bg);border:1px solid var(--mg-border);display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:500;color:var(--mg-d);flex-shrink:0;text-transform:uppercase}
+.empty-state{padding:3rem;text-align:center;color:var(--muted)}
+.empty-state svg{width:40px;height:40px;stroke:var(--mg-border);fill:none;stroke-width:1.5;margin:0 auto 1rem;display:block}
+@media(max-width:768px){body{flex-direction:column}.sidebar{position:fixed;top:64px;left:0;height:calc(100vh - 64px);transform:translateX(-100%);width:var(--sw)}.sidebar.open{transform:translateX(0)}.sidebar-overlay{display:block;z-index:150}.mobile-topbar{display:flex}.main{margin-left:0;padding:1.25rem;padding-top:calc(1.25rem + 64px)}.form-row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
+<div class="mobile-topbar">
+    <div class="mobile-topbar-brand">
+        <img src="/static/img/Logo.png" alt="Zumedical">
+        <span>Zumedical</span>
+    </div>
+    <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
+        <span></span><span></span><span></span>
+    </button>
+</div>
+<aside class="sidebar" id="sidebar">
+    <div class="sb-brand">
+        <div class="sb-logo"><img src="/static/img/Logo.png" alt="Zumedical"></div>
+        <div class="sb-brand-text"><h2>Zumedical</h2><span>Administrador</span></div>
+    </div>
+    <div class="sb-user">
+        <div class="sb-avatar">{% if request.user.first_name %}{{ request.user.first_name|slice:":1" }}{{ request.user.last_name|slice:":1" }}{% else %}{{ request.user.username|slice:":1"|upper }}{% endif %}</div>
+        <div class="sb-user-info"><p>Sesión activa</p><h3>{{ request.user.get_full_name|default:request.user.username }}</h3></div>
+    </div>
+    <nav class="sb-nav"><div class="nav-lbl">Panel</div>
+<a href="{% url 'admin_dashboard' %}" class="nav-item "><i class="fa-solid fa-grid-2"></i> Inicio</a>
+<div class="nav-lbl">Gestión</div>
+<a href="{% url 'lista_usuarios' %}" class="nav-item "><i class="fa-solid fa-users"></i> Usuarios</a>
+<a href="{% url 'lista_medicos' %}" class="nav-item "><i class="fa-solid fa-user-doctor"></i> Médicos</a>
+<a href="{% url 'lista_pacientes' %}" class="nav-item active"><i class="fa-solid fa-hospital-user"></i> Pacientes</a>
+<a href="{% url 'todas_citas' %}" class="nav-item ">
+    <i class="fa-regular fa-calendar-check"></i> Citas
+    {% if citas_pendientes %}<span class="nav-badge-alert">{{ citas_pendientes }}</span>{% endif %}
+</a>
+<a href="{% url 'controles_admin' %}" class="nav-item "><i class="fa-solid fa-heart-pulse"></i> Controles Prenatales</a>
+<div class="nav-lbl">Sistema</div>
+<a href="{% url 'auditoria_admin' %}" class="nav-item"><i class="fa-solid fa-shield-halved"></i> Auditoría</a>
+</nav>
+    <div class="sb-footer">
+        <a href="{% url 'logout' %}" class="btn-logout"><i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar sesión</a>
+    </div>
+</aside>
+<main class="main">
+<div class="page-header">
+    <div><h1>Editar Paciente</h1><p>Modificar datos de {{ paciente.usuario.get_full_name }}</p></div>
+    <a href="{% url 'lista_pacientes' %}" class="back-btn"><svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>Volver</a>
+</div>
+{% if messages %}{% for message in messages %}
+<div class="alert alert-{{ message.tags }}">
+<svg viewBox="0 0 24 24">{% if message.tags == "error" %}<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>{% else %}<polyline points="20 6 9 17 4 12"/>{% endif %}</svg>
+{{ message }}
+</div>
+{% endfor %}{% endif %}
+<div class="form-card">
+<p class="form-card-title"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Editar: {{ paciente.usuario.get_full_name }}</p>
+<form method="POST">
+{% csrf_token %}
+<div class="form-section">
+<div class="form-section-title">Información personal</div>
+<div class="form-row">
+<div class="form-group"><label>Nombre</label><div class="input-wrap"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><input type="text" id="id_first_name" name="first_name" value="{{ paciente.usuario.first_name }}" maxlength="20" required></div><div class="field-msg" id="msg_first_name"></div></div>
+<div class="form-group"><label>Apellidos</label><div class="input-wrap"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><input type="text" id="id_last_name" name="last_name" value="{{ paciente.usuario.last_name }}" maxlength="20" required></div><div class="field-msg" id="msg_last_name"></div></div>
+</div>
+<div class="form-row">
+<div class="form-group"><label>Email</label><div class="input-wrap"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><input type="email" id="id_email" name="email" value="{{ paciente.usuario.email }}"></div><div class="field-msg" id="msg_email"></div></div>
+<div class="form-group"><label>Cédula</label><div class="input-wrap"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg><input type="text" id="id_cedula" name="cedula" value="{{ paciente.cedula }}" maxlength="10" inputmode="numeric"></div><div class="field-msg" id="msg_cedula"></div></div>
+</div>
+<div class="form-row">
+<div class="form-group"><label>Teléfono</label><div class="input-wrap"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.18 6.18l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg><input type="text" id="id_telefono" name="telefono" value="{{ paciente.telefono }}" maxlength="10" inputmode="numeric"></div><div class="field-msg" id="msg_telefono"></div></div>
+<div class="form-group"><label>Edad</label><div class="input-wrap"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><input type="number" name="edad" value="{{ paciente.edad|default:'' }}" min="1" max="99" maxlength="3" oninput="this.value=this.value.slice(0,3)"></div></div>
+</div>
+<div class="form-group"><label>Dirección</label><div class="input-wrap"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><input type="text" name="direccion" value="{{ paciente.direccion }}" maxlength="60"></div></div>
+</div>
+<div class="form-section">
+<div class="form-section-title">Datos clínicos</div>
+<div class="form-row">
+<div class="form-group"><label>Fecha última menstruación</label><div class="input-wrap"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><input type="date" name="fecha_ultima_menstruacion" value="{{ paciente.fecha_ultima_menstruacion|date:'Y-m-d' }}"></div></div>
+<div class="form-group"><label>Fecha probable de parto</label><div class="input-wrap"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><input type="date" name="fecha_probable_parto" value="{{ paciente.fecha_probable_parto|date:'Y-m-d' }}"></div></div>
+</div>
+</div>
+<div class="form-section">
+<div class="form-section-title">Cambiar contraseña (opcional)</div>
+<div class="form-group" style="max-width:340px"><label>Nueva contraseña</label><div class="input-wrap"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><input type="password" id="id_password" name="password" placeholder="Dejar vacío para no cambiar"></div>
+<div class="pwd-meter" id="pwd_meter" style="display:none"><div class="pwd-meter-bar" id="pwd_meter_bar"></div></div>
+<ul class="pwd-checklist" id="pwd_checklist" style="display:none">
+<li id="chk_len"><i class="fa-solid fa-circle-xmark"></i> Mínimo 8 caracteres</li>
+<li id="chk_upper"><i class="fa-solid fa-circle-xmark"></i> Una mayúscula</li>
+<li id="chk_num"><i class="fa-solid fa-circle-xmark"></i> Un número</li>
+<li id="chk_sym"><i class="fa-solid fa-circle-xmark"></i> Un símbolo</li>
+</ul>
+</div>
+</div>
+<div class="form-actions">
+<button type="submit" class="btn-primary" id="submitBtn"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Guardar cambios</button>
+<a href="{% url 'admin_eliminar_paciente' paciente.id %}" class="btn-danger btn-sm"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>Eliminar</a>
+<a href="{% url 'lista_pacientes' %}" class="btn-secondary">Cancelar</a>
+</div>
+</form>
+</div>
+</main>
+<script>
+// ── Hamburguesa móvil ──
+function toggleSidebar() {
+    const sb = document.getElementById('sidebar');
+    const ov = document.getElementById('overlay');
+    const hb = document.getElementById('hamburger');
+    sb.classList.toggle('open');
+    ov.classList.toggle('active');
+    hb.classList.toggle('open');
+}
+function closeSidebar() {
+    const sb = document.getElementById('sidebar');
+    const ov = document.getElementById('overlay');
+    const hb = document.getElementById('hamburger');
+    sb.classList.remove('open');
+    ov.classList.remove('active');
+    hb.classList.remove('open');
+}
+
+// ── Validación en tiempo real ──
+(function() {
+    const NAME_RE = /^[A-Za-zÁÉÍÓÚÑÜáéíóúñü\s]*$/;
+    const fields = { first_name: true, last_name: true, email: true, cedula: true, telefono: true, password: true };
+
+    function setMsg(id, text, cls) {
+        const el = document.getElementById('msg_' + id);
+        if (!el) return;
+        el.textContent = text || '';
+        el.className = 'field-msg' + (cls ? ' ' + cls : '');
+    }
+    function setInputState(input, state) {
+        input.classList.remove('valid', 'invalid');
+        if (state) input.classList.add(state);
+    }
+
+    // Nombre / Apellidos: solo letras, bloquear al teclear, no pueden quedar vacíos
+    ['first_name', 'last_name'].forEach(function(id) {
+        const input = document.getElementById('id_' + id);
+        if (!input) return;
+        input.addEventListener('keypress', function(e) {
+            if (!NAME_RE.test(e.key)) e.preventDefault();
+        });
+        input.addEventListener('input', function() {
+            input.value = input.value.replace(/[^A-Za-zÁÉÍÓÚÑÜáéíóúñü\s]/g, '');
+            const valid = input.value.trim().length > 0;
+            fields[id] = valid;
+            setInputState(input, valid ? 'valid' : 'invalid');
+            setMsg(id, valid ? '' : 'Este campo no puede quedar vacío', 'error');
+            updateSubmit();
+        });
+    });
+
+    // Email (opcional)
+    (function() {
+        const input = document.getElementById('id_email');
+        if (!input) return;
+        input.addEventListener('input', function() {
+            const v = input.value.trim();
+            if (v === '') { fields.email = true; setInputState(input, null); setMsg('email', ''); updateSubmit(); return; }
+            const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+            fields.email = valid;
+            setInputState(input, valid ? 'valid' : 'invalid');
+            setMsg('email', valid ? '' : 'Formato de correo inválido', 'error');
+            updateSubmit();
+        });
+    })();
+
+    // Cédula (opcional, si se llena debe ser 10 dígitos)
+    (function() {
+        const input = document.getElementById('id_cedula');
+        if (!input) return;
+        input.addEventListener('keypress', function(e) {
+            if (!/[0-9]/.test(e.key)) e.preventDefault();
+        });
+        input.addEventListener('input', function() {
+            input.value = input.value.replace(/\D/g, '').slice(0, 10);
+            const v = input.value;
+            if (v === '') { fields.cedula = true; setInputState(input, null); setMsg('cedula', ''); updateSubmit(); return; }
+            const valid = v.length === 10;
+            fields.cedula = valid;
+            setInputState(input, valid ? 'valid' : 'invalid');
+            setMsg('cedula', valid ? '' : 'Debe tener 10 dígitos', 'error');
+            updateSubmit();
+        });
+    })();
+
+    // Teléfono (opcional, si se llena debe ser 10 dígitos)
+    (function() {
+        const input = document.getElementById('id_telefono');
+        if (!input) return;
+        input.addEventListener('keypress', function(e) {
+            if (!/[0-9]/.test(e.key)) e.preventDefault();
+        });
+        input.addEventListener('input', function() {
+            input.value = input.value.replace(/\D/g, '').slice(0, 10);
+            const v = input.value;
+            if (v === '') { fields.telefono = true; setInputState(input, null); setMsg('telefono', ''); updateSubmit(); return; }
+            const valid = v.length === 10;
+            fields.telefono = valid;
+            setInputState(input, valid ? 'valid' : 'invalid');
+            setMsg('telefono', valid ? '' : 'Debe tener 10 dígitos', 'error');
+            updateSubmit();
+        });
+    })();
+
+    // Contraseña: opcional. Si está vacía, no cambia. Si se escribe algo, debe cumplir las 4 reglas.
+    (function() {
+        const input = document.getElementById('id_password');
+        if (!input) return;
+        const meter = document.getElementById('pwd_meter');
+        const checklist = document.getElementById('pwd_checklist');
+        const bar = document.getElementById('pwd_meter_bar');
+        const chkLen = document.getElementById('chk_len');
+        const chkUpper = document.getElementById('chk_upper');
+        const chkNum = document.getElementById('chk_num');
+        const chkSym = document.getElementById('chk_sym');
+
+        function setChk(li, ok) {
+            li.classList.toggle('ok', ok);
+            const icon = li.querySelector('i');
+            icon.className = ok ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-xmark';
+        }
+
+        input.addEventListener('input', function() {
+            const v = input.value;
+            if (v === '') {
+                fields.password = true;
+                setInputState(input, null);
+                meter.style.display = 'none';
+                checklist.style.display = 'none';
+                updateSubmit();
+                return;
+            }
+            meter.style.display = 'block';
+            checklist.style.display = 'flex';
+
+            const hasLen = v.length >= 8;
+            const hasUpper = /[A-Z]/.test(v);
+            const hasNum = /[0-9]/.test(v);
+            const hasSym = /[^A-Za-z0-9]/.test(v);
+            setChk(chkLen, hasLen);
+            setChk(chkUpper, hasUpper);
+            setChk(chkNum, hasNum);
+            setChk(chkSym, hasSym);
+
+            const score = [hasLen, hasUpper, hasNum, hasSym].filter(Boolean).length;
+            const pct = (score / 4) * 100;
+            bar.style.width = pct + '%';
+            const colors = ['#C0392B', '#E08A2B', '#D4B106', '#2E7D32'];
+            bar.style.background = colors[Math.max(0, score - 1)] || colors[0];
+
+            const valid = hasLen && hasUpper && hasNum && hasSym;
+            fields.password = valid;
+            setInputState(input, valid ? 'valid' : 'invalid');
+            updateSubmit();
+        });
+    })();
+
+    function updateSubmit() {
+        const btn = document.getElementById('submitBtn');
+        if (!btn) return;
+        const allOk = fields.first_name && fields.last_name && fields.email !== false &&
+                       fields.cedula !== false && fields.telefono !== false && fields.password !== false;
+        btn.disabled = !allOk;
+    }
+})();
+</script>
+</body></html>

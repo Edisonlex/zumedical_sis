@@ -1,0 +1,1257 @@
+﻿{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zumedical — Ver Citas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --magenta: #B03580;
+            --magenta-light: #CC4D99;
+            --magenta-dark: #8A2563;
+            --magenta-bg: #FBF0F7;
+            --magenta-border: #E8AAD4;
+            --text: #2A1020;
+            --text-muted: #8A6070;
+            --white: #FFFFFF;
+            --bg: #FDF5FA;
+            --sw: 260px;
+            --green: #1a7a4a;
+            --green-bg: #edfaf3;
+            --green-border: #a8e6c8;
+            --yellow: #92600a;
+            --yellow-bg: #fef8ec;
+            --yellow-border: #f5d98a;
+            --red: #b03030;
+            --red-bg: #fdf0f0;
+            --red-border: #f5aaaa;
+            --blue: #1a4a8a;
+            --blue-bg: #eef2ff;
+            --blue-border: #c7d2fe;
+        }
+
+        @keyframes pageIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes modalIn    { from { opacity:0; transform:scale(0.96) translateY(10px); } to { opacity:1; transform:scale(1) translateY(0); } }
+        @keyframes shimmer    { from { background-position: 0% } to { background-position: 200% } }
+        @keyframes pulse      { 0%,100%{opacity:1} 50%{opacity:.4} }
+        @keyframes rowSlideIn { from { opacity:0; transform:translateX(-6px); } to { opacity:1; transform:translateX(0); } }
+        @keyframes fadeUp     { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+
+        html { height: 100%; }
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            opacity: 0;
+            animation: pageIn .35s ease .05s forwards;
+        }
+
+        /* ── SIDEBAR ── */
+        .sidebar{width:var(--sw);background:linear-gradient(175deg,#8A2563 0%,#B03580 55%,#CC4D99 100%);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:200;height:100vh;overflow:hidden;}
+        .sb-brand { padding: 1.75rem 1.5rem 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.12); display: flex; align-items: center; gap: 0.75rem; }
+        .sb-logo { width: 42px; height: 42px; background: white; border-radius: 50%; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+        .sb-logo img { width: 38px; height: 38px; object-fit: contain; }
+        .sb-brand-text h2 { font-family: 'Cormorant Garamond', serif; font-size: 1.35rem; font-weight: 600; color: white; line-height: 1; }
+        .sb-brand-text span { font-size: 0.7rem; color: rgba(255,255,255,0.65); letter-spacing: 0.1em; text-transform: uppercase; }
+        .sb-user { padding: 1.2rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.12); display: flex; align-items: center; gap: 0.75rem; transition: background 0.2s; text-decoration: none; }
+        .sb-user:hover { background: rgba(255,255,255,0.1); }
+        .sb-avatar { width: 38px; height: 38px; border-radius: 50%; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 500; color: white; flex-shrink: 0; text-transform: uppercase; }
+        .sb-user-info { flex: 1; min-width: 0; }
+        .sb-user-info p { font-size: 0.72rem; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.1rem; }
+        .sb-user-info h3 { font-size: 0.88rem; font-weight: 500; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sb-user-chevron svg { width: 14px; height: 14px; stroke: rgba(255,255,255,0.5); fill: none; stroke-width: 2; }
+        .sb-nav { flex: 1; padding: 1rem 0.75rem; overflow-y: auto; min-height: 0; }
+        .nav-lbl { font-size: 0.68rem; color: rgba(255,255,255,0.45); letter-spacing: 0.1em; text-transform: uppercase; padding: 0.5rem 0.75rem; margin-top: 0.75rem; }
+        .nav-item { display: flex; align-items: center; gap: 0.7rem; padding: 0.7rem 1rem; border-radius: 10px; color: rgba(255,255,255,0.82); text-decoration: none; font-size: 0.88rem; transition: all 0.2s; margin-bottom: 0.2rem; }
+        .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.18); color: white; }
+        .nav-item svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 1.8; flex-shrink: 0; }
+        .sb-footer { padding: 1rem 0.75rem; border-top: 1px solid rgba(255,255,255,0.12); flex-shrink: 0; margin-top: auto; }
+        .btn-logout { display: flex; align-items: center; gap: 0.7rem; padding: 0.7rem 1rem; border-radius: 10px; color: rgba(255,255,255,0.75); text-decoration: none; font-size: 0.88rem; transition: all 0.2s; }
+        .btn-logout:hover { background: rgba(255,255,255,0.15); color: white; }
+        .btn-logout svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+
+        /* ── MAIN ── */
+        .main { flex: 1; padding: 2.5rem 2.5rem 4rem; height: 100vh; overflow-y: auto; margin-left: var(--sw); }
+        .page-header { margin-bottom: 2rem; display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+        .page-header h1 { font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 600; color: var(--text); margin-bottom: 0.3rem; }
+        .page-header p { color: var(--text-muted); font-size: 0.9rem; font-weight: 300; }
+
+        .btn-nueva-cita { display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.65rem 1.4rem; background: linear-gradient(135deg, var(--magenta-dark), var(--magenta-light)); color: white; border-radius: 9px; text-decoration: none; font-size: 0.875rem; font-weight: 500; transition: opacity 0.2s, transform 0.15s; white-space: nowrap; }
+        .btn-nueva-cita:hover { opacity: 0.88; transform: translateY(-1px); }
+        .btn-nueva-cita svg { width: 15px; height: 15px; stroke: white; fill: none; stroke-width: 2; }
+
+        /* ── FILTROS ── */
+        .filtros-bar {
+            background: var(--white);
+            border: 1px solid var(--magenta-border);
+            border-radius: 14px;
+            padding: 1.1rem 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            flex-wrap: wrap;
+        }
+        .filtros-bar .filtro-ico {
+            width: 34px; height: 34px; background: var(--magenta-bg); border-radius: 8px;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        .filtros-bar .filtro-ico svg { width: 16px; height: 16px; stroke: var(--magenta); fill: none; stroke-width: 2; }
+        .filtro-input-wrap { position: relative; flex: 1; min-width: 180px; }
+        .filtro-input-wrap svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; stroke: var(--text-muted); fill: none; stroke-width: 2; pointer-events: none; }
+        .filtro-input {
+            width: 100%; padding: 0.55rem 0.85rem 0.55rem 2rem;
+            border: 1px solid var(--magenta-border); border-radius: 9px;
+            font-family: 'DM Sans', sans-serif; font-size: 0.85rem; color: var(--text);
+            background: var(--bg); outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .filtro-input:focus { border-color: var(--magenta); box-shadow: 0 0 0 3px rgba(176,53,128,0.1); }
+        .filtro-select {
+            padding: 0.55rem 2rem 0.55rem 0.85rem;
+            border: 1px solid var(--magenta-border); border-radius: 9px;
+            font-family: 'DM Sans', sans-serif; font-size: 0.85rem; color: var(--text);
+            background: var(--bg); outline: none; cursor: pointer; appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238A6070' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 8px center;
+            transition: border-color 0.2s;
+        }
+        .filtro-select:focus { border-color: var(--magenta); }
+        .filtro-fecha { padding: 0.55rem 0.85rem; border: 1px solid var(--magenta-border); border-radius: 9px; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; color: var(--text); background: var(--bg); outline: none; transition: border-color 0.2s; }
+        .filtro-fecha:focus { border-color: var(--magenta); }
+        .btn-limpiar { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.55rem 1rem; border: 1px solid var(--magenta-border); border-radius: 9px; background: transparent; color: var(--text-muted); font-family: 'DM Sans', sans-serif; font-size: 0.82rem; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+        .btn-limpiar:hover { background: var(--magenta-bg); color: var(--magenta); border-color: var(--magenta); }
+        .btn-limpiar svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+        /* ── CONTADOR ── */
+        .resultados-info { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; font-size: 0.83rem; color: var(--text-muted); }
+        .resultados-info strong { color: var(--magenta-dark); font-weight: 600; }
+
+        /* ── GRUPO MES ── */
+        .mes-grupo { margin-bottom: 2rem; }
+        .mes-titulo {
+            display: flex; align-items: center; gap: 0.7rem;
+            font-family: 'Cormorant Garamond', serif; font-size: 1.05rem; font-weight: 600;
+            color: var(--magenta-dark); margin-bottom: 0.75rem; padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--magenta-border);
+        }
+        .mes-titulo .mes-count {
+            background: var(--magenta-bg); color: var(--magenta); border: 1px solid var(--magenta-border);
+            border-radius: 20px; font-family: 'DM Sans', sans-serif;
+            font-size: 0.72rem; font-weight: 500; padding: 0.15rem 0.65rem;
+        }
+        /* Panel generales — encabezado de mes */
+        .mes-encabezado {
+            display: flex; align-items: center; gap: 0.7rem;
+            font-family: 'Cormorant Garamond', serif; font-size: 1.05rem; font-weight: 600;
+            color: var(--magenta-dark); padding: 0.75rem 1.25rem;
+            border-bottom: 1px solid var(--magenta-border);
+            background: var(--magenta-bg);
+        }
+        .mes-encabezado svg { width: 16px; height: 16px; stroke: var(--magenta); fill: none; stroke-width: 2; flex-shrink: 0; }
+        .mes-nombre { flex: 1; }
+        .mes-badge {
+            background: white; color: var(--magenta); border: 1px solid var(--magenta-border);
+            border-radius: 20px; font-family: 'DM Sans', sans-serif;
+            font-size: 0.72rem; font-weight: 500; padding: 0.15rem 0.65rem;
+        }
+
+        /* ── TABLE CARD ── */
+        .table-card { background: var(--white); border-radius: 16px; border: 1px solid var(--magenta-border); overflow: hidden; position: relative; }
+        .table-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: linear-gradient(180deg, var(--magenta-dark), var(--magenta-light)); }
+        .table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 640px; }
+        thead tr { background: var(--magenta-bg); border-bottom: 1px solid var(--magenta-border); }
+        thead th { padding: 0.9rem 1.25rem; text-align: left; font-size: 0.75rem; font-weight: 500; color: var(--magenta-dark); text-transform: uppercase; letter-spacing: 0.07em; white-space: nowrap; }
+        thead th:first-child { padding-left: 2rem; }
+        tbody tr { border-bottom: 1px solid #F3E0EE; transition: background 0.15s; cursor: pointer; }
+        tbody tr:last-child { border-bottom: none; }
+        tbody tr:hover { background: var(--magenta-bg); }
+        tbody td { padding: 0.9rem 1.25rem; font-size: 0.875rem; color: var(--text); vertical-align: middle; }
+        tbody td:first-child { padding-left: 2rem; }
+
+        .td-paciente { display: flex; align-items: center; gap: 0.65rem; }
+        .avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--magenta-bg); border: 1px solid var(--magenta-border); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 500; color: var(--magenta-dark); flex-shrink: 0; text-transform: uppercase; }
+        .td-paciente-info { display: flex; flex-direction: column; }
+        .td-paciente-nombre { font-weight: 500; font-size: 0.875rem; color: var(--text); }
+        .td-paciente-cedula { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.05rem; }
+
+        .td-fecha { color: var(--text); font-weight: 400; }
+        .td-hora { color: var(--text-muted); font-size: 0.85rem; }
+        .td-motivo { color: var(--text-muted); max-width: 170px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* ── BADGES DE ESTADO CON COLORES ── */
+        .badge { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.3rem 0.75rem; border-radius: 20px; font-size: 0.78rem; font-weight: 500; white-space: nowrap; }
+        .badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+        .badge-pendiente  { background: var(--yellow-bg);  color: var(--yellow);  border: 1px solid var(--yellow-border); }
+        .badge-pendiente::before  { background: #E6970A; animation: pulse 2s infinite; }
+        .badge-confirmada { background: var(--green-bg);   color: var(--green);   border: 1px solid var(--green-border); }
+        .badge-confirmada::before { background: #28A75A; }
+        .badge-cancelada  { background: var(--red-bg);     color: var(--red);     border: 1px solid var(--red-border); }
+        .badge-cancelada::before  { background: #D63B3B; }
+        .badge-completada { background: var(--blue-bg);    color: var(--blue);    border: 1px solid var(--blue-border); }
+        .badge-completada::before { background: #6366F1; }
+        /* soporte para "atendido" y "cancelado" del sistema legacy */
+        .badge-atendido   { background: var(--green-bg);   color: var(--green);   border: 1px solid var(--green-border); }
+        .badge-atendido::before   { background: #28A75A; }
+        .badge-cancelado  { background: var(--red-bg);     color: var(--red);     border: 1px solid var(--red-border); }
+        .badge-cancelado::before  { background: #D63B3B; }
+
+        .btn-accion { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.45rem 0.9rem; border-radius: 7px; background: var(--magenta-bg); color: var(--magenta-dark); text-decoration: none; font-size: 0.82rem; font-weight: 500; border: 1px solid var(--magenta-border); transition: all 0.2s; white-space: nowrap; }
+        .btn-accion:hover { background: var(--magenta); color: white; border-color: var(--magenta); }
+        .btn-accion svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+        .empty-state { padding: 4rem 2rem; text-align: center; }
+        .empty-icon { width: 56px; height: 56px; background: var(--magenta-bg); border-radius: 14px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem; }
+        .empty-icon svg { width: 26px; height: 26px; stroke: var(--magenta); fill: none; stroke-width: 1.6; }
+        .empty-state h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-weight: 600; color: var(--text); margin-bottom: 0.4rem; }
+        .empty-state p { color: var(--text-muted); font-size: 0.875rem; font-weight: 300; margin-bottom: 1.5rem; }
+
+        /* sin resultados inline */
+        .no-resultados { padding: 2.5rem; text-align: center; color: var(--text-muted); font-size: 0.875rem; }
+        .no-resultados svg { width: 32px; height: 32px; stroke: var(--magenta-border); fill: none; stroke-width: 1.5; margin-bottom: 0.75rem; display: block; margin-left: auto; margin-right: auto; }
+
+        /* ── MODAL ── */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(42,16,32,0.45); backdrop-filter: blur(3px); z-index: 9999; padding: 1.5rem; overflow-y: auto; }
+        .modal-overlay.visible { display: block; }
+        .modal { background: var(--white); border-radius: 20px; width: 100%; max-width: 580px; overflow: hidden; box-shadow: 0 24px 60px rgba(42,16,32,0.2); animation: modalIn 0.22s ease; margin: 2rem auto; position: relative; }
+
+        .modal-tira { height: 4px; }
+        .modal-tira.pendiente  { background: linear-gradient(90deg,#e8a000,#f5c842,#e8a000); background-size:200%; animation:shimmer 3s infinite linear; }
+        .modal-tira.confirmada { background: linear-gradient(90deg, var(--green), #2ecc71); }
+        .modal-tira.cancelada  { background: linear-gradient(90deg, var(--red), #e74c3c); }
+        .modal-tira.cancelado  { background: linear-gradient(90deg, var(--red), #e74c3c); }
+        .modal-tira.completada { background: linear-gradient(90deg, #3730a3, #6366f1); }
+        .modal-tira.atendido   { background: linear-gradient(90deg, var(--green), #2ecc71); }
+
+        .modal-header { padding: 1.5rem 1.75rem 1.25rem; display: flex; align-items: flex-start; gap: 1rem; border-bottom: 1px solid var(--magenta-border); }
+        .modal-fecha-bloque { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 70px; height: 70px; border-radius: 14px; flex-shrink: 0; }
+        .modal-fecha-bloque.pendiente  { background: var(--yellow-bg); border: 1.5px solid var(--yellow-border); }
+        .modal-fecha-bloque.confirmada { background: var(--green-bg);  border: 1.5px solid var(--green-border); }
+        .modal-fecha-bloque.cancelada  { background: var(--red-bg);    border: 1.5px solid var(--red-border); }
+        .modal-fecha-bloque.cancelado  { background: var(--red-bg);    border: 1.5px solid var(--red-border); }
+        .modal-fecha-bloque.completada { background: var(--blue-bg);   border: 1.5px solid var(--blue-border); }
+        .modal-fecha-bloque.atendido   { background: var(--green-bg);  border: 1.5px solid var(--green-border); }
+
+        .modal-dia  { font-family: 'Cormorant Garamond', serif; font-size: 1.9rem; font-weight: 700; line-height: 1; }
+        .modal-fecha-bloque.pendiente  .modal-dia  { color: #a06800; }
+        .modal-fecha-bloque.confirmada .modal-dia  { color: var(--green); }
+        .modal-fecha-bloque.cancelada  .modal-dia  { color: var(--red); }
+        .modal-fecha-bloque.cancelado  .modal-dia  { color: var(--red); }
+        .modal-fecha-bloque.completada .modal-dia  { color: #3730a3; }
+        .modal-fecha-bloque.atendido   .modal-dia  { color: var(--green); }
+        .modal-mes  { font-size: 0.64rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; }
+        .modal-fecha-bloque.pendiente  .modal-mes  { color: #a06800; }
+        .modal-fecha-bloque.confirmada .modal-mes  { color: var(--green); }
+        .modal-fecha-bloque.cancelada  .modal-mes  { color: var(--red); }
+        .modal-fecha-bloque.cancelado  .modal-mes  { color: var(--red); }
+        .modal-fecha-bloque.completada .modal-mes  { color: #3730a3; }
+        .modal-fecha-bloque.atendido   .modal-mes  { color: var(--green); }
+        .modal-anio { font-size: 0.62rem; color: var(--text-muted); margin-top: -0.1rem; }
+
+        .modal-header-info { flex: 1; min-width: 0; }
+        .modal-label  { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.3rem; }
+        .modal-motivo { font-family: 'Cormorant Garamond', serif; font-size: 1.45rem; font-weight: 600; color: var(--text); margin-bottom: 0.5rem; line-height: 1.2; }
+
+        .modal-badge { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.8rem; border-radius: 30px; font-size: 0.75rem; font-weight: 500; border: 1px solid; }
+        .modal-badge .bdot { width: 7px; height: 7px; border-radius: 50%; }
+        .modal-badge.pendiente  { background: var(--yellow-bg); color: var(--yellow); border-color: var(--yellow-border); }
+        .modal-badge.pendiente  .bdot { background: var(--yellow); animation: pulse 2s infinite; }
+        .modal-badge.confirmada { background: var(--green-bg);  color: var(--green);  border-color: var(--green-border); }
+        .modal-badge.confirmada .bdot { background: var(--green); }
+        .modal-badge.cancelada  { background: var(--red-bg);    color: var(--red);    border-color: var(--red-border); }
+        .modal-badge.cancelada  .bdot { background: var(--red); }
+        .modal-badge.cancelado  { background: var(--red-bg);    color: var(--red);    border-color: var(--red-border); }
+        .modal-badge.cancelado  .bdot { background: var(--red); }
+        .modal-badge.completada { background: var(--blue-bg);   color: var(--blue);   border-color: var(--blue-border); }
+        .modal-badge.completada .bdot { background: #6366f1; }
+        .modal-badge.atendido   { background: var(--green-bg);  color: var(--green);  border-color: var(--green-border); }
+        .modal-badge.atendido   .bdot { background: var(--green); }
+
+        .modal-close { background: var(--magenta-bg); border: 1px solid var(--magenta-border); border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: all 0.2s; }
+        .modal-close:hover { background: var(--magenta); border-color: var(--magenta); }
+        .modal-close:hover svg { stroke: white; }
+        .modal-close svg { width: 15px; height: 15px; stroke: var(--magenta); fill: none; stroke-width: 2.2; transition: stroke 0.2s; }
+
+        .modal-body { padding: 1.5rem 1.75rem; display: flex; flex-direction: column; gap: 1rem; }
+        .modal-fila { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .modal-item { background: var(--bg); border: 1px solid var(--magenta-border); border-radius: 12px; padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: 0.4rem; }
+        .modal-item-label { display: flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+        .modal-item-label svg { width: 13px; height: 13px; stroke: var(--magenta-light); fill: none; stroke-width: 2; }
+        .modal-item-valor { font-size: 0.95rem; font-weight: 500; color: var(--text); }
+
+        /* cedula en modal */
+        .modal-cedula { font-size: 0.8rem; color: var(--text-muted); font-weight: 400; margin-top: 0.15rem; }
+
+        .modal-footer { padding: 1rem 1.75rem 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; border-top: 1px solid var(--magenta-border); flex-wrap: wrap; }
+
+        .modal-btn-reprogramar { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.65rem 1.25rem; background: var(--magenta-bg); border: 1px solid var(--magenta-border); color: var(--magenta-dark); border-radius: 9px; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 500; text-decoration: none; transition: all 0.2s; }
+        .modal-btn-reprogramar:hover { background: var(--magenta); color: white; border-color: var(--magenta); }
+        .modal-btn-reprogramar svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+        /* ── BOTÓN PDF ── */
+        .modal-btn-pdf { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.65rem 1.25rem; background: #fff7f0; border: 1px solid #f5c8a0; color: #a04010; border-radius: 9px; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+        .modal-btn-pdf:hover { background: #a04010; color: white; border-color: #a04010; }
+        .modal-btn-pdf svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+        .modal-btn-cerrar { padding: 0.65rem 1.75rem; background: linear-gradient(135deg, var(--magenta-dark), var(--magenta-light)); color: white; border: none; border-radius: 9px; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; font-weight: 500; cursor: pointer; transition: opacity 0.2s; box-shadow: 0 4px 12px rgba(176,53,128,0.25); }
+        .modal-btn-cerrar:hover { opacity: 0.9; }
+
+        /* animaciones filas */
+        .fila-cita { animation: rowSlideIn 0.25s ease both; }
+
+        /* MOBILE TOPBAR */
+        .mobile-topbar{display:none;position:fixed;top:0;left:0;right:0;height:56px;background:linear-gradient(90deg,#8A2563,#B03580);align-items:center;justify-content:space-between;padding:0 1rem;z-index:300;}
+        .mobile-topbar-brand{display:flex;align-items:center;gap:.6rem;}
+        .mobile-topbar-brand img{width:32px;height:32px;border-radius:50%;object-fit:contain;background:white;padding:2px;}
+        .mobile-topbar-brand span{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;color:#fff;}
+        .hamburger{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;gap:5px;padding:4px;}
+        .hamburger span{display:block;width:22px;height:2px;background:#fff;border-radius:2px;transition:all .25s;}
+        .hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+        .hamburger.open span:nth-child(2){opacity:0;}
+        .hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+        .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:150;}
+        .sidebar-overlay.active{display:block;}
+        @media (max-width: 768px) {
+            .mobile-topbar{display:flex;}
+            .sidebar{transform:translateX(-100%);transition:transform .28s ease;top:56px;height:calc(100vh - 56px);}
+            .sidebar.open{transform:translateX(0);}
+            .main{margin-left:0;padding:1.25rem;padding-top:calc(56px + 1.25rem);height:auto;min-height:100vh;overflow-y:auto;}
+            body{overflow-y:auto;}
+            .modal-fila{grid-template-columns:1fr;}
+            .filtros-bar{flex-wrap:wrap;gap:.5rem;}
+            .filtro-input-wrap{min-width:0;flex:1 1 140px;}
+            .filtro-fecha,.filtro-select{flex:1 1 140px;min-width:0;}
+            .btn-nueva-cita{width:100%;justify-content:center;}
+            .tabs-container{flex-wrap:wrap;gap:.5rem;}
+            .tab-btn{flex:1;text-align:center;}
+        }
+        .badge-gen-estado{display:inline-flex;align-items:center;gap:.3rem;font-size:.75rem;font-weight:600;padding:.25rem .7rem;border-radius:999px;}
+        .badge-gen-pendiente{background:#fff8ed;color:#92600a;}
+        .badge-gen-atendido{background:#edfaf3;color:#1a7a4a;}
+        .badge-gen-cancelado,.badge-gen-cancelada,.badge-gen-completada{background:#fdf0f0;color:#b03030;}
+        .count-pill-gen{font-size:.8rem;color:var(--text-muted);background:var(--magenta-bg);padding:.3rem .8rem;border-radius:20px;border:1px solid var(--magenta-border);white-space:nowrap;}
+        .fila-cita-gen:hover td{background:var(--magenta-bg);}
+    </style>
+</head>
+<body>
+
+<div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<!-- MOBILE TOPBAR -->
+<div class="mobile-topbar">
+    <div class="mobile-topbar-brand">
+        <img src="{% static 'img/Logo.png' %}" alt="Zumedical">
+        <span>Zumedical</span>
+    </div>
+    <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
+        <span></span><span></span><span></span>
+    </button>
+</div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+    <div class="sb-brand">
+        <div class="sb-logo"><img src="{% static 'img/Logo.png' %}" alt="Zumedical"></div>
+        <div class="sb-brand-text"><h2>Zumedical</h2><span>Secretaría</span></div>
+    </div>
+    <a href="{% url 'perfil_secretaria' %}" class="sb-user">
+        <div class="sb-avatar">{% if request.user.first_name %}{{ request.user.first_name|slice:":1" }}{{ request.user.last_name|slice:":1" }}{% else %}{{ request.user.username|slice:":1"|upper }}{% endif %}</div>
+        <div class="sb-user-info">
+            <p>Mi perfil</p>
+            <h3>{{ request.user.get_full_name|default:request.user.username }}</h3>
+        </div>
+        <div class="sb-user-chevron">
+            <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+    </a>
+    <nav class="sb-nav">
+        <div class="nav-lbl">Menú</div>
+        <a href="{% url 'secretaria_dashboard' %}" class="nav-item">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+            Inicio
+        </a>
+        <a href="{% url 'lista_pacientes_secretaria' %}" class="nav-item">
+            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Ver Pacientes
+        </a>
+        <a href="{% url 'agendar_cita_secretaria' %}" class="nav-item">
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>
+            Agendar Cita
+        </a>
+        <a href="{% url 'citas_secretaria' %}" class="nav-item active">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            Ver Citas
+        </a>
+    </nav>
+    <div class="sb-footer">
+        <a href="{% url 'logout' %}" class="btn-logout">
+            <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Cerrar sesión
+        </a>
+    </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+    <div class="page-header">
+        <div>
+            <h1>Citas registradas</h1>
+            <p>Consulta y gestiona todas las citas del centro médico</p>
+        </div>
+        <a href="{% url 'agendar_cita_secretaria' %}" class="btn-nueva-cita">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nueva cita
+        </a>
+    </div>
+
+    <!-- TABS PRENATALES / GENERALES -->
+    <div style="display:flex;gap:.6rem;margin-bottom:1.5rem;flex-wrap:wrap;">
+        <button onclick="showTabCitas('prenatal')" id="tab-citas-prenatal"
+            style="padding:.6rem 1.35rem;border-radius:10px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;background:linear-gradient(135deg,#8A2563,#CC4D99);color:white;box-shadow:0 4px 12px rgba(176,53,128,.25);display:inline-flex;align-items:center;gap:.45rem;transition:all .2s;">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            Prenatales <span style="background:rgba(255,255,255,.25);padding:.1rem .5rem;border-radius:999px;font-size:.75rem;">{{ total_prenatales }}</span>
+        </button>
+        <button onclick="showTabCitas('general')" id="tab-citas-general"
+            style="padding:.6rem 1.35rem;border-radius:10px;border:1.5px solid var(--magenta-border);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:500;background:white;color:var(--text-muted);display:inline-flex;align-items:center;gap:.45rem;transition:all .2s;">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Generales <span style="background:rgba(0,0,0,.06);padding:.1rem .5rem;border-radius:999px;font-size:.75rem;">{{ total_generales }}</span>
+        </button>
+    </div>
+
+    <!-- PANEL PRENATALES -->
+    <div id="panel-citas-prenatal">
+        
+    {% if citas_prenatales %}
+
+    <!-- BARRA DE FILTROS -->
+    <div class="filtros-bar">
+        <div class="filtro-ico">
+            <svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+        </div>
+        <div class="filtro-input-wrap">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" class="filtro-input" id="filtro-nombre" placeholder="Buscar paciente…">
+        </div>
+        <div class="filtro-input-wrap" style="max-width:190px">
+            <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            <input type="text" class="filtro-input" id="filtro-cedula" placeholder="Buscar por cédula…">
+        </div>
+        <input type="date" class="filtro-fecha" id="filtro-fecha" title="Filtrar por fecha">
+        <select class="filtro-select" id="filtro-estado">
+            <option value="">Todos los estados</option>
+            <option value="pendiente">Pendiente</option>
+            <option value="atendido">Atendido</option>
+            <option value="cancelada">Cancelada</option>
+        </select>
+        <button class="btn-limpiar" id="btn-limpiar">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Limpiar
+        </button>
+    </div>
+
+    <!-- CONTADOR -->
+    <div class="resultados-info" id="resultados-info">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Mostrando <strong id="cnt-visible">0</strong> citas
+    </div>
+
+    <!-- CONTENEDOR DE GRUPOS POR MES -->
+    <div id="grupos-container">
+        {% regroup citas_prenatales by fecha|date:"Y-m" as citas_por_mes %}
+        {% for grupo in citas_por_mes %}
+        <div class="mes-grupo" data-mes-grupo="{{ grupo.grouper }}">
+            <div class="mes-titulo">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>
+                <span class="mes-nombre mes-es" data-ym="{{ grupo.grouper }}">{{ grupo.grouper }}</span>
+                <span class="mes-count">{{ grupo.list|length }} cita{{ grupo.list|length|pluralize:",s" }}</span>
+            </div>
+            <div class="table-card">
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Paciente</th>
+                                <th>Fecha</th>
+                                <th>Hora</th>
+                                <th>Motivo</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cita in grupo.list %}
+                            <tr class="fila-cita"
+                                data-delay="{{ forloop.counter0 }}"
+                                data-estado="{{ cita.estado }}"
+                                data-paciente="{{ cita.paciente.get_full_name|default:cita.paciente.username }}"
+                                data-cedula="{{ cita.paciente.paciente.cedula|default:'' }}"
+                                data-medico="{{ cita.medico.get_full_name|default:cita.medico.username }}"
+                                data-fecha="{{ cita.fecha }}"
+                                data-fecha-iso="{{ cita.fecha|date:'Y-m-d' }}"
+                                data-dia="{{ cita.fecha|date:'d' }}"
+                                data-mes="{{ cita.fecha|date:'M' }}"
+                                data-anio="{{ cita.fecha|date:'Y' }}"
+                                data-hora="{{ cita.hora }}"
+                                data-motivo="{{ cita.motivo }}"
+                                data-id="{{ cita.id }}"
+                                data-reprogramar="{% url 'reprogramar_cita' cita.id %}">
+                                <td>
+                                    <div class="td-paciente">
+                                        <div class="avatar">{{ cita.paciente.first_name|slice:":1" }}{{ cita.paciente.last_name|slice:":1" }}</div>
+                                        <div class="td-paciente-info">
+                                            <span class="td-paciente-nombre">{{ cita.paciente.get_full_name|default:cita.paciente.username }}</span>
+                                            <span class="td-paciente-cedula">{{ cita.paciente.paciente.cedula }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="td-fecha">{{ cita.fecha|date:"d/m/Y" }}</td>
+                                <td class="td-hora">{{ cita.hora|time:"H:i" }}</td>
+                                <td class="td-motivo" title="{{ cita.motivo }}">{{ cita.motivo }}</td>
+                                <td>
+                                    {% if cita.estado == "pendiente" %}
+                                        <span class="badge badge-pendiente">Pendiente</span>
+                                    {% elif cita.estado == "confirmada" %}
+                                        <span class="badge badge-confirmada">Confirmada</span>
+                                    {% elif cita.estado == "cancelada" or cita.estado == "cancelado" %}
+                                        <span class="badge badge-cancelada">Cancelada</span>
+                                    {% elif cita.estado == "completada" %}
+                                        <span class="badge badge-completada">Completada</span>
+                                    {% elif cita.estado == "atendido" %}
+                                        <span class="badge badge-atendido">Atendido</span>
+                                    {% else %}
+                                        <span class="badge badge-pendiente">{{ cita.estado }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'reprogramar_cita' cita.id %}" class="btn-accion" onclick="event.stopPropagation()">
+                                        <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                        Reprogramar
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div id="no-resultados" style="display:none;" class="table-card">
+        <div class="no-resultados">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+            No se encontraron citas con los filtros aplicados.
+        </div>
+    </div>
+
+    {% else %}
+    <div class="table-card">
+        <div class="empty-state">
+            <div class="empty-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+            <h3>Sin citas prenatales</h3>
+            <p>No hay citas de pacientes prenatales registradas.</p>
+        </div>
+    </div>
+    {% endif %}
+    </div>
+
+    <!-- PANEL GENERALES -->
+    <div id="panel-citas-general" style="display:none;">
+    {% if citas_generales %}
+
+    <!-- BARRA DE FILTROS GENERAL -->
+    <div class="filtros-bar" style="margin-bottom:1rem;">
+        <div class="filtro-ico">
+            <svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+        </div>
+        <div class="filtro-input-wrap">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" class="filtro-input" id="filtro-gen-nombre" placeholder="Buscar paciente…">
+        </div>
+        <div class="filtro-input-wrap" style="max-width:190px">
+            <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            <input type="text" class="filtro-input" id="filtro-gen-cedula" placeholder="Buscar por cédula…">
+        </div>
+        <input type="date" class="filtro-fecha" id="filtro-gen-fecha" title="Filtrar por fecha">
+        <select class="filtro-select" id="filtro-gen-estado">
+            <option value="">Todos los estados</option>
+            <option value="pendiente">Pendiente</option>
+            <option value="atendido">Atendido</option>
+            <option value="cancelada">Cancelada</option>
+        </select>
+        <button class="btn-limpiar" id="btn-limpiar-gen">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Limpiar
+        </button>
+    </div>
+
+    <!-- CONTADOR GENERALES -->
+    <div class="resultados-info" id="resultados-info-gen">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Mostrando <strong id="cnt-visible-gen">0</strong> citas
+    </div>
+
+    <!-- GRUPOS POR MES GENERAL -->
+    <div id="grupos-generales">
+        {% regroup citas_generales by fecha|date:"Y-m" as generales_por_mes %}
+        {% for grupo in generales_por_mes %}
+        <div class="mes-grupo" id="gen-mes-{{ forloop.counter }}">
+            <div class="mes-encabezado">
+                <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <span class="mes-nombre mes-es" data-ym="{{ grupo.grouper }}">{{ grupo.grouper }}</span>
+                <span class="mes-badge">{{ grupo.list|length }} cita{{ grupo.list|length|pluralize:"s" }}</span>
+            </div>
+            <div class="table-card" style="margin-bottom:0;border-top:none;border-radius:0 0 14px 14px;">
+                <div style="overflow-x:auto;">
+                <table style="width:100%;border-collapse:collapse;min-width:560px;">
+                    <thead>
+                        <tr style="background:var(--magenta-bg);">
+                            <th style="padding:.75rem 1.25rem;text-align:left;font-size:.72rem;font-weight:600;color:var(--magenta-dark);text-transform:uppercase;letter-spacing:.08em;">Paciente</th>
+                            <th style="padding:.75rem 1.25rem;text-align:left;font-size:.72rem;font-weight:600;color:var(--magenta-dark);text-transform:uppercase;letter-spacing:.08em;">Médico</th>
+                            <th style="padding:.75rem 1.25rem;text-align:left;font-size:.72rem;font-weight:600;color:var(--magenta-dark);text-transform:uppercase;letter-spacing:.08em;">Especialidad</th>
+                            <th style="padding:.75rem 1.25rem;text-align:left;font-size:.72rem;font-weight:600;color:var(--magenta-dark);text-transform:uppercase;letter-spacing:.08em;">Fecha</th>
+                            <th style="padding:.75rem 1.25rem;text-align:left;font-size:.72rem;font-weight:600;color:var(--magenta-dark);text-transform:uppercase;letter-spacing:.08em;">Hora</th>
+                            <th style="padding:.75rem 1.25rem;text-align:left;font-size:.72rem;font-weight:600;color:var(--magenta-dark);text-transform:uppercase;letter-spacing:.08em;">Estado</th>
+                            <th style="padding:.75rem 1.25rem;text-align:left;font-size:.72rem;font-weight:600;color:var(--magenta-dark);text-transform:uppercase;letter-spacing:.08em;">Acciones</th>
+                    </thead>
+                    <tbody>
+                    {% for cita in grupo.list %}
+                    <tr class="fila-general fila-cita-gen" data-nombre="{{ cita.paciente.get_full_name|lower }}"
+                        data-id="{{ cita.id }}"
+                        data-motivo="{{ cita.motivo|default:"Sin motivo"|escapejs }}"
+                        data-estado="{{ cita.estado }}"
+                        data-fecha="{{ cita.fecha|date:"d/m/Y" }}"
+                        data-dia="{{ cita.fecha|date:"d" }}"
+                        data-mes="{{ cita.fecha|date:"M" }}"
+                        data-anio="{{ cita.fecha|date:"Y" }}"
+                        data-hora="{{ cita.hora|time:"H:i" }}"
+                        data-paciente="{{ cita.paciente.get_full_name|default:cita.paciente.username|escapejs }}"
+                        data-cedula="{{ cita.paciente.paciente.cedula|default:"Sin datos" }}"
+                        data-medico="{{ cita.medico.get_full_name|default:cita.medico.username|escapejs }}"
+                        data-especialidad="{{ cita.especialidad|default:"—" }}"
+                        data-reprogramar="{{ cita.id }}"
+                        style="border-top:1px solid rgba(232,170,212,.3);cursor:pointer;transition:background .15s;">
+                        <td style="padding:.9rem 1.25rem;font-size:.88rem;">
+                            <strong>{{ cita.paciente.get_full_name|default:cita.paciente.username }}</strong>
+                        </td>
+                        <td style="padding:.9rem 1.25rem;font-size:.88rem;color:var(--text-muted);">
+                            {{ cita.medico.get_full_name|default:cita.medico.username }}
+                        </td>
+                        <td style="padding:.9rem 1.25rem;font-size:.88rem;color:var(--text-muted);">
+                            {{ cita.especialidad|default:"—" }}
+                        </td>
+                        <td style="padding:.9rem 1.25rem;font-size:.88rem;">{{ cita.fecha|date:"d/m/Y" }}</td>
+                        <td style="padding:.9rem 1.25rem;font-size:.88rem;">{{ cita.hora|time:"H:i" }}</td>
+                        <td style="padding:.9rem 1.25rem;">
+                            <span class="badge-gen-estado badge-gen-{{ cita.estado }}">
+                                {{ cita.get_estado_display|default:cita.estado }}
+                            </span>
+                        </td>
+                        <td style="padding:.9rem 1.25rem;" onclick="event.stopPropagation()">
+                            <a href="{% url 'reprogramar_cita' cita.id %}" class="btn-accion">
+                                <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                Reprogramar
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="table-card">
+        <div class="empty-state">
+            <div class="empty-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+            <h3>Sin citas generales</h3>
+            <p>No hay citas de pacientes generales registrados.</p>
+        </div>
+    </div>
+    {% endif %}
+    </div>
+</main>
+
+<!-- ── MODAL DETALLE CITA ── -->
+<div class="modal-overlay" id="modal-overlay">
+    <div class="modal" id="modal">
+        <div class="modal-tira" id="modal-tira"></div>
+        <div class="modal-header">
+            <div class="modal-fecha-bloque" id="modal-fecha-bloque">
+                <span class="modal-dia"  id="modal-dia"></span>
+                <span class="modal-mes"  id="modal-mes"></span>
+                <span class="modal-anio" id="modal-anio"></span>
+            </div>
+            <div class="modal-header-info">
+                <p class="modal-label">Detalle de la cita</p>
+                <p class="modal-motivo" id="modal-motivo"></p>
+                <span class="modal-badge" id="modal-badge"><span class="bdot"></span></span>
+            </div>
+            <button class="modal-close" id="modal-close-btn">
+                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+
+        <div class="modal-body">
+            <div class="modal-fila">
+                <div class="modal-item">
+                    <span class="modal-item-label">
+                        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        Fecha
+                    </span>
+                    <span class="modal-item-valor" id="modal-fecha-texto"></span>
+                </div>
+                <div class="modal-item">
+                    <span class="modal-item-label">
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        Hora
+                    </span>
+                    <span class="modal-item-valor" id="modal-hora"></span>
+                </div>
+            </div>
+            <div class="modal-fila">
+                <div class="modal-item">
+                    <span class="modal-item-label">
+                        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        Paciente
+                    </span>
+                    <span class="modal-item-valor" id="modal-paciente"></span>
+                    <span class="modal-cedula" id="modal-cedula"></span>
+                </div>
+                <div class="modal-item">
+                    <span class="modal-item-label">
+                        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg>
+                        Médico asignado
+                    </span>
+                    <span class="modal-item-valor" id="modal-medico"></span>
+                </div>
+            </div>
+            <div class="modal-fila">
+                <div class="modal-item">
+                    <span class="modal-item-label">
+                        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                        Estado
+                    </span>
+                    <span class="modal-item-valor" id="modal-estado-texto"></span>
+                </div>
+                <div class="modal-item">
+                    <span class="modal-item-label">
+                        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        Motivo de la consulta
+                    </span>
+                    <span class="modal-item-valor" id="modal-motivo-full"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <a href="#" class="modal-btn-reprogramar" id="modal-btn-reprogramar">
+                <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Reprogramar cita
+            </a>
+            <button class="modal-btn-pdf" id="modal-btn-pdf">
+                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
+                Descargar PDF
+            </button>
+            <button class="modal-btn-cerrar" id="modal-footer-btn">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    /* ── REFERENCIAS DOM ── */
+    const overlay      = document.getElementById('modal-overlay');
+    const cntVisible   = document.getElementById('cnt-visible');
+    const noResultados = document.getElementById('no-resultados');
+    const todasFilas   = Array.from(document.querySelectorAll('.fila-cita'));
+    const grupos       = Array.from(document.querySelectorAll('#grupos-container .mes-grupo'));
+
+    // Guard: si no hay panel prenatal activo, salir sin error
+    if (!cntVisible) return;
+
+    const estados = {
+        pendiente:  'Pendiente',
+        confirmada: 'Confirmada',
+        cancelada:  'Cancelada',
+        cancelado:  'Cancelado',
+        completada: 'Completada',
+        atendido:   'Atendido'
+    };
+
+    /* ── FILTROS ── */
+    const fNombre = document.getElementById('filtro-nombre');
+    const fCedula = document.getElementById('filtro-cedula');
+    const fFecha  = document.getElementById('filtro-fecha');
+    const fEstado = document.getElementById('filtro-estado');
+    const btnLimpiar = document.getElementById('btn-limpiar');
+
+    function aplicarFiltros() {
+        const nombre = fNombre.value.trim().toLowerCase();
+        const cedula = fCedula.value.trim().toLowerCase();
+        const fecha  = fFecha.value;          // YYYY-MM-DD
+        const estado = fEstado.value.toLowerCase();
+
+        let visibles = 0;
+
+        todasFilas.forEach(function(fila) {
+            const pNombre = (fila.dataset.paciente || '').toLowerCase();
+            const pCedula = (fila.dataset.cedula   || '').toLowerCase();
+            const pFecha  = fila.dataset.fechaIso  || '';
+            const pEstado = (fila.dataset.estado   || '').toLowerCase();
+
+            const okNombre = !nombre || pNombre.includes(nombre);
+            const okCedula = !cedula || pCedula.includes(cedula);
+            const okFecha  = !fecha  || pFecha === fecha;
+            // normalizar cancelado/cancelada para el filtro
+            const pEstadoNorm = pEstado === 'cancelado' ? 'cancelada' : pEstado;
+            const okEstado = !estado || pEstadoNorm === estado;
+
+            const mostrar = okNombre && okCedula && okFecha && okEstado;
+            fila.style.display = mostrar ? '' : 'none';
+            if (mostrar) visibles++;
+        });
+
+        cntVisible.textContent = visibles;
+
+        /* ocultar grupos vacíos */
+        grupos.forEach(function(grupo) {
+            const filasGrupo = grupo.querySelectorAll('.fila-cita');
+            const hayVisibles = Array.from(filasGrupo).some(function(f) { return f.style.display !== 'none'; });
+            grupo.style.display = hayVisibles ? '' : 'none';
+        });
+
+        noResultados.style.display = visibles === 0 ? '' : 'none';
+    }
+
+    // animation-delay por fila (evita inline style con Django que confunde al linter)
+    todasFilas.forEach(function(fila) {
+        var delay = (parseInt(fila.dataset.delay) || 0) * 80;
+        fila.style.animationDelay = delay + 'ms';
+    });
+
+    // conteo inicial
+    cntVisible.textContent = todasFilas.length;
+
+    fNombre.addEventListener('input',  aplicarFiltros);
+    fCedula.addEventListener('input',  aplicarFiltros);
+    fFecha.addEventListener('change',  aplicarFiltros);
+    fEstado.addEventListener('change', aplicarFiltros);
+
+    btnLimpiar.addEventListener('click', function() {
+        fNombre.value = '';
+        fCedula.value = '';
+        fFecha.value  = '';
+        fEstado.value = '';
+        aplicarFiltros();
+    });
+
+    /* ── MODAL ── */
+    todasFilas.forEach(function(fila) {
+        fila.addEventListener('click', function() { abrirModal(fila.dataset); });
+    });
+
+    document.getElementById('modal-close-btn').addEventListener('click', cerrarModal);
+    document.getElementById('modal-footer-btn').addEventListener('click', cerrarModal);
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) cerrarModal(); });
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') cerrarModal(); });
+
+    var citaActual = {};
+    window.citaActual = citaActual;
+
+    function abrirModal(d) {
+        citaActual = d;
+        window.citaActual = d;
+        var est = d.estado || 'pendiente';
+
+        document.getElementById('modal-tira').className        = 'modal-tira ' + est;
+        document.getElementById('modal-fecha-bloque').className = 'modal-fecha-bloque ' + est;
+        document.getElementById('modal-dia').textContent        = d.dia;
+        document.getElementById('modal-mes').textContent        = d.mes;
+        document.getElementById('modal-anio').textContent       = d.anio;
+        document.getElementById('modal-motivo').textContent     = d.motivo;
+
+        var badge = document.getElementById('modal-badge');
+        badge.className = 'modal-badge ' + est;
+        badge.innerHTML = '<span class="bdot"></span>' + (estados[est] || est);
+
+        document.getElementById('modal-fecha-texto').textContent  = d.fecha;
+        document.getElementById('modal-hora').textContent         = d.hora;
+        document.getElementById('modal-paciente').textContent     = d.paciente;
+        document.getElementById('modal-cedula').textContent       = d.cedula ? 'Cédula: ' + d.cedula : '';
+        document.getElementById('modal-medico').textContent       = 'Dr(a). ' + d.medico;
+        document.getElementById('modal-estado-texto').textContent = estados[est] || est;
+        document.getElementById('modal-motivo-full').textContent  = d.motivo;
+        document.getElementById('modal-btn-reprogramar').href     = d.reprogramar;
+
+        overlay.classList.add('visible');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function cerrarModal() {
+        overlay.classList.remove('visible');
+        document.body.style.overflow = '';
+    }
+
+    /* ── DESCARGAR PDF con jsPDF ── */
+    document.getElementById('modal-btn-pdf').addEventListener('click', function() {
+        var d = window.citaActual || citaActual;
+        var est = d.estado || 'pendiente';
+        var estadoLabel = estados[est] || est;
+
+        var colores = {
+            pendiente:  [146, 96,  10],
+            confirmada: [26,  122, 74],
+            cancelada:  [176, 48,  48],
+            cancelado:  [176, 48,  48],
+            completada: [26,  74,  138],
+            atendido:   [26,  122, 74]
+        };
+        var col = colores[est] || colores.pendiente;
+
+        // Cargar jsPDF dinámicamente si no está cargado
+        function generarPDF() {
+            var jsPDF = window.jspdf && window.jspdf.jsPDF;
+            if (!jsPDF) { alert('Error al cargar jsPDF'); return; }
+
+            var doc = new jsPDF({ unit: 'mm', format: 'a4' });
+            var W = 210, pad = 18;
+
+            // Fondo header
+            doc.setFillColor(138, 37, 99);
+            doc.rect(0, 0, W, 28, 'F');
+
+            // Logo texto
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(18);
+            doc.setTextColor(255, 255, 255);
+            doc.text('Zumedical', pad, 13);
+
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(7.5);
+            doc.setTextColor(220, 180, 210);
+            doc.text('CENTRO MÉDICO — SECRETARÍA', pad, 19);
+
+            // Título derecha
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(8);
+            doc.setTextColor(255, 255, 255);
+            doc.text('COMPROBANTE DE CITA', W - pad, 13, { align: 'right' });
+
+            // Badge estado
+            doc.setFillColor(col[0], col[1], col[2]);
+            doc.roundedRect(W - pad - 28, 16, 28, 7, 3, 3, 'F');
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(7);
+            doc.setTextColor(255, 255, 255);
+            doc.text(estadoLabel.toUpperCase(), W - pad - 14, 21, { align: 'center' });
+
+            var y = 38;
+
+            // Sección: Información de la cita
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(11);
+            doc.setTextColor(138, 37, 99);
+            doc.setFillColor(204, 77, 153);
+            doc.rect(pad, y - 4, 3, 6, 'F');
+            doc.text('Información de la cita', pad + 6, y);
+            y += 6;
+
+            // Grid 2x2 info
+            var items1 = [
+                ['FECHA', d.fecha || ''],
+                ['HORA',  d.hora  || ''],
+                ['MOTIVO', d.motivo || ''],
+                ['ESTADO', estadoLabel]
+            ];
+            var colW = (W - pad*2 - 6) / 2;
+            var rowH = 18;
+            for (var i = 0; i < items1.length; i++) {
+                var cx = pad + (i % 2) * (colW + 6);
+                var cy = y + Math.floor(i / 2) * (rowH + 4);
+                doc.setFillColor(253, 245, 250);
+                doc.setDrawColor(232, 170, 212);
+                doc.roundedRect(cx, cy, colW, rowH, 3, 3, 'FD');
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(6.5);
+                doc.setTextColor(138, 96, 112);
+                doc.text(items1[i][0], cx + 5, cy + 6);
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(9.5);
+                doc.setTextColor(42, 16, 32);
+                doc.text(String(items1[i][1]), cx + 5, cy + 13);
+            }
+            y += 2 * (rowH + 4) + 8;
+
+            // Sección: Paciente
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(11);
+            doc.setTextColor(138, 37, 99);
+            doc.setFillColor(204, 77, 153);
+            doc.rect(pad, y - 4, 3, 6, 'F');
+            doc.text('Paciente', pad + 6, y);
+            y += 6;
+
+            // Card paciente
+            doc.setFillColor(253, 245, 250);
+            doc.setDrawColor(232, 170, 212);
+            doc.roundedRect(pad, y, colW, 22, 3, 3, 'FD');
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(6.5);
+            doc.setTextColor(138, 96, 112);
+            doc.text('NOMBRE COMPLETO', pad + 5, y + 7);
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(9.5);
+            doc.setTextColor(42, 16, 32);
+            doc.text(String(d.paciente || ''), pad + 5, y + 14);
+            if (d.cedula) {
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(8);
+                doc.setTextColor(138, 96, 112);
+                doc.text('Cédula: ' + d.cedula, pad + 5, y + 20);
+            }
+
+            // Card médico
+            var cx2 = pad + colW + 6;
+            doc.setFillColor(253, 245, 250);
+            doc.setDrawColor(232, 170, 212);
+            doc.roundedRect(cx2, y, colW, 22, 3, 3, 'FD');
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(6.5);
+            doc.setTextColor(138, 96, 112);
+            doc.text('MÉDICO ASIGNADO', cx2 + 5, y + 7);
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(9.5);
+            doc.setTextColor(42, 16, 32);
+            doc.text('Dr(a). ' + String(d.medico || ''), cx2 + 5, y + 14);
+            y += 30;
+
+            // Pie de página
+            doc.setDrawColor(232, 170, 212);
+            doc.setLineWidth(0.4);
+            doc.line(pad, y, W - pad, y);
+            y += 5;
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(7.5);
+            doc.setTextColor(138, 96, 112);
+            var hoy = new Date().toLocaleDateString('es-EC', { year: 'numeric', month: 'long', day: 'numeric' });
+            doc.text('Zumedical — Centro Médico', pad, y);
+            doc.text('Generado el ' + hoy, W - pad, y, { align: 'right' });
+
+            var nombre_archivo = 'cita_' + (d.paciente || 'paciente').replace(/\s+/g, '_') + '_' + (d.fecha || '').replace(/\s+/g, '_') + '.pdf';
+            doc.save(nombre_archivo);
+        }
+
+        if (window.jspdf && window.jspdf.jsPDF) {
+            generarPDF();
+        } else {
+            var script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+            script.onload = generarPDF;
+            document.head.appendChild(script);
+        }
+    });
+
+});
+</script>
+
+<script>
+function showTabCitas(tipo) {
+    const esPrenatal = tipo === 'prenatal';
+    const panelPre = document.getElementById('panel-citas-prenatal');
+    const panelGen = document.getElementById('panel-citas-general');
+    const main = document.querySelector('.main');
+
+    if (esPrenatal) {
+        panelPre.style.display = '';
+        panelGen.style.display = 'none';
+    } else {
+        panelPre.style.display = 'none';
+        panelGen.style.display = '';
+    }
+
+    if (main) main.scrollTop = 0;
+
+    const tabP = document.getElementById('tab-citas-prenatal');
+    const tabG = document.getElementById('tab-citas-general');
+    if (esPrenatal) {
+        tabP.style.background = 'linear-gradient(135deg,#8A2563,#CC4D99)';
+        tabP.style.color = 'white'; tabP.style.border = 'none';
+        tabG.style.background = 'white'; tabG.style.color = 'var(--text-muted)';
+        tabG.style.border = '1.5px solid var(--magenta-border)';
+    } else {
+        tabG.style.background = 'linear-gradient(135deg,#5b3a8a,#7c6fc4)';
+        tabG.style.color = 'white'; tabG.style.border = 'none';
+        tabP.style.background = 'white'; tabP.style.color = 'var(--text-muted)';
+        tabP.style.border = '1.5px solid var(--magenta-border)';
+    }
+}
+
+// Modal para citas GENERALES y filtros — se ejecuta cuando el DOM está listo
+document.addEventListener('DOMContentLoaded', function() {
+
+    var overlay = document.getElementById('modal-overlay');
+    var labels = {pendiente:'Pendiente',atendido:'Atendido',confirmada:'Confirmada',cancelada:'Cancelada',cancelado:'Cancelado',completada:'Completada'};
+
+    // ── MODAL GENERALES ──
+    function abrirModalGen(row) {
+        if (!overlay) return;
+        var d = row.dataset;
+        var est = d.estado || 'pendiente';
+
+        window.citaActual = {
+            dia: d.dia||'', mes: d.mes||'', anio: d.anio||'',
+            fecha: d.fecha||'', hora: d.hora||'',
+            motivo: d.motivo||'Sin motivo',
+            paciente: d.paciente||'', cedula: d.cedula||'',
+            medico: d.medico||'', especialidad: d.especialidad||'',
+            estado: est, reprogramar: d.reprogramar||'#',
+        };
+
+        document.getElementById('modal-dia').textContent         = d.dia  || '';
+        document.getElementById('modal-mes').textContent         = d.mes  || '';
+        document.getElementById('modal-anio').textContent        = d.anio || '';
+        document.getElementById('modal-motivo').textContent      = d.motivo || 'Sin motivo';
+        document.getElementById('modal-fecha-texto').textContent = d.fecha || '';
+        document.getElementById('modal-hora').textContent        = d.hora  || '';
+        document.getElementById('modal-paciente').textContent    = d.paciente || '';
+        var cedEl = document.getElementById('modal-cedula');
+        if (cedEl) cedEl.textContent = d.cedula ? 'Cédula: ' + d.cedula : '';
+        document.getElementById('modal-medico').textContent      = 'Dr(a). ' + (d.medico || '');
+        document.getElementById('modal-estado-texto').textContent = labels[est] || est;
+        document.getElementById('modal-motivo-full').textContent  = d.motivo || 'Sin motivo';
+        var espEl = document.getElementById('modal-especialidad');
+        if (espEl) espEl.textContent = d.especialidad || '-';
+
+        var tira   = document.getElementById('modal-tira');
+        var bloque = document.getElementById('modal-fecha-bloque');
+        if (tira)   tira.className   = 'modal-tira ' + est;
+        if (bloque) bloque.className = 'modal-fecha-bloque ' + est;
+
+        var badge = document.getElementById('modal-badge');
+        if (badge) {
+            badge.className = 'modal-badge ' + est;
+            badge.innerHTML = '<span class="bdot"></span> ' + (labels[est] || est);
+        }
+
+        var repBtn = document.getElementById('modal-btn-reprogramar');
+        if (repBtn && d.reprogramar) repBtn.href = d.reprogramar;
+
+        overlay.classList.add('visible');
+        document.body.style.overflow = 'hidden';
+    }
+
+    document.querySelectorAll('.fila-cita-gen').forEach(function(row) {
+        row.addEventListener('click', function() { abrirModalGen(row); });
+    });
+
+    // ── FILTROS PANEL GENERAL ──
+    var filasGen  = Array.from(document.querySelectorAll('.fila-cita-gen'));
+    var gruposGen = Array.from(document.querySelectorAll('#grupos-generales .mes-grupo'));
+    var cntGen    = document.getElementById('cnt-visible-gen');
+    var fGNombre  = document.getElementById('filtro-gen-nombre');
+    var fGCedula  = document.getElementById('filtro-gen-cedula');
+    var fGFecha   = document.getElementById('filtro-gen-fecha');
+    var fGEstado  = document.getElementById('filtro-gen-estado');
+    var btnLimGen = document.getElementById('btn-limpiar-gen');
+
+    if (cntGen) cntGen.textContent = filasGen.length;
+
+    if (fGNombre) {
+        function aplicarFiltrosGen() {
+            var nombre = fGNombre.value.trim().toLowerCase();
+            var cedula = fGCedula.value.trim().toLowerCase();
+            var fecha  = fGFecha.value;
+            var estado = fGEstado.value.toLowerCase();
+            var visibles = 0;
+
+            filasGen.forEach(function(fila) {
+                var pNombre = (fila.dataset.paciente || '').toLowerCase();
+                var pCedula = (fila.dataset.cedula   || '').toLowerCase();
+                var pFecha  = fila.dataset.fecha || '';
+                var pEstado = (fila.dataset.estado || '').toLowerCase();
+                var fechaIso = '';
+                if (pFecha) {
+                    var pts = pFecha.split('/');
+                    if (pts.length === 3) fechaIso = pts[2] + '-' + pts[1] + '-' + pts[0];
+                }
+                var okN = !nombre || pNombre.includes(nombre);
+                var okC = !cedula || pCedula.includes(cedula);
+                var okF = !fecha  || fechaIso === fecha;
+                var pEN = pEstado === 'cancelado' ? 'cancelada' : pEstado;
+                var okE = !estado || pEN === estado;
+                var show = okN && okC && okF && okE;
+                fila.style.display = show ? '' : 'none';
+                if (show) visibles++;
+            });
+
+            if (cntGen) cntGen.textContent = visibles;
+            gruposGen.forEach(function(g) {
+                var hay = Array.from(g.querySelectorAll('.fila-cita-gen')).some(function(f) {
+                    return f.style.display !== 'none';
+                });
+                g.style.display = hay ? '' : 'none';
+            });
+        }
+
+        fGNombre.addEventListener('input',  aplicarFiltrosGen);
+        fGCedula.addEventListener('input',  aplicarFiltrosGen);
+        fGFecha.addEventListener('change',  aplicarFiltrosGen);
+        fGEstado.addEventListener('change', aplicarFiltrosGen);
+        btnLimGen.addEventListener('click', function() {
+            fGNombre.value = fGCedula.value = fGFecha.value = fGEstado.value = '';
+            aplicarFiltrosGen();
+        });
+    }
+
+});
+</script>
+
+<script>
+    function toggleSidebar() {
+        var s = document.getElementById('sidebar');
+        var o = document.getElementById('overlay');
+        var h = document.getElementById('hamburger');
+        if(s) s.classList.toggle('open');
+        if(o) o.classList.toggle('active');
+        if(h) h.classList.toggle('open');
+    }
+    function closeSidebar() {
+        var s = document.getElementById('sidebar');
+        var o = document.getElementById('overlay');
+        var h = document.getElementById('hamburger');
+        if(s) s.classList.remove('open');
+        if(o) o.classList.remove('active');
+        if(h) h.classList.remove('open');
+    }
+
+// ── MESES EN ESPAÑOL ──
+const MESES_ES = {
+    '01':'Enero','02':'Febrero','03':'Marzo','04':'Abril',
+    '05':'Mayo','06':'Junio','07':'Julio','08':'Agosto',
+    '09':'Septiembre','10':'Octubre','11':'Noviembre','12':'Diciembre'
+};
+document.querySelectorAll('.mes-es').forEach(function(el) {
+    var ym = el.dataset.ym;
+    if(ym) {
+        var p = ym.split('-');
+        if(p.length === 2) el.textContent = (MESES_ES[p[1]] || ym) + ' ' + p[0];
+    }
+});
+</script>
+</body>
+</html>

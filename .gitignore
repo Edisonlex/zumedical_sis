@@ -1,0 +1,102 @@
+# ============================================================
+# ZUMedical — Sistema Prenatal
+# .gitignore para subir a GitHub
+# ============================================================
+
+
+# ── SECRETOS Y ENTORNO ───────────────────────────────────────
+# NUNCA subir credenciales ni variables de entorno
+.env
+.env.*
+!.env.example
+
+
+# ── BASE DE DATOS ─────────────────────────────────────────────
+*.sqlite3
+*.db
+
+
+# ── BACKUPS ───────────────────────────────────────────────────
+backup_*.json
+*.backup
+*.dump
+
+
+# ── PYTHON ────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Distribución / empaquetado
+dist/
+build/
+*.egg-info/
+*.egg
+MANIFEST
+
+# Entornos virtuales
+venv/
+env/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Jupyter
+.ipynb_checkpoints
+
+
+# ── DJANGO ────────────────────────────────────────────────────
+# Archivos estáticos recolectados (se generan con collectstatic)
+staticfiles/
+static_root/
+
+# Archivos de media subidos por usuarios
+media/
+
+# Logs
+*.log
+logs/
+
+
+# ── MODELOS IA ────────────────────────────────────────────────
+# Descomenta si no quieres versionar los modelos entrenados (son grandes)
+# ai/model/*.pkl
+# ai/model/*.joblib
+
+
+# ── IDEs Y EDITORES ───────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+
+# ── SISTEMA OPERATIVO ─────────────────────────────────────────
+# Windows
+desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Linux
+*~

@@ -1,0 +1,577 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zumedical — Mi Perfil</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/sidebar_paciente.css' %}">
+    <style>
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        :root{
+            --mg:#B03580;--mg-l:#CC4D99;--mg-d:#8A2563;
+            --mg-bg:#FBF0F7;--mg-border:#E8AAD4;
+            --text:#2A1020;--muted:#8A6070;--white:#fff;--bg:#FDF5FA;
+            --sw:260px;
+            --green:#1a7a4a;--green-bg:#edfaf3;--green-border:#a8dfc0;
+            --red:#b03030;--red-bg:#fdf0f0;--red-border:#f0b8b8;
+        }
+        html,body{height:100%}
+        body{font-family:'DM Sans',sans-serif;background:var(--bg);display:flex;opacity:0;animation:fadeIn .4s ease .05s forwards}
+        @keyframes fadeIn{to{opacity:1}}
+        @keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+        /* ── SIDEBAR ── */
+        .sidebar{width:var(--sw);height:100vh;background:linear-gradient(175deg,#8A2563 0%,#B03580 55%,#CC4D99 100%);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:200;box-shadow:4px 0 24px rgba(138,37,99,.22);transition:transform .3s ease;overflow:hidden}
+        .sb-brand{padding:1.75rem 1.5rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:.75rem}
+        .sb-logo{width:42px;height:42px;background:white;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden}
+        .sb-logo img{width:38px;height:38px;object-fit:contain}
+        .sb-brand-text h2{font-family:'Cormorant Garamond',serif;font-size:1.35rem;font-weight:600;color:white;line-height:1}
+        .sb-brand-text span{font-size:.7rem;color:rgba(255,255,255,.65);letter-spacing:.1em;text-transform:uppercase}
+        .sb-user{padding:1rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:.7rem;text-decoration:none;transition:background .2s;cursor:pointer}
+        .sb-user:hover,.sb-user.active{background:rgba(255,255,255,.1)}
+        .sb-avatar{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:600;color:white;flex-shrink:0;text-transform:uppercase}
+        .sb-user-info p{font-size:.7rem;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.1rem}
+        .sb-user-info h3{font-size:.88rem;font-weight:500;color:white}
+        .sb-nav{flex:1;padding:1rem .75rem;overflow-y:auto}
+        .nav-lbl{font-size:.68rem;color:rgba(255,255,255,.45);letter-spacing:.1em;text-transform:uppercase;padding:.5rem .75rem;margin-top:.75rem}
+        .nav-item{display:flex;align-items:center;gap:.7rem;padding:.72rem 1rem;border-radius:10px;color:rgba(255,255,255,.82);text-decoration:none;font-size:.88rem;transition:all .2s;margin-bottom:.2rem}
+        .nav-item:hover,.nav-item.active{background:rgba(255,255,255,.18);color:white}
+        .nav-item i{width:18px;text-align:center;font-size:15px}
+        .nav-badge{margin-left:auto;background:#e74c3c;color:white;font-size:.68rem;font-weight:600;padding:.15rem .5rem;border-radius:999px;min-width:20px;text-align:center}
+        .sb-footer{padding:1rem .75rem;border-top:1px solid rgba(255,255,255,.12)}
+        .btn-logout{display:flex;align-items:center;gap:.7rem;padding:.72rem 1rem;border-radius:10px;color:rgba(255,255,255,.75);text-decoration:none;font-size:.88rem;transition:all .2s}
+        .btn-logout:hover{background:rgba(255,255,255,.15);color:white}
+
+        /* ── MOBILE TOPBAR ── */
+        .mobile-topbar{display:none;align-items:center;justify-content:space-between;padding:1rem 1.25rem;background:linear-gradient(135deg,#8A2563,#CC4D99);position:fixed;top:0;left:0;right:0;z-index:300}
+        .mobile-topbar-brand{display:flex;align-items:center;gap:.6rem}
+        .mobile-topbar-brand img{width:30px;height:30px;background:white;border-radius:50%;padding:2px;object-fit:contain}
+        .mobile-topbar-brand span{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;color:white}
+        .hamburger{background:rgba(255,255,255,.15);border:none;border-radius:8px;padding:.5rem .65rem;cursor:pointer;display:flex;flex-direction:column;gap:4px}
+        .hamburger span{display:block;width:20px;height:2px;background:white;border-radius:2px;transition:all .3s}
+        .hamburger.open span:nth-child(1){transform:translateY(6px) rotate(45deg)}
+        .hamburger.open span:nth-child(2){opacity:0}
+        .hamburger.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+        .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:150;opacity:0;pointer-events:none;transition:opacity .3s}
+        .sidebar-overlay.active{opacity:1;pointer-events:auto}
+
+        /* ── MAIN ── */
+        .main{margin-left:var(--sw);flex:1;padding:2.5rem;height:100vh;overflow-y:auto}
+
+        /* ── PAGE HEADER ── */
+        .page-header{margin-bottom:1.75rem;animation:slideUp .4s ease .05s both}
+        .page-header h1{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:600;color:var(--text);margin-bottom:.25rem}
+        .page-header p{color:var(--muted);font-size:.88rem}
+
+        /* ── PERFIL HERO ── */
+        .perfil-hero{background:var(--white);border:1px solid var(--mg-border);border-radius:16px;padding:1.5rem 1.75rem;display:flex;align-items:center;gap:1.25rem;margin-bottom:1.5rem;animation:slideUp .4s ease .1s both;position:relative;overflow:hidden}
+        .perfil-hero::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:linear-gradient(180deg,var(--mg-d),var(--mg-l))}
+        .perfil-avatar{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--mg-d),var(--mg-l));display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:600;color:white;flex-shrink:0;text-transform:uppercase}
+        .perfil-hero-info h2{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;color:var(--text);margin-bottom:.2rem}
+        .perfil-hero-info p{font-size:.85rem;color:var(--muted);margin-bottom:.4rem}
+        .perfil-tag{display:inline-flex;align-items:center;gap:.3rem;background:var(--mg-bg);color:var(--mg);font-size:.75rem;font-weight:600;padding:.25rem .75rem;border-radius:999px;border:1px solid var(--mg-border)}
+
+        /* ── TABS ── */
+        .tabs{display:flex;gap:0;border-bottom:2px solid var(--mg-border);margin-bottom:1.5rem;animation:slideUp .4s ease .15s both;overflow-x:auto;scrollbar-width:none}
+        .tabs::-webkit-scrollbar{display:none}
+        .tab{display:flex;align-items:center;gap:.45rem;padding:.75rem 1.25rem;font-size:.88rem;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:all .2s;background:none;border-top:none;border-left:none;border-right:none;font-family:'DM Sans',sans-serif}
+        .tab:hover{color:var(--mg)}
+        .tab.active{color:var(--mg);border-bottom-color:var(--mg);font-weight:500}
+        .tab i{font-size:13px}
+
+        /* ── FORM CARD ── */
+        .form-card{background:var(--white);border:1px solid var(--mg-border);border-radius:16px;overflow:hidden;animation:slideUp .4s ease .2s both;display:none}
+        .form-card.active{display:block}
+        .form-card-header{padding:1.25rem 1.5rem;border-bottom:1px solid var(--mg-border);display:flex;align-items:center;gap:.65rem}
+        .form-card-icon{width:32px;height:32px;background:var(--mg-bg);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--mg);font-size:13px}
+        .form-card-header h3{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:var(--text)}
+        .form-card-body{padding:1.5rem}
+
+        /* ── FORM FIELDS ── */
+        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+        .form-group{margin-bottom:1.1rem}
+        .form-label{display:flex;align-items:center;justify-content:space-between;font-size:.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.4rem}
+        .char-count{font-size:.7rem;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0}
+        .input-wrap{position:relative}
+        .input-wrap i.input-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;pointer-events:none;transition:color .2s}
+        .input-wrap i.input-status{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:13px;pointer-events:none}
+        .input-wrap i.toggle-pass{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:13px;cursor:pointer;color:var(--muted);transition:color .2s}
+        .form-control{width:100%;padding:.7rem 2.5rem .7rem 2.2rem;border:1.5px solid var(--mg-border);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:.9rem;color:var(--text);background:var(--bg);outline:none;transition:all .2s}
+        .form-control:focus{border-color:var(--mg);background:var(--white);box-shadow:0 0 0 3px rgba(176,53,128,.07)}
+        .form-control.valid{border-color:var(--green);background:var(--green-bg)}
+        .form-control.invalid{border-color:var(--red);background:var(--red-bg)}
+        .form-control:read-only{background:#f5f5f5;color:var(--muted);cursor:default}
+        .field-msg{font-size:.75rem;margin-top:.35rem;display:flex;align-items:center;gap:.3rem;min-height:1rem}
+        .field-msg.ok{color:var(--green)}
+        .field-msg.err{color:var(--red)}
+        .field-msg i{font-size:11px}
+
+        /* ── BARRA CONTRASEÑA ── */
+        .pass-strength{margin-top:.5rem}
+        .pass-bar{display:flex;gap:3px;margin-bottom:.35rem}
+        .pass-bar-seg{height:4px;flex:1;border-radius:999px;background:var(--mg-border);transition:background .3s}
+        .pass-reqs{display:flex;flex-direction:column;gap:.2rem}
+        .pass-req{font-size:.75rem;color:var(--muted);display:flex;align-items:center;gap:.4rem;transition:color .2s}
+        .pass-req i{font-size:10px;width:12px}
+        .pass-req.ok{color:var(--green)}
+        .pass-req.ok i::before{content:'\f00c'}
+        .pass-req:not(.ok) i::before{content:'\f111'}
+
+        /* ── ALERT ── */
+        .alert{border-radius:10px;padding:.85rem 1.1rem;margin-bottom:1.25rem;font-size:.88rem;display:flex;align-items:center;gap:.6rem}
+        .alert-success{background:var(--green-bg);border:1px solid var(--green-border);color:var(--green)}
+        .alert-error{background:var(--red-bg);border:1px solid var(--red-border);color:var(--red)}
+
+        /* ── BTN ── */
+        .btn-submit{display:inline-flex;align-items:center;gap:.5rem;padding:.7rem 1.6rem;background:linear-gradient(135deg,var(--mg-d),var(--mg-l));color:white;border:none;border-radius:50px;font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;transition:all .2s;margin-top:.5rem}
+        .btn-submit:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(176,53,128,.35)}
+        .btn-submit:disabled{opacity:.55;pointer-events:none}
+
+        /* ── SEGURIDAD ── */
+        .sec-item{display:flex;align-items:center;gap:1rem;padding:1.1rem 1.5rem;border-bottom:1px solid rgba(232,170,212,.25)}
+        .sec-icon{width:36px;height:36px;background:var(--mg-bg);border-radius:9px;display:flex;align-items:center;justify-content:center;color:var(--mg);font-size:14px;flex-shrink:0}
+        .sec-info{flex:1;min-width:0}
+        .sec-info strong{display:block;font-size:.88rem;color:var(--text);font-weight:500;margin-bottom:.15rem}
+        .sec-info span{font-size:.78rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;max-width:300px}
+        .sec-badge{display:inline-flex;align-items:center;gap:.35rem;font-size:.75rem;font-weight:600;padding:.3rem .75rem;border-radius:999px;white-space:nowrap;flex-shrink:0}
+        .sec-ok{background:var(--green-bg);color:var(--green)}
+        .sec-warn{background:var(--amber-bg);color:var(--amber)}
+        .sec-mg{background:var(--mg-bg);color:var(--mg)}
+
+        /* ── RESPONSIVE ── */
+        @media(max-width:768px){
+            body{flex-direction:column}
+            .sidebar{position:fixed;top:64px;left:0;height:calc(100vh - 64px);transform:translateX(-100%);z-index:250}
+            .sidebar.open{transform:translateX(0)}
+            .sidebar-overlay{display:block;z-index:200}
+            .mobile-topbar{display:flex}
+            .main{margin-left:0;padding:1.1rem;padding-top:calc(1.1rem + 64px);height:auto;overflow-y:visible}
+            .form-row{grid-template-columns:1fr}
+            .perfil-hero{flex-direction:column;text-align:center}
+            .page-header h1{font-size:1.65rem}
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<div class="mobile-topbar">
+    <div class="mobile-topbar-brand">
+        <img src="{% static 'img/Logo.png' %}" alt="Zumedical">
+        <span>Zumedical</span>
+    </div>
+    <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
+        <span></span><span></span><span></span>
+    </button>
+</div>
+
+<aside class="sidebar" id="sidebar">
+    <div class="sb-brand">
+        <div class="sb-logo"><img src="{% static 'img/Logo.png' %}" alt="Zumedical"></div>
+        <div class="sb-brand-text"><h2>Zumedical</h2><span>Paciente</span></div>
+    </div>
+    <a href="{% url 'paciente_general_perfil' %}" class="sb-user active">
+        <div class="sb-avatar">{{ user.first_name|first }}{{ user.last_name|first }}</div>
+        <div class="sb-user-info">
+            <p>Mi perfil</p>
+            <h3>{{ user.first_name }} {{ user.last_name }}</h3>
+        </div>
+    </a>
+    <nav class="sb-nav">
+        <div class="nav-lbl">Menú</div>
+        <a href="{% url 'paciente_general_dashboard' %}" class="nav-item">
+            <i class="fa-solid fa-house"></i> Inicio
+        </a>
+        <a href="{% url 'paciente_general_agendar' %}" class="nav-item">
+            <i class="fa-regular fa-calendar-plus"></i> Agendar Cita
+        </a>
+        <a href="{% url 'paciente_general_citas' %}" class="nav-item">
+            <i class="fa-regular fa-calendar-check"></i> Mis Citas
+            {% if citas_pendientes %}<span class="nav-badge">{{ citas_pendientes }}</span>{% endif %}
+        </a>
+    </nav>
+    <div class="sb-footer">
+        <a href="{% url 'logout' %}" class="btn-logout">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar sesión
+        </a>
+    </div>
+</aside>
+
+<main class="main">
+
+    <div class="page-header">
+        <h1>Mi Perfil</h1>
+        <p>Administra tu información personal y seguridad de cuenta</p>
+    </div>
+
+    <div class="perfil-hero">
+        <div class="perfil-avatar" id="hero-avatar">{{ user.first_name|first }}{{ user.last_name|first }}</div>
+        <div class="perfil-hero-info">
+            <h2 id="hero-nombre">{{ user.first_name }} {{ user.last_name }}</h2>
+            <p>{{ user.email }}</p>
+            <span class="perfil-tag"><i class="fa-solid fa-user"></i> Paciente</span>
+        </div>
+    </div>
+
+    {% if messages %}
+    {% for msg in messages %}
+    <div class="alert alert-success"><i class="fa-solid fa-circle-check"></i> {{ msg }}</div>
+    {% endfor %}
+    {% endif %}
+
+    <div class="tabs">
+        <button class="tab active" onclick="showTab('datos')"><i class="fa-solid fa-user"></i> Datos personales</button>
+        <button class="tab" onclick="showTab('password')"><i class="fa-solid fa-lock"></i> Contraseña</button>
+        <button class="tab" onclick="showTab('seguridad')"><i class="fa-solid fa-shield-halved"></i> Seguridad</button>
+    </div>
+
+    <div class="form-card active" id="tab-datos">
+        <div class="form-card-header">
+            <div class="form-card-icon"><i class="fa-solid fa-user"></i></div>
+            <h3>Información personal</h3>
+        </div>
+        <div class="form-card-body">
+            <form method="POST" id="form-datos" action="{% url 'paciente_general_perfil' %}">
+                {% csrf_token %}
+                <input type="hidden" name="form_type" value="datos">
+                <div class="form-row">
+                    <div class="form-group">
+                        <div class="form-label">
+                            Nombre
+                            <span class="char-count"><span id="cnt-nombre">{{ user.first_name|length }}</span>/20</span>
+                        </div>
+                        <div class="input-wrap">
+                            <i class="fa-solid fa-user input-icon"></i>
+                            <input type="text" name="first_name" id="f-nombre" class="form-control"
+                                value="{{ user.first_name }}" maxlength="20" autocomplete="off">
+                            <i class="input-status" id="st-nombre"></i>
+                        </div>
+                        <div class="field-msg" id="msg-nombre"></div>
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">
+                            Apellidos
+                            <span class="char-count"><span id="cnt-apellido">{{ user.last_name|length }}</span>/20</span>
+                        </div>
+                        <div class="input-wrap">
+                            <i class="fa-solid fa-user input-icon"></i>
+                            <input type="text" name="last_name" id="f-apellido" class="form-control"
+                                value="{{ user.last_name }}" maxlength="20" autocomplete="off">
+                            <i class="input-status" id="st-apellido"></i>
+                        </div>
+                        <div class="field-msg" id="msg-apellido"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="form-label">Correo electrónico</div>
+                    <div class="input-wrap">
+                        <i class="fa-solid fa-envelope input-icon"></i>
+                        <input type="email" name="email" id="f-email" class="form-control"
+                            value="{{ user.email }}" autocomplete="off">
+                        <i class="input-status" id="st-email"></i>
+                    </div>
+                    <div class="field-msg" id="msg-email"></div>
+                </div>
+                <div class="form-group">
+                    <div class="form-label">Usuario</div>
+                    <div class="input-wrap">
+                        <i class="fa-solid fa-at input-icon"></i>
+                        <input type="text" class="form-control" value="{{ user.username }}" readonly>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="form-label">Tipo de paciente</div>
+                    <div class="input-wrap">
+                        <i class="fa-solid fa-hospital-user input-icon"></i>
+                        <input type="text" class="form-control" value="Paciente General" readonly>
+                    </div>
+                </div>
+                <button type="submit" class="btn-submit" id="btn-datos">
+                    <i class="fa-regular fa-floppy-disk"></i> Guardar cambios
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="form-card" id="tab-password">
+        <div class="form-card-header">
+            <div class="form-card-icon"><i class="fa-solid fa-lock"></i></div>
+            <h3>Cambiar contraseña</h3>
+        </div>
+        <div class="form-card-body">
+            <form method="POST" id="form-pass" action="{% url 'paciente_general_perfil' %}">
+                {% csrf_token %}
+                <input type="hidden" name="form_type" value="password">
+                <div class="form-group">
+                    <div class="form-label">Contraseña actual</div>
+                    <div class="input-wrap">
+                        <i class="fa-solid fa-lock input-icon"></i>
+                        <input type="password" name="password_actual" id="f-pass-actual" class="form-control" placeholder="Tu contraseña actual">
+                        <i class="fa-regular fa-eye toggle-pass" onclick="toggleVer('f-pass-actual', this)"></i>
+                    </div>
+                    <div class="field-msg" id="msg-pass-actual"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <div class="form-label">Nueva contraseña</div>
+                        <div class="input-wrap">
+                            <i class="fa-solid fa-lock input-icon"></i>
+                            <input type="password" name="password_nueva" id="f-pass-nueva" class="form-control" placeholder="Crea tu contraseña">
+                            <i class="fa-regular fa-eye toggle-pass" onclick="toggleVer('f-pass-nueva', this)"></i>
+                        </div>
+                        <div class="pass-strength" id="pass-strength" style="display:none">
+                            <div class="pass-bar">
+                                <div class="pass-bar-seg" id="bar1"></div>
+                                <div class="pass-bar-seg" id="bar2"></div>
+                                <div class="pass-bar-seg" id="bar3"></div>
+                                <div class="pass-bar-seg" id="bar4"></div>
+                            </div>
+                            <div class="pass-reqs">
+                                <div class="pass-req" id="req-len"><i class="fa-solid"></i> Mínimo 8 caracteres</div>
+                                <div class="pass-req" id="req-may"><i class="fa-solid"></i> Una letra mayúscula</div>
+                                <div class="pass-req" id="req-num"><i class="fa-solid"></i> Un número</div>
+                                <div class="pass-req" id="req-sim"><i class="fa-solid"></i> Un símbolo (!@#$%...)</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">Confirmar contraseña</div>
+                        <div class="input-wrap">
+                            <i class="fa-solid fa-lock input-icon"></i>
+                            <input type="password" name="password_confirmar" id="f-pass-conf" class="form-control" placeholder="Repite tu contraseña">
+                            <i class="fa-regular fa-eye toggle-pass" onclick="toggleVer('f-pass-conf', this)"></i>
+                        </div>
+                        <div class="field-msg" id="msg-pass-conf"></div>
+                    </div>
+                </div>
+                <button type="submit" class="btn-submit" id="btn-pass" disabled>
+                    <i class="fa-solid fa-key"></i> Cambiar contraseña
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- TAB SEGURIDAD -->
+    <div class="form-card" id="tab-seguridad">
+        <div class="form-card-header">
+            <div class="form-card-icon"><i class="fa-solid fa-shield-halved"></i></div>
+            <h3>Estado de seguridad</h3>
+        </div>
+        <div class="form-card-body" style="padding:0">
+            <div class="sec-item">
+                <div class="sec-icon"><i class="fa-solid fa-lock"></i></div>
+                <div class="sec-info">
+                    <strong>Contraseña</strong>
+                    <span>Protege tu cuenta con una contraseña segura</span>
+                </div>
+                <span class="sec-badge sec-ok"><i class="fa-solid fa-circle" style="font-size:7px"></i> Configurada</span>
+            </div>
+            <div class="sec-item">
+                <div class="sec-icon"><i class="fa-solid fa-envelope"></i></div>
+                <div class="sec-info">
+                    <strong>Correo electrónico</strong>
+                    <span>{{ user.email|default:"Sin correo registrado" }}</span>
+                </div>
+                {% if user.email %}
+                <span class="sec-badge sec-ok"><i class="fa-solid fa-circle" style="font-size:7px"></i> Registrado</span>
+                {% else %}
+                <span class="sec-badge sec-warn"><i class="fa-solid fa-circle" style="font-size:7px"></i> Pendiente</span>
+                {% endif %}
+            </div>
+            <div class="sec-item">
+                <div class="sec-icon"><i class="fa-solid fa-user"></i></div>
+                <div class="sec-info">
+                    <strong>Nombre completo</strong>
+                    <span>{{ user.get_full_name|default:"Sin nombre registrado" }}</span>
+                </div>
+                {% if user.first_name and user.last_name %}
+                <span class="sec-badge sec-ok"><i class="fa-solid fa-circle" style="font-size:7px"></i> Completo</span>
+                {% else %}
+                <span class="sec-badge sec-warn"><i class="fa-solid fa-circle" style="font-size:7px"></i> Incompleto</span>
+                {% endif %}
+            </div>
+            <div class="sec-item" style="border-bottom:none">
+                <div class="sec-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                <div class="sec-info">
+                    <strong>Rol de cuenta</strong>
+                    <span>Tipo de acceso al sistema</span>
+                </div>
+                <span class="sec-badge sec-mg"><i class="fa-solid fa-circle" style="font-size:7px"></i> Paciente</span>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<script>
+// ── HAMBURGUESA ──
+function toggleSidebar(){
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('overlay').classList.toggle('active');
+    document.getElementById('hamburger').classList.toggle('open');
+}
+function closeSidebar(){
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('overlay').classList.remove('active');
+    document.getElementById('hamburger').classList.remove('open');
+}
+
+// ── TABS ──
+function showTab(t){
+    document.querySelectorAll('.form-card').forEach(c=>c.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+    document.getElementById('tab-'+t).classList.add('active');
+    event.currentTarget.classList.add('active');
+}
+
+// ── VALIDAR NOMBRE/APELLIDO (solo letras, max 20) ──
+function validarNombre(inputId, statusId, msgId, cntId){
+    var input = document.getElementById(inputId);
+    input.value = input.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]/g, '');
+    var val = input.value;
+    var soloLetras = /^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]+$/.test(val);
+    document.getElementById(cntId).textContent = val.length;
+
+    if(inputId === 'f-nombre' || inputId === 'f-apellido'){
+        var n = document.getElementById('f-nombre').value.trim();
+        var a = document.getElementById('f-apellido').value.trim();
+        document.getElementById('hero-nombre').textContent = (n + ' ' + a).trim() || '—';
+        var ini = (n[0]||'') + (a[0]||'');
+        document.getElementById('hero-avatar').textContent = ini.toUpperCase() || '?';
+    }
+
+    if(val.length === 0){
+        setField(input, statusId, msgId, '', '', '');
+        return false;
+    }
+    if(!soloLetras){
+        setField(input, statusId, msgId, 'invalid', 'err', '<i class="fa-solid fa-xmark"></i> Solo se permiten letras');
+        return false;
+    }
+    if(val.trim().length < 2){
+        setField(input, statusId, msgId, 'invalid', 'err', '<i class="fa-solid fa-xmark"></i> Mínimo 2 caracteres');
+        return false;
+    }
+    setField(input, statusId, msgId, 'valid', 'ok', '<i class="fa-solid fa-check"></i> Válido');
+    return true;
+}
+
+// ── VALIDAR EMAIL ──
+function validarEmail(){
+    var input = document.getElementById('f-email');
+    var val = input.value.trim();
+    if(val.length === 0){ setField(input,'st-email','msg-email','','',''); return false; }
+    var re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if(!re.test(val)){
+        setField(input,'st-email','msg-email','invalid','err','<i class="fa-solid fa-xmark"></i> Correo no válido');
+        return false;
+    }
+    setField(input,'st-email','msg-email','valid','ok','<i class="fa-solid fa-check"></i> Correo válido');
+    return true;
+}
+
+// ── FUERZA CONTRASEÑA ──
+function validarPass(){
+    var val = document.getElementById('f-pass-nueva').value;
+    var str = document.getElementById('pass-strength');
+    str.style.display = val.length ? 'block' : 'none';
+
+    var reqs = {
+        len: val.length >= 8,
+        may: /[A-Z]/.test(val),
+        num: /[0-9]/.test(val),
+        sim: /[!@#$%^&*(),.?":{}|<>_\-]/.test(val)
+    };
+    ['len','may','num','sim'].forEach(function(r){
+        document.getElementById('req-'+r).classList.toggle('ok', reqs[r]);
+    });
+    var score = Object.values(reqs).filter(Boolean).length;
+    var colors = ['','#e74c3c','#e67e22','#f1c40f','#1a7a4a'];
+    var bars = document.querySelectorAll('.pass-bar-seg');
+    bars.forEach(function(b,i){ b.style.background = i < score ? colors[score] : 'var(--mg-border)'; });
+
+    var input = document.getElementById('f-pass-nueva');
+    if(val.length === 0){ input.className='form-control'; }
+    else if(score < 3){ input.className='form-control invalid'; }
+    else{ input.className='form-control valid'; }
+
+    validarConfirm();
+    checkPassBtn();
+    return score >= 3 && Object.values(reqs).every(Boolean);
+}
+
+function validarConfirm(){
+    var nueva = document.getElementById('f-pass-nueva').value;
+    var conf = document.getElementById('f-pass-conf');
+    var val = conf.value;
+    if(!val){ setField(conf,'','msg-pass-conf','','',''); return false; }
+    if(val !== nueva){
+        conf.className='form-control invalid';
+        document.getElementById('msg-pass-conf').className='field-msg err';
+        document.getElementById('msg-pass-conf').innerHTML='<i class="fa-solid fa-xmark"></i> Las contraseñas no coinciden';
+        return false;
+    }
+    conf.className='form-control valid';
+    document.getElementById('msg-pass-conf').className='field-msg ok';
+    document.getElementById('msg-pass-conf').innerHTML='<i class="fa-solid fa-check"></i> Contreaselas coinciden';
+    return true;
+}
+
+function checkPassBtn(){
+    var actual = document.getElementById('f-pass-actual').value.length > 0;
+    var nueva = document.getElementById('f-pass-nueva').value;
+    var conf = document.getElementById('f-pass-conf').value;
+    var score = document.querySelectorAll('.pass-req.ok').length;
+    var btn = document.getElementById('btn-pass');
+    btn.disabled = !(actual && score === 4 && nueva === conf && conf.length > 0);
+}
+
+// ── TOGGLE CONTRASEÑA ──
+function toggleVer(id, icon){
+    var input = document.getElementById(id);
+    if(input.type === 'password'){
+        input.type = 'text';
+        icon.classList.replace('fa-eye','fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.replace('fa-eye-slash','fa-eye');
+    }
+}
+
+// ── HELPER ──
+function setField(input, statusId, msgId, cls, msgCls, html){
+    input.className = 'form-control' + (cls ? ' '+cls : '');
+    if(statusId){
+        var st = document.getElementById(statusId);
+        if(st){
+            st.className = 'input-status fa-solid ' + (cls==='valid'?'fa-check':'') + (cls==='invalid'?'fa-xmark':'');
+            st.style.color = cls==='valid'?'var(--green)':cls==='invalid'?'var(--red)':'';
+        }
+    }
+    if(msgId){
+        var msg = document.getElementById(msgId);
+        if(msg){ msg.className='field-msg '+(msgCls||''); msg.innerHTML=html||''; }
+    }
+}
+
+// ── EVENTOS ──
+document.getElementById('f-nombre').addEventListener('input', function(){ validarNombre('f-nombre','st-nombre','msg-nombre','cnt-nombre'); });
+document.getElementById('f-apellido').addEventListener('input', function(){ validarNombre('f-apellido','st-apellido','msg-apellido','cnt-apellido'); });
+document.getElementById('f-email').addEventListener('input', validarEmail);
+document.getElementById('f-pass-nueva').addEventListener('input', validarPass);
+document.getElementById('f-pass-conf').addEventListener('input', function(){ validarConfirm(); checkPassBtn(); });
+document.getElementById('f-pass-actual').addEventListener('input', checkPassBtn);
+
+document.getElementById('form-datos').addEventListener('submit', function(e){
+    var ok = validarNombre('f-nombre','st-nombre','msg-nombre','cnt-nombre')
+           & validarNombre('f-apellido','st-apellido','msg-apellido','cnt-apellido')
+           & validarEmail();
+    if(!ok) e.preventDefault();
+});
+</script>
+</body>
+</html>

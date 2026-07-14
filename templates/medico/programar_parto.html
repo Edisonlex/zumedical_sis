@@ -1,0 +1,170 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% if modo == 'editar' %}Editar{% else %}Programar{% endif %} Parto — Zumedical</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root{--mg:#b03580;--mg-l:#cc4d99;--mg-d:#8a2563;--mg-bg:#fbf0f7;--mg-border:#e8aad4;--text:#2a1020;--muted:#8a6070;--white:#fff;--bg:#fdf5fa;--sw:260px;--green:#2e7d52;--green-bg:#edfaf3;--red:#b91c1c;--red-bg:#fef2f2;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:"DM Sans",sans-serif;background:var(--bg);display:flex;height:100vh;overflow:hidden;}
+    .sidebar{width:var(--sw);height:100vh;background:linear-gradient(175deg,#8a2563 0%,#b03580 55%,#cc4d99 100%);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;overflow-y:auto;}
+    .sb-brand{padding:1.5rem;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:.75rem;}
+    .sb-logo{width:40px;height:40px;background:white;border-radius:50%;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;}
+    .sb-logo img{width:36px;height:36px;object-fit:contain;}
+    .sb-brand h2{font-family:"Cormorant Garamond",serif;font-size:1.3rem;font-weight:600;color:white;}
+    .sb-brand span{font-size:.7rem;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.1em;}
+    .sb-user{padding:1rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:.75rem;text-decoration:none;}
+    .sb-av{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:600;color:white;flex-shrink:0;text-transform:uppercase;}
+    .sb-user-info p{font-size:.7rem;color:rgba(255,255,255,.6);text-transform:uppercase;}
+    .sb-user-info h3{font-size:.88rem;font-weight:500;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px;}
+    .sb-nav{flex:1;padding:1rem .75rem;}
+    .nav-lbl{font-size:.68rem;color:rgba(255,255,255,.5);letter-spacing:.1em;text-transform:uppercase;padding:.5rem .75rem;margin-top:.5rem;}
+    .nav-item{display:flex;align-items:center;gap:.75rem;padding:.7rem 1rem;border-radius:10px;color:rgba(255,255,255,.85);text-decoration:none;font-size:.88rem;margin-bottom:.2rem;transition:all .2s;}
+    .nav-item:hover,.nav-item.active{background:rgba(255,255,255,.18);color:white;}
+    .nav-item svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;flex-shrink:0;}
+    .sb-footer{padding:1rem .75rem;border-top:1px solid rgba(255,255,255,.12);}
+    .btn-logout{display:flex;align-items:center;gap:.75rem;padding:.7rem 1rem;border-radius:10px;color:rgba(255,255,255,.8);text-decoration:none;font-size:.88rem;transition:all .2s;width:100%;}
+    .btn-logout:hover{background:rgba(255,255,255,.15);color:white;}
+    .btn-logout svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;}
+    .main{margin-left:var(--sw);flex:1;padding:2rem 2.5rem;height:100vh;overflow-y:auto;}
+    .page-title{font-family:"Cormorant Garamond",serif;font-size:1.9rem;font-weight:600;color:var(--text);margin-bottom:.3rem;}
+    .page-sub{color:var(--muted);font-size:.88rem;margin-bottom:1.75rem;}
+    .card{background:white;border-radius:16px;border:1px solid var(--mg-border);padding:1.5rem 2rem;margin-bottom:1.25rem;max-width:700px;}
+    .sec-title{display:flex;align-items:center;gap:.6rem;font-family:"Cormorant Garamond",serif;font-size:1.15rem;font-weight:600;color:var(--mg-d);margin-bottom:1.25rem;padding-bottom:.6rem;border-bottom:2px solid var(--mg-bg);}
+    .sec-icon{width:32px;height:32px;background:var(--mg-bg);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+    .full{grid-column:1/-1;}
+    .fg{display:flex;flex-direction:column;gap:.35rem;}
+    .fg label{font-size:.75rem;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+    .fg input,.fg select,.fg textarea{width:100%;padding:.6rem .85rem;border:1.5px solid var(--mg-border);border-radius:9px;font-family:"DM Sans",sans-serif;font-size:.875rem;color:var(--text);background:var(--bg);outline:none;transition:border-color .2s;resize:vertical;}
+    .fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--mg);box-shadow:0 0 0 3px rgba(176,53,128,.07);}
+    .fg .hint{font-size:.7rem;color:var(--muted);}
+    /* Tipo de parto cards */
+    .tipo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-bottom:.5rem;}
+    .tipo-opt{border:2px solid var(--mg-border);border-radius:12px;padding:1rem;cursor:pointer;transition:all .2s;text-align:center;background:var(--bg);}
+    .tipo-opt:hover{border-color:var(--mg);background:var(--mg-bg);}
+    .tipo-opt.selected{border-color:var(--mg);background:var(--mg-bg);}
+    .tipo-opt input{display:none;}
+    .tipo-icon{font-size:1.75rem;margin-bottom:.4rem;}
+    .tipo-name{font-size:.85rem;font-weight:500;color:var(--text);}
+    /* Info box */
+    .info-box{background:var(--mg-bg);border:1px solid var(--mg-border);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.25rem;font-size:.875rem;color:var(--mg-d);}
+    .info-box strong{color:var(--mg-d);}
+    /* Buttons */
+    .actions{display:flex;gap:1rem;margin-top:1.5rem;}
+    .btn-primary{background:var(--mg);color:white;border:none;padding:.75rem 2rem;border-radius:10px;font-family:"DM Sans",sans-serif;font-size:.95rem;font-weight:500;cursor:pointer;transition:all .2s;}
+    .btn-primary:hover{background:var(--mg-d);}
+    .btn-sec{background:var(--mg-bg);color:var(--mg);border:1px solid var(--mg-border);padding:.75rem 1.5rem;border-radius:10px;font-size:.95rem;font-weight:500;text-decoration:none;transition:all .2s;}
+    .btn-sec:hover{background:white;}
+    .alert-success{background:var(--green-bg);border:1px solid #a8dfc0;color:var(--green);padding:1rem 1.5rem;border-radius:10px;margin-bottom:1.5rem;font-size:.9rem;}
+    .alert-error{background:var(--red-bg);border:1px solid #fca5a5;color:var(--red);padding:1rem 1.5rem;border-radius:10px;margin-bottom:1.5rem;font-size:.9rem;}
+    @media(max-width:700px){.grid2,.tipo-grid{grid-template-columns:1fr}.main{padding:1.25rem}}
+  </style>
+</head>
+<body>
+{% include 'medico/sidebar_medico.html' %}
+
+<main class="main">
+  <div class="page-title">{% if modo == 'editar' %}Editar Programación{% else %}Programar Parto o Cesárea{% endif %}</div>
+  <p class="page-sub">La paciente verá esta programación en su panel de inicio</p>
+
+  {% if messages %}{% for msg in messages %}<div class="alert-{% if 'programado' in msg.message or 'actualizada' in msg.message %}success{% else %}error{% endif %}">{{ msg }}</div>{% endfor %}{% endif %}
+
+  <div class="info-box">🤰 <strong>Nota:</strong> Una vez programado, la paciente verá la fecha y hora en su panel de inicio con todas las indicaciones que registres aquí.</div>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% if modo == 'editar' and parto %}<input type="hidden" name="parto_id" value="{{ parto.id }}"/>{% endif %}
+
+    <div class="card">
+      <div class="sec-title"><div class="sec-icon">👤</div>Paciente</div>
+      <div class="fg">
+        <label>Paciente prenatal *</label>
+        <select name="paciente" required>
+          <option value="">— Selecciona una paciente —</option>
+          {% for p in pacientes %}
+          <option value="{{ p.id }}" {% if modo == 'editar' and parto.paciente_id == p.id %}selected{% endif %}>{{ p.get_full_name|default:p.username }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sec-title"><div class="sec-icon">🏥</div>Tipo de Parto</div>
+      <div class="tipo-grid" id="tipo-grid">
+        <label class="tipo-opt {% if not modo or parto.tipo == 'parto_natural' %}selected{% endif %}" onclick="selectTipo(this,'parto_natural')">
+          <input type="radio" name="tipo" value="parto_natural" {% if not modo or parto.tipo == 'parto_natural' %}checked{% endif %}/>
+          <div class="tipo-icon">🤱</div>
+          <div class="tipo-name">Parto Natural</div>
+        </label>
+        <label class="tipo-opt {% if modo and parto.tipo == 'cesarea' %}selected{% endif %}" onclick="selectTipo(this,'cesarea')">
+          <input type="radio" name="tipo" value="cesarea" {% if modo and parto.tipo == 'cesarea' %}checked{% endif %}/>
+          <div class="tipo-icon">🏨</div>
+          <div class="tipo-name">Cesárea Programada</div>
+        </label>
+        <label class="tipo-opt {% if modo and parto.tipo == 'induccion' %}selected{% endif %}" onclick="selectTipo(this,'induccion')">
+          <input type="radio" name="tipo" value="induccion" {% if modo and parto.tipo == 'induccion' %}checked{% endif %}/>
+          <div class="tipo-icon">💉</div>
+          <div class="tipo-name">Inducción del Parto</div>
+        </label>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sec-title"><div class="sec-icon">📅</div>Fecha y Hora</div>
+      <div class="grid2">
+        <div class="fg">
+          <label>Fecha programada *</label>
+          <input type="date" name="fecha_programada" required value="{% if modo and parto %}{{ parto.fecha_programada|date:'Y-m-d' }}{% endif %}"/>
+        </div>
+        <div class="fg">
+          <label>Hora programada *</label>
+          <input type="time" name="hora_programada" required value="{% if modo and parto %}{{ parto.hora_programada|time:'H:i' }}{% endif %}"/>
+        </div>
+        <div class="fg">
+          <label>Semanas de gestación</label>
+          <input type="number" name="semanas_gestacion" min="28" max="45" placeholder="Ej: 39" value="{% if modo and parto %}{{ parto.semanas_gestacion }}{% endif %}"/>
+        </div>
+        <div class="fg">
+          <label>Lugar / Sala</label>
+          <input type="text" name="lugar" placeholder="Zumedical — Centro Médico" value="{% if modo and parto %}{{ parto.lugar }}{% else %}Zumedical — Centro Médico{% endif %}"/>
+        </div>
+        {% if modo == 'editar' %}
+        <div class="fg">
+          <label>Estado</label>
+          <select name="estado">
+            {% for val, label in parto.ESTADO_CHOICES %}<option value="{{ val }}" {% if parto.estado == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+          </select>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sec-title"><div class="sec-icon">📝</div>Indicaciones para la Paciente</div>
+      <div class="fg">
+        <label>Indicaciones</label>
+        <textarea name="indicaciones" rows="5" placeholder="Ej: Acudir en ayunas, traer documentos de identidad, llegar 2 horas antes, acompañante autorizado...">{% if modo and parto %}{{ parto.indicaciones }}{% endif %}</textarea>
+        <span class="hint">La paciente verá estas indicaciones en su panel de inicio</span>
+      </div>
+    </div>
+
+    <div class="actions">
+      <a href="{% url 'lista_programaciones_parto' %}" class="btn-sec">Cancelar</a>
+      <button type="submit" class="btn-primary">🤰 {% if modo == 'editar' %}Actualizar Programación{% else %}Programar Parto{% endif %}</button>
+    </div>
+  </form>
+</main>
+
+<script>
+function selectTipo(el, val) {
+  document.querySelectorAll('.tipo-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  el.querySelector('input').checked = true;
+}
+</script>
+</body>
+</html>

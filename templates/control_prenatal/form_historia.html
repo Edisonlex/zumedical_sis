@@ -1,0 +1,253 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zumedical - {{ titulo }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --mg: #B03580; --mg-l: #CC4D99; --mg-d: #8A2563;
+            --mg-bg: #FBF0F7; --mg-border: #E8AAD4;
+            --text: #2A1020; --muted: #8A6070; --white: #fff; --bg: #FDF5FA;
+            --sw: 260px;
+        }
+        body { font-family:'DM Sans',sans-serif; background:var(--bg); min-height:100vh; display:flex; align-items:flex-start; }
+        @keyframes pageIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+        
+        /* SIDEBAR */
+        .sidebar{width:var(--sw);min-width:var(--sw);min-height:100vh;background:linear-gradient(175deg,#8A2563 0%,#B03580 55%,#CC4D99 100%);display:flex;flex-direction:column;position:sticky;top:0;left:0;z-index:100;box-shadow:4px 0 20px rgba(138,37,99,.2);align-self:flex-start;height:100vh;}
+        .sidebar-brand{padding:2rem 1.5rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:.75rem}
+        .sidebar-brand-logo{width:44px;height:44px;background:white;border-radius:50%;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+        .sidebar-brand-logo img{width:40px;height:40px;object-fit:contain}
+        .sidebar-brand-text h2{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;color:white;line-height:1}
+        .sidebar-brand-text span{font-size:.72rem;color:rgba(255,255,255,.7);letter-spacing:.1em;text-transform:uppercase}
+        .sidebar-nav{flex:1;padding:1rem .75rem}
+        .nav-label{font-size:.7rem;color:rgba(255,255,255,.5);letter-spacing:.1em;text-transform:uppercase;padding:.5rem .75rem;margin-top:.5rem}
+        .nav-item{display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;border-radius:10px;color:rgba(255,255,255,.85);text-decoration:none;font-size:.9rem;font-weight:400;transition:all .2s;margin-bottom:.25rem;position:relative}
+        .nav-item:hover,.nav-item.active{background:rgba(255,255,255,.18);color:white}
+        .nav-item svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;flex-shrink:0}
+        .sidebar-footer{padding:1rem .75rem;border-top:1px solid rgba(255,255,255,.12)}
+        .btn-logout{display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;border-radius:10px;color:rgba(255,255,255,.8);text-decoration:none;font-size:.9rem;transition:all .2s;width:100%}
+        .btn-logout:hover{background:rgba(255,255,255,.15);color:white}
+        .btn-logout svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8}
+
+        /* MAIN */
+        .main { flex:1; padding:2.5rem; min-height:100vh; opacity:0; animation:pageIn .4s ease .05s forwards; }
+
+        /* HEADER */
+        .page-header { margin-bottom:1.75rem; }
+        .page-header h1 { font-family:'Cormorant Garamond',serif; font-size:2rem; font-weight:600; color:var(--text); margin-bottom:.3rem; }
+        .back-link { display:inline-flex; align-items:center; gap:.4rem; color:var(--muted); text-decoration:none; font-size:.9rem; margin-bottom:1rem; transition:color .2s; }
+        .back-link:hover { color:var(--mg); }
+        .back-link svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+
+        /* FORM */
+        .form-card { background:var(--white); border-radius:16px; border:1px solid var(--mg-border); padding:1.75rem; }
+        .form-section { margin-bottom:1.5rem; padding-bottom:1.5rem; border-bottom:1px solid var(--mg-border); }
+        .form-section:last-of-type { border-bottom:none; margin-bottom:0; padding-bottom:0; }
+        .form-section-title { font-family:'Cormorant Garamond',serif; font-size:1.2rem; font-weight:600; color:var(--text); margin-bottom:1rem; display:flex; align-items:center; gap:.5rem; }
+        .form-section-title svg{width:18px;height:18px;stroke:var(--mg);fill:none;stroke-width:1.8}
+        .form-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:1rem; }
+        @media(max-width:768px) { .form-grid { grid-template-columns:1fr; } }
+        .form-group { margin-bottom:1rem; }
+        .form-group label { display:block; font-size:.8rem; font-weight:500; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; margin-bottom:.4rem; }
+        .form-control { width:100%; padding:.75rem 1rem; border:1.5px solid var(--mg-border); border-radius:10px; font-family:'DM Sans',sans-serif; font-size:.95rem; color:var(--text); background:var(--white); transition:all .2s; }
+        .form-control:focus { border-color:var(--mg); box-shadow:0 0 0 3px rgba(176,53,128,.08); outline:none; }
+        textarea.form-control { resize:vertical; min-height:100px; }
+        .form-actions { display:flex; gap:.75rem; margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid var(--mg-border); }
+        .btn-primary { display:inline-flex; align-items:center; gap:.5rem; padding:.75rem 1.5rem; background:linear-gradient(135deg,var(--mg-d),var(--mg-l)); color:white; border:none; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:.95rem; font-weight:500; cursor:pointer; text-decoration:none; transition:all .2s; }
+        .btn-primary:hover { transform:translateY(-1px); box-shadow:0 4px 14px rgba(176,53,128,.3); }
+        .btn-secondary { display:inline-flex; align-items:center; gap:.5rem; padding:.75rem 1.5rem; background:var(--mg-bg); color:var(--mg); border:1px solid var(--mg-border); border-radius:10px; font-family:'DM Sans',sans-serif; font-size:.95rem; font-weight:500; cursor:pointer; text-decoration:none; transition:all .2s; }
+        .btn-secondary:hover { background:var(--mg-border); }
+
+        /* MOBILE */
+        .mobile-topbar{display:none;align-items:center;justify-content:space-between;padding:0 1.25rem;background:linear-gradient(135deg,#8A2563,#CC4D99);position:fixed;top:0;left:0;right:0;z-index:400;height:64px}
+        .mobile-topbar-brand{display:flex;align-items:center;gap:.6rem}
+        .mobile-topbar-logo{width:32px;height:32px;background:white;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center}
+        .mobile-topbar-logo img{width:28px;height:28px;object-fit:contain}
+        .mobile-topbar-brand span{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;color:white}
+        .hamburger{background:rgba(255,255,255,.15);border:none;border-radius:8px;padding:.5rem .65rem;cursor:pointer;display:flex;flex-direction:column;gap:4px}
+        .hamburger span{display:block;width:20px;height:2px;background:white;border-radius:2px;transition:all .3s}
+        .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:290;opacity:0;pointer-events:none;transition:opacity .3s ease}
+        .sidebar-overlay.active { opacity: 1; pointer-events: none; }
+        @media(max-width:768px){
+            html,body{height:100vh;overflow:hidden}
+            body{flex-direction:column;align-items:stretch}
+            .sidebar{width:var(--sw);min-width:var(--sw);height:100vh;min-height:100vh;position:fixed;top:0;left:0;z-index:350;padding-top:64px;transform:translateX(-100%);box-shadow:4px 0 20px rgba(0,0,0,.15);overflow-y:auto}
+            .sidebar.open{transform:translateX(0)}
+            .sidebar-overlay{display:block}
+            .mobile-topbar{display:flex}
+            .main{padding:1.1rem;padding-top:calc(1.1rem + 64px);height:100vh;overflow-y:auto}
+            .page-header h1{font-size:1.7rem}
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
+<div class="mobile-topbar">
+    <div class="mobile-topbar-brand">
+        <div class="mobile-topbar-logo"><img src="{% static 'img/Logo.png' %}" alt="Zumedical"></div>
+        <span>Zumedical</span>
+    </div>
+    <button type="button" class="hamburger" id="hamburger" onclick="toggleSidebar()">
+        <span></span><span></span><span></span>
+    </button>
+</div>
+
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+        <div class="sidebar-brand-logo"><img src="{% static 'img/Logo.png' %}" alt="Zumedical"></div>
+        <div class="sidebar-brand-text"><h2>Zumedical</h2><span>{% if request.user.rol == 'medico' %}Médico{% elif request.user.rol == 'admin' %}Admin{% else %}Usuario{% endif %}</span></div>
+    </div>
+    <nav class="sidebar-nav">
+        <div class="nav-label">Menú</div>
+        <a href="{% url 'lista_historias' %}" class="nav-item">
+            <svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>Historias Clínicas
+        </a>
+        <a href="{% url 'crear_historia' %}" class="nav-item active">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>{{ titulo }}
+        </a>
+    </nav>
+    <div class="sidebar-footer">
+        <a href="{% url 'logout' %}" class="btn-logout">
+            <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Cerrar sesión
+        </a>
+    </div>
+</aside>
+
+<main class="main">
+    <a href="{% url 'lista_historias' %}" class="back-link">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>Volver al listado
+    </a>
+    <div class="page-header">
+        <h1>{{ titulo }}</h1>
+    </div>
+
+    <form method="post" class="form-card">
+        {% csrf_token %}
+        
+        <div class="form-section">
+            <div class="form-section-title">
+                <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                Paciente
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    {{ form.paciente.label_tag }}
+                    {{ form.paciente }}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <div class="form-section-title">
+                <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                Antecedentes
+            </div>
+            <div class="form-group">
+                {{ form.antecedentes_personales.label_tag }}
+                {{ form.antecedentes_personales }}
+            </div>
+            <div class="form-group">
+                {{ form.antecedentes_familiares.label_tag }}
+                {{ form.antecedentes_familiares }}
+            </div>
+            <div class="form-group">
+                {{ form.antecedentes_obstetricos.label_tag }}
+                {{ form.antecedentes_obstetricos }}
+            </div>
+            <div class="form-grid">
+                <div class="form-group">{{ form.gestas.label_tag }}{{ form.gestas }}</div>
+                <div class="form-group">{{ form.partos.label_tag }}{{ form.partos }}</div>
+                <div class="form-group">{{ form.cesareas.label_tag }}{{ form.cesareas }}</div>
+                <div class="form-group">{{ form.abortos.label_tag }}{{ form.abortos }}</div>
+                <div class="form-group">{{ form.hijos_vivos.label_tag }}{{ form.hijos_vivos }}</div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <div class="form-section-title">
+                <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                Motivo de consulta
+            </div>
+            <div class="form-group">
+                {{ form.motivo_consulta }}
+            </div>
+        </div>
+
+        <div class="form-section">
+            <div class="form-section-title">
+                <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                Score Mamá - Signos vitales
+            </div>
+            <div class="form-grid">
+                <div class="form-group">{{ form.presion_arterial_inicial.label_tag }}{{ form.presion_arterial_inicial }}</div>
+                <div class="form-group">{{ form.frecuencia_cardiaca_inicial.label_tag }}{{ form.frecuencia_cardiaca_inicial }}</div>
+                <div class="form-group">{{ form.frecuencia_respiratoria.label_tag }}{{ form.frecuencia_respiratoria }}</div>
+                <div class="form-group">{{ form.temperatura_inicial.label_tag }}{{ form.temperatura_inicial }}</div>
+                <div class="form-group">{{ form.saturacion_oxigeno.label_tag }}{{ form.saturacion_oxigeno }}</div>
+                <div class="form-group">{{ form.estado_conciencia.label_tag }}{{ form.estado_conciencia }}</div>
+                <div class="form-group">{{ form.proteinuria.label_tag }}{{ form.proteinuria }}</div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <div class="form-section-title">
+                <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                Datos antropométricos
+            </div>
+            <div class="form-grid">
+                <div class="form-group">{{ form.peso_inicial.label_tag }}{{ form.peso_inicial }}</div>
+                <div class="form-group">{{ form.talla.label_tag }}{{ form.talla }}</div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <div class="form-section-title">
+                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                Evaluación y tratamiento
+            </div>
+            <div class="form-group">{{ form.examen_fisico.label_tag }}{{ form.examen_fisico }}</div>
+            <div class="form-group">{{ form.evolucion_enfermedad.label_tag }}{{ form.evolucion_enfermedad }}</div>
+            <div class="form-group">{{ form.resultado_examenes.label_tag }}{{ form.resultado_examenes }}</div>
+            <div class="form-group">{{ form.diagnostico.label_tag }}{{ form.diagnostico }}</div>
+            <div class="form-group">{{ form.tratamiento.label_tag }}{{ form.tratamiento }}</div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-primary">
+                <svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>Guardar
+            </button>
+            <a href="{% url 'lista_historias' %}" class="btn-secondary">Cancelar</a>
+        </div>
+    </form>
+
+</main>
+
+<script>
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('overlay').classList.toggle('active');
+    document.getElementById('hamburger').classList.toggle('open');
+}
+function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('overlay').classList.remove('active');
+    document.getElementById('hamburger').classList.remove('open');
+}
+document.addEventListener('DOMContentLoaded', function() {
+    const inputs = document.querySelectorAll('.form-control');
+    inputs.forEach(input => {
+        if (!input.classList.contains('form-control')) {
+            input.classList.add('form-control');
+        }
+    });
+});
+</script>
+
+</body>
+</html>

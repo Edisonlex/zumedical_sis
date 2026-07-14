@@ -1,0 +1,549 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zumedical — Agendar Cita</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/sidebar_paciente.css' %}">
+    <style>
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        :root{--mg:#B03580;--mg-l:#CC4D99;--mg-d:#8A2563;--mg-bg:#FBF0F7;--mg-border:#E8AAD4;--text:#2A1020;--muted:#8A6070;--white:#fff;--bg:#FDF5FA;--sw:260px;--err:#c62828;--ok:#1a7a4a}
+        body{font-family:'DM Sans',sans-serif;background:var(--bg);display:flex;min-height:100vh;opacity:0;animation:fadeIn .4s ease .05s forwards}
+        @keyframes fadeIn{to{opacity:1}}
+        @keyframes slideUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(176,53,128,.35)}70%{box-shadow:0 0 0 8px rgba(176,53,128,0)}}
+
+        /* ── SIDEBAR ── */
+        .sidebar{width:var(--sw);height:100vh;background:linear-gradient(175deg,#8A2563 0%,#B03580 55%,#CC4D99 100%);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:200;transition:transform .3s ease}
+        .sb-brand{padding:1.75rem 1.5rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:.75rem}
+        .sb-logo{width:42px;height:42px;background:white;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden}
+        .sb-logo img{width:38px;height:38px;object-fit:contain}
+        .sb-brand-text h2{font-family:'Cormorant Garamond',serif;font-size:1.35rem;font-weight:600;color:white;line-height:1}
+        .sb-brand-text span{font-size:.7rem;color:rgba(255,255,255,.65);letter-spacing:.1em;text-transform:uppercase}
+        .sb-user{padding:1rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:.7rem;text-decoration:none;transition:background .2s}
+        .sb-user:hover{background:rgba(255,255,255,.1)}
+        .sb-avatar{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:600;color:white;flex-shrink:0;text-transform:uppercase}
+        .sb-user-info p{font-size:.7rem;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.1rem}
+        .sb-user-info h3{font-size:.88rem;font-weight:500;color:white}
+        .sb-nav{flex:1;padding:1rem .75rem;overflow-y:auto}
+        .nav-lbl{font-size:.68rem;color:rgba(255,255,255,.45);letter-spacing:.1em;text-transform:uppercase;padding:.5rem .75rem;margin-top:.75rem}
+        .nav-item{display:flex;align-items:center;gap:.7rem;padding:.72rem 1rem;border-radius:10px;color:rgba(255,255,255,.82);text-decoration:none;font-size:.88rem;transition:all .2s;margin-bottom:.2rem}
+        .nav-item:hover,.nav-item.active{background:rgba(255,255,255,.18);color:white}
+        .nav-item i{width:18px;text-align:center;font-size:15px}
+        .nav-badge{margin-left:auto;background:#e74c3c;color:white;font-size:.68rem;font-weight:600;padding:.15rem .5rem;border-radius:999px;min-width:20px;text-align:center}
+        .sb-footer{padding:1rem .75rem;border-top:1px solid rgba(255,255,255,.12)}
+        .btn-logout{display:flex;align-items:center;gap:.7rem;padding:.72rem 1rem;border-radius:10px;color:rgba(255,255,255,.75);text-decoration:none;font-size:.88rem;transition:all .2s}
+        .btn-logout:hover{background:rgba(255,255,255,.15);color:white}
+
+        /* ── MOBILE ── */
+        .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:150;opacity:0;pointer-events:none;transition:opacity .3s}
+        .sidebar-overlay.active{opacity:1;pointer-events:auto}
+        .mobile-topbar{display:none;align-items:center;justify-content:space-between;padding:1rem 1.25rem;background:linear-gradient(135deg,#8A2563,#CC4D99);position:fixed;top:0;left:0;right:0;z-index:300}
+        .mobile-topbar-brand{display:flex;align-items:center;gap:.6rem}
+        .mobile-topbar-brand img{width:30px;height:30px;background:white;border-radius:50%;padding:2px;object-fit:contain}
+        .mobile-topbar-brand span{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;color:white}
+        .hamburger{background:rgba(255,255,255,.15);border:none;border-radius:8px;padding:.5rem .65rem;cursor:pointer;display:flex;flex-direction:column;gap:4px}
+        .hamburger span{display:block;width:20px;height:2px;background:white;border-radius:2px;transition:all .3s}
+        .hamburger.open span:nth-child(1){transform:translateY(6px) rotate(45deg)}
+        .hamburger.open span:nth-child(2){opacity:0}
+        .hamburger.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+
+        /* ── MAIN ── */
+        .main{margin-left:var(--sw);flex:1;padding:2.5rem;min-height:100vh}
+
+        /* ── PAGE HEADER ── */
+        .page-header{margin-bottom:2rem;animation:slideUp .4s ease .1s both}
+        .page-header h1{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:600;color:var(--text)}
+        .page-header p{color:var(--muted);font-size:.9rem;margin-top:.3rem}
+
+        /* ── BARRA DE PROGRESO PASOS ── */
+        .progress-wrap{background:var(--white);border:1px solid var(--mg-border);border-radius:16px;padding:1.5rem 2rem;margin-bottom:2rem;animation:slideUp .4s ease .15s both}
+        .progress-label{font-size:.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem}
+        .steps{display:flex;align-items:center;gap:0}
+        .step{display:flex;flex-direction:column;align-items:center;gap:.4rem;flex:1;position:relative}
+        .step:not(:last-child)::after{content:'';position:absolute;top:18px;left:50%;width:100%;height:2px;background:var(--mg-border);z-index:0;transition:background .3s}
+        .step.done:not(:last-child)::after{background:var(--mg)}
+        .step-circle{width:36px;height:36px;border-radius:50%;border:2px solid var(--mg-border);background:var(--white);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:var(--muted);position:relative;z-index:1;transition:all .3s}
+        .step.done .step-circle{background:var(--mg);border-color:var(--mg);color:white}
+        .step.active .step-circle{border-color:var(--mg);color:var(--mg);box-shadow:0 0 0 4px rgba(176,53,128,.15);animation:pulse 2s infinite}
+        .step-label{font-size:.72rem;color:var(--muted);font-weight:500;text-align:center;transition:color .3s}
+        .step.done .step-label,.step.active .step-label{color:var(--mg);font-weight:600}
+
+        /* ── TARJETA FORMULARIO ── */
+        .form-card{background:var(--white);border-radius:20px;border:1px solid var(--mg-border);overflow:hidden;animation:slideUp .4s ease .2s both;max-width:700px}
+        .form-card-header{background:linear-gradient(135deg,var(--mg-d),var(--mg-l));padding:1.5rem 2rem;display:flex;align-items:center;gap:1rem}
+        .form-card-header-ico{width:48px;height:48px;background:rgba(255,255,255,.2);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;color:white}
+        .form-card-header-text h2{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:600;color:white}
+        .form-card-header-text p{font-size:.82rem;color:rgba(255,255,255,.8);margin-top:.15rem}
+        .form-card-body{padding:2rem}
+
+        /* ── GRUPOS ── */
+        .form-group{margin-bottom:1.6rem}
+        .form-group label{display:flex;align-items:center;gap:.4rem;font-size:.8rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.55rem}
+        .form-group label i{color:var(--mg);font-size:13px}
+        .form-control{width:100%;padding:.78rem 1rem;border:1.5px solid var(--mg-border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.92rem;color:var(--text);background:white;transition:border .2s,box-shadow .2s;appearance:none}
+        .form-control:focus{outline:none;border-color:var(--mg);box-shadow:0 0 0 3px rgba(176,53,128,.08)}
+        .form-control:disabled{background:#faf6f9;color:var(--muted);cursor:not-allowed}
+        .form-control.valid{border-color:var(--ok);background:#f4faf5}
+        .form-control.error{border-color:var(--err);background:#fff8f8}
+        .field-msg{font-size:.75rem;margin-top:.35rem;display:none;align-items:center;gap:.3rem}
+        .field-msg.show{display:flex}
+        .field-msg.err{color:var(--err)}
+        .field-msg.ok{color:var(--ok)}
+        .field-msg i{font-size:11px}
+
+        /* ── SELECT CON ÍCONO ── */
+        .select-wrap{position:relative}
+        .select-wrap .form-control{padding-right:2.5rem}
+        .select-wrap::after{content:'\f107';font-family:'Font Awesome 6 Free';font-weight:900;position:absolute;right:1rem;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;font-size:.85rem}
+
+        /* ── HORAS ── */
+        .horas-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:.55rem;margin-top:.5rem}
+        .hora-btn{padding:.6rem;border:1.5px solid var(--mg-border);border-radius:9px;background:white;font-family:'DM Sans',sans-serif;font-size:.87rem;color:var(--text);cursor:pointer;transition:all .2s;text-align:center;font-weight:500}
+        .hora-btn:hover:not(.ocupada){border-color:var(--mg);color:var(--mg);background:var(--mg-bg)}
+        .hora-btn.selected{background:linear-gradient(135deg,var(--mg-d),var(--mg-l));color:white;border-color:transparent;box-shadow:0 4px 12px rgba(176,53,128,.3)}
+        .hora-btn.ocupada{background:#f5f5f5;color:#ccc;cursor:not-allowed;border-color:#eee}
+        .loading-horas{display:flex;align-items:center;gap:.6rem;color:var(--muted);font-size:.87rem;padding:.5rem 0}
+        .loading-horas i{color:var(--mg)}
+
+        /* ── MOTIVO ── */
+        textarea.form-control{resize:vertical;min-height:90px;line-height:1.5}
+
+        /* ── RESUMEN ── */
+        .resumen{background:var(--mg-bg);border:1px solid var(--mg-border);border-radius:12px;padding:1.2rem 1.4rem;margin-bottom:1.6rem;display:none}
+        .resumen.show{display:block;animation:slideUp .3s ease}
+        .resumen-title{font-size:.75rem;font-weight:700;color:var(--mg-d);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.8rem;display:flex;align-items:center;gap:.4rem}
+        .resumen-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+        .resumen-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+        .resumen-item{display:flex;flex-direction:column;gap:.1rem}
+        .resumen-item span:first-child{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+        .resumen-item span:last-child{font-size:.88rem;color:var(--text);font-weight:500}
+
+        /* ── BOTÓN SUBMIT ── */
+        .btn-submit{display:flex;align-items:center;justify-content:center;gap:.5rem;width:100%;padding:.9rem 1.75rem;border-radius:50px;font-family:'DM Sans',sans-serif;font-size:.95rem;font-weight:600;background:linear-gradient(135deg,var(--mg-d),var(--mg-l));color:white;border:none;cursor:pointer;transition:all .2s;margin-top:.5rem}
+        .btn-submit:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 20px rgba(176,53,128,.35)}
+        .btn-submit:disabled{opacity:.45;cursor:not-allowed;transform:none}
+
+        /* ── ALERTA ── */
+        .alert{padding:.9rem 1.25rem;border-radius:10px;margin-bottom:1.5rem;font-size:.9rem;display:flex;align-items:center;gap:.5rem;animation:slideUp .3s ease}
+        .alert-error{background:#fce4ec;border:1px solid #f5c6c6;color:#c62828}
+        .alert-success{background:#e8f5e9;border:1px solid #c8e6c9;color:#1a5a1a}
+
+        /* ── TOAST ── */
+        .toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(20px);background:var(--mg-d);color:white;padding:.75rem 1.4rem;border-radius:999px;font-size:.87rem;font-weight:500;opacity:0;pointer-events:none;transition:all .3s;z-index:9999;display:flex;align-items:center;gap:.5rem;white-space:nowrap}
+        .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+        .toast.err{background:var(--err)}
+
+        /* ── RESPONSIVE ── */
+        @media(max-width:768px){
+            body{flex-direction:column}
+            .sidebar{position:fixed;top:64px;left:0;height:calc(100vh - 64px);transform:translateX(-100%);z-index:250}
+            .sidebar.open{transform:translateX(0)}
+            .sidebar-overlay{display:block;z-index:200}
+            .mobile-topbar{display:flex}
+            .main{margin-left:0;padding:1.25rem;padding-top:calc(1.25rem + 64px)}
+            .form-card-body{padding:1.25rem}
+            .progress-wrap{padding:1.25rem}
+            .steps .step-label{font-size:.65rem}
+            .horas-grid{grid-template-columns:repeat(auto-fill,minmax(76px,1fr))}
+            .resumen-grid{grid-template-columns:1fr}
+        }
+        @media(max-width:400px){
+            .steps .step-label{display:none}
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<div class="mobile-topbar">
+    <div class="mobile-topbar-brand">
+        <img src="{% static 'img/Logo.png' %}" alt="Zumedical">
+        <span>Zumedical</span>
+    </div>
+    <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
+        <span></span><span></span><span></span>
+    </button>
+</div>
+
+<aside class="sidebar" id="sidebar">
+    <div class="sb-brand">
+        <div class="sb-logo"><img src="{% static 'img/Logo.png' %}" alt="Zumedical"></div>
+        <div class="sb-brand-text"><h2>Zumedical</h2><span>Paciente</span></div>
+    </div>
+    <a href="{% url 'paciente_general_perfil' %}" class="sb-user">
+        <div class="sb-avatar">{{ request.user.first_name|first }}{{ request.user.last_name|first }}</div>
+        <div class="sb-user-info"><p>Mi perfil</p><h3>{{ request.user.first_name }} {{ request.user.last_name }}</h3></div>
+    </a>
+    <nav class="sb-nav">
+        <div class="nav-lbl">Menú</div>
+        <a href="{% url 'paciente_general_dashboard' %}" class="nav-item"><i class="fa-solid fa-house"></i> Inicio</a>
+        <a href="{% url 'paciente_general_agendar' %}" class="nav-item active"><i class="fa-regular fa-calendar-plus"></i> Agendar Cita</a>
+        <a href="{% url 'paciente_general_citas' %}" class="nav-item"><i class="fa-regular fa-calendar-check"></i> Mis Citas
+            {% if citas_pendientes %}<span class="nav-badge">{{ citas_pendientes }}</span>{% endif %}
+        </a>
+    </nav>
+    <div class="sb-footer">
+        <a href="{% url 'logout' %}" class="btn-logout"><i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar sesión</a>
+    </div>
+</aside>
+
+<main class="main">
+
+    <div class="page-header">
+        <h1>Agendar Cita</h1>
+        <p>Completa cada paso para reservar tu cita médica</p>
+    </div>
+
+    {% if messages %}
+    {% for msg in messages %}
+    <div class="alert alert-{{ msg.tags|default:'error' }}">
+        <i class="fa-solid fa-{% if msg.tags == 'success' %}circle-check{% else %}circle-exclamation{% endif %}"></i>
+        {{ msg }}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <div class="progress-wrap">
+        <div class="progress-label"><i class="fa-solid fa-list-check" style="color:var(--mg)"></i> &nbsp;Tu progreso</div>
+        <div class="steps">
+            <div class="step active" id="step1">
+                <div class="step-circle" id="sc1">1</div>
+                <div class="step-label">Especialidad</div>
+            </div>
+            <div class="step" id="step2">
+                <div class="step-circle" id="sc2">2</div>
+                <div class="step-label">Médico</div>
+            </div>
+            <div class="step" id="step3">
+                <div class="step-circle" id="sc3">3</div>
+                <div class="step-label">Fecha</div>
+            </div>
+            <div class="step" id="step4">
+                <div class="step-circle" id="sc4">4</div>
+                <div class="step-label">Hora</div>
+            </div>
+            <div class="step" id="step5">
+                <div class="step-circle" id="sc5">5</div>
+                <div class="step-label">Motivo</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-card">
+        <div class="form-card-header">
+            <div class="form-card-header-ico"><i class="fa-regular fa-calendar-plus"></i></div>
+            <div class="form-card-header-text">
+                <h2>Nueva cita médica</h2>
+                <p>Rellena los campos en orden para continuar</p>
+            </div>
+        </div>
+        <div class="form-card-body">
+            <form method="POST" id="formAgendar" novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="hora" id="hora_seleccionada">
+
+                <div class="form-group">
+                    <label><i class="fa-solid fa-stethoscope"></i> Especialidad</label>
+                    <div class="select-wrap">
+                        <select class="form-control" name="especialidad" id="selectEspecialidad" required>
+                            <option value="">— Selecciona una especialidad —</option>
+                            {% for esp in especialidades %}
+                            <option value="{{ esp.id }}">{{ esp.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="field-msg err" id="errEsp"><i class="fa-solid fa-circle-exclamation"></i> Por favor selecciona una especialidad</div>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fa-solid fa-user-doctor"></i> Médico</label>
+                    <div class="select-wrap">
+                        <select class="form-control" name="medico" id="selectMedico" required disabled>
+                            <option value="">— Primero selecciona una especialidad —</option>
+                        </select>
+                    </div>
+                    <div class="field-msg err" id="errMed"><i class="fa-solid fa-circle-exclamation"></i> Por favor selecciona un médico</div>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fa-regular fa-calendar"></i> Fecha</label>
+                    <input type="date" class="form-control" name="fecha" id="inputFecha" required disabled min="{{ hoy|date:'Y-m-d' }}">
+                    <div class="field-msg err" id="errFecha"><i class="fa-solid fa-circle-exclamation"></i> Por favor selecciona una fecha</div>
+                </div>
+
+                <div class="form-group" id="grupoHoras" style="display:none">
+                    <label><i class="fa-regular fa-clock"></i> Hora disponible</label>
+                    <div class="horas-grid" id="horasGrid">
+                        <div class="loading-horas"><i class="fa-solid fa-spinner fa-spin"></i> Cargando horas...</div>
+                    </div>
+                    <div class="field-msg err" id="errHora"><i class="fa-solid fa-circle-exclamation"></i> Por favor selecciona una hora</div>
+                </div>
+
+                <div class="form-group" id="grupoMotivo" style="display:none">
+                    <label><i class="fa-regular fa-comment-dots"></i> Motivo de la consulta</label>
+                    <textarea class="form-control" name="motivo" id="motivoInput" placeholder="Describe brevemente el motivo de tu consulta..." maxlength="300" rows="3"></textarea>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.3rem">
+                        <div class="field-msg err" id="errMotivo" style="margin:0"><i class="fa-solid fa-circle-exclamation"></i> Por favor describe el motivo</div>
+                        <span id="motivoCount" style="font-size:.72rem;color:var(--muted);margin-left:auto">0 / 300</span>
+                    </div>
+                </div>
+
+                <div class="resumen" id="resumen">
+                    <div class="resumen-title"><i class="fa-solid fa-clipboard-check"></i> Resumen de tu cita</div>
+                    <div class="resumen-grid">
+                        <div class="resumen-item"><span>Especialidad</span><span id="res-esp">—</span></div>
+                        <div class="resumen-item"><span>Médico</span><span id="res-med">—</span></div>
+                        <div class="resumen-item"><span>Fecha</span><span id="res-fecha">—</span></div>
+                        <div class="resumen-item"><span>Hora</span><span id="res-hora">—</span></div>
+                        <div class="resumen-item" style="grid-column:1/-1"><span>Motivo</span><span id="res-motivo">—</span></div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit" id="btnAgendar" disabled>
+                    <i class="fa-regular fa-calendar-check"></i> Confirmar cita
+                </button>
+            </form>
+        </div>
+    </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Sidebar móvil ──────────────────────────────────────────────
+function toggleSidebar(){
+    var sb=document.getElementById('sidebar');
+    var ov=document.getElementById('overlay');
+    var hb=document.getElementById('hamburger');
+    sb.classList.toggle('open');
+    ov.classList.toggle('active');
+    hb.classList.toggle('open');
+}
+function closeSidebar(){
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('overlay').classList.remove('active');
+    document.getElementById('hamburger').classList.remove('open');
+}
+
+// ── Toast ───────────────────────────────────────────────────────
+function showToast(msg, isErr){
+    var t=document.getElementById('toast');
+    t.className='toast'+(isErr?' err':'');
+    t.innerHTML=(isErr?'<i class="fa-solid fa-circle-exclamation"></i> ':'<i class="fa-solid fa-circle-check"></i> ')+msg;
+    t.classList.add('show');
+    setTimeout(function(){ t.classList.remove('show'); }, 3200);
+}
+
+// ── Estado del formulario ───────────────────────────────────────
+var estado = { esp:false, med:false, fecha:false, hora:false, motivo:false };
+
+function actualizarPasos(){
+    var done = [estado.esp, estado.med, estado.fecha, estado.hora, estado.motivo];
+    for(var i=0;i<5;i++){
+        var step=document.getElementById('step'+(i+1));
+        var circle=document.getElementById('sc'+(i+1));
+        step.classList.remove('done','active');
+        if(done[i]){
+            step.classList.add('done');
+            circle.innerHTML='<i class="fa-solid fa-check" style="font-size:11px"></i>';
+        } else if(!done[i] && (i===0 || done[i-1])){
+            step.classList.add('active');
+            circle.textContent = i+1;
+        } else {
+            circle.textContent = i+1;
+        }
+    }
+    // Habilitar botón solo si todo completo
+    var todoCumplido = done.every(function(v){ return v; });
+    document.getElementById('btnAgendar').disabled = !todoCumplido;
+    // Mostrar resumen cuando hay hora seleccionada
+    if(estado.esp && estado.med && estado.fecha && estado.hora){
+        actualizarResumen();
+        document.getElementById('resumen').classList.add('show');
+    } else {
+        document.getElementById('resumen').classList.remove('show');
+    }
+}
+
+function actualizarResumen(){
+    var selEsp = document.getElementById('selectEspecialidad');
+    var selMed = document.getElementById('selectMedico');
+    var fecha  = document.getElementById('inputFecha').value;
+    var hora   = document.getElementById('hora_seleccionada').value;
+    var motivo = document.getElementById('motivoInput').value.trim();
+
+    document.getElementById('res-esp').textContent   = selEsp.options[selEsp.selectedIndex]?.text || '—';
+    document.getElementById('res-med').textContent   = selMed.options[selMed.selectedIndex]?.text || '—';
+    if(fecha){
+        var p=fecha.split('-');
+        document.getElementById('res-fecha').textContent = p[2]+'/'+p[1]+'/'+p[0];
+    }
+    document.getElementById('res-hora').textContent   = hora || '—';
+    document.getElementById('res-motivo').textContent = motivo || '(sin motivo especificado)';
+}
+
+// ── Especialidad ────────────────────────────────────────────────
+document.getElementById('selectEspecialidad').addEventListener('change', function(){
+    var espId = this.value;
+    var selMed = document.getElementById('selectMedico');
+    var inputFecha = document.getElementById('inputFecha');
+
+    // Reset
+    estado.esp=false; estado.med=false; estado.fecha=false; estado.hora=false; estado.motivo=false;
+    selMed.innerHTML='<option value="">Cargando médicos...</option>';
+    selMed.disabled=true;
+    inputFecha.disabled=true; inputFecha.value='';
+    document.getElementById('grupoHoras').style.display='none';
+    document.getElementById('grupoMotivo').style.display='none';
+    document.getElementById('hora_seleccionada').value='';
+    document.getElementById('errEsp').classList.remove('show');
+    actualizarPasos();
+
+    if(!espId){
+        selMed.innerHTML='<option value="">— Primero selecciona una especialidad —</option>';
+        return;
+    }
+
+    this.classList.add('valid');
+    estado.esp=true;
+    actualizarPasos();
+
+    fetch('{% url "paciente_general_medicos" %}?especialidad_id='+espId)
+        .then(function(r){ return r.json(); })
+        .then(function(data){
+            if(!data.medicos || data.medicos.length===0){
+                selMed.innerHTML='<option value="">No hay médicos disponibles</option>';
+                showToast('No hay médicos disponibles para esta especialidad', true);
+            } else {
+                selMed.innerHTML='<option value="">— Selecciona un médico —</option>';
+                data.medicos.forEach(function(m){
+                    selMed.innerHTML += '<option value="'+m.id+'">'+m.nombre+'</option>';
+                });
+                selMed.disabled=false;
+            }
+        })
+        .catch(function(){ showToast('Error al cargar médicos', true); });
+});
+
+// ── Médico ──────────────────────────────────────────────────────
+document.getElementById('selectMedico').addEventListener('change', function(){
+    var inputFecha = document.getElementById('inputFecha');
+    document.getElementById('errMed').classList.remove('show');
+    estado.med=false; estado.fecha=false; estado.hora=false; estado.motivo=false;
+    inputFecha.disabled=!this.value; inputFecha.value='';
+    document.getElementById('grupoHoras').style.display='none';
+    document.getElementById('grupoMotivo').style.display='none';
+    document.getElementById('hora_seleccionada').value='';
+
+    if(this.value){
+        this.classList.add('valid');
+        estado.med=true;
+    } else {
+        this.classList.remove('valid');
+    }
+    actualizarPasos();
+});
+
+// ── Fecha ───────────────────────────────────────────────────────
+document.getElementById('inputFecha').addEventListener('change', function(){
+    var medicoId = document.getElementById('selectMedico').value;
+    var fecha = this.value;
+    document.getElementById('errFecha').classList.remove('show');
+    estado.fecha=false; estado.hora=false; estado.motivo=false;
+    document.getElementById('hora_seleccionada').value='';
+    document.getElementById('grupoMotivo').style.display='none';
+
+    if(!medicoId || !fecha) return;
+
+    this.classList.add('valid');
+    estado.fecha=true;
+    actualizarPasos();
+
+    var grupoHoras = document.getElementById('grupoHoras');
+    var horasGrid  = document.getElementById('horasGrid');
+    grupoHoras.style.display='block';
+    horasGrid.innerHTML='<div class="loading-horas"><i class="fa-solid fa-spinner fa-spin"></i> Cargando horas disponibles...</div>';
+
+    fetch('{% url "paciente_general_horas" %}?medico_id='+medicoId+'&fecha='+fecha)
+        .then(function(r){ return r.json(); })
+        .then(function(data){
+            horasGrid.innerHTML='';
+            if(!data.horas || data.horas.length===0){
+                horasGrid.innerHTML='<p style="color:var(--muted);font-size:.88rem;grid-column:1/-1"><i class="fa-regular fa-calendar-xmark" style="margin-right:.4rem"></i>No hay horas disponibles para esta fecha.</p>';
+                showToast('Sin horas disponibles para esta fecha', true);
+            } else {
+                data.horas.forEach(function(h){
+                    var btn=document.createElement('button');
+                    btn.type='button';
+                    btn.className='hora-btn';
+                    btn.textContent=h;
+                    btn.addEventListener('click', function(){
+                        document.querySelectorAll('.hora-btn').forEach(function(b){ b.classList.remove('selected'); });
+                        this.classList.add('selected');
+                        document.getElementById('hora_seleccionada').value=h;
+                        document.getElementById('errHora').classList.remove('show');
+                        estado.hora=true;
+                        // Mostrar campo motivo al elegir hora
+                        document.getElementById('grupoMotivo').style.display='block';
+                        document.getElementById('grupoMotivo').scrollIntoView({behavior:'smooth',block:'nearest'});
+                        actualizarPasos();
+                    });
+                    horasGrid.appendChild(btn);
+                });
+            }
+        })
+        .catch(function(){ showToast('Error al cargar horas', true); });
+});
+
+// ── Motivo ──────────────────────────────────────────────────────
+document.getElementById('motivoInput').addEventListener('input', function(){
+    var len = this.value.trim().length;
+    document.getElementById('motivoCount').textContent = this.value.length+' / 300';
+    document.getElementById('errMotivo').classList.remove('show');
+    estado.motivo = len >= 3;
+    if(estado.motivo) this.classList.add('valid');
+    else this.classList.remove('valid');
+    actualizarPasos();
+    if(estado.esp && estado.med && estado.fecha && estado.hora) actualizarResumen();
+});
+
+// ── Validación al enviar ────────────────────────────────────────
+document.getElementById('formAgendar').addEventListener('submit', function(e){
+    var errores = [];
+    if(!estado.esp){
+        document.getElementById('errEsp').classList.add('show');
+        errores.push('especialidad');
+    }
+    if(!estado.med){
+        document.getElementById('errMed').classList.add('show');
+        errores.push('médico');
+    }
+    if(!estado.fecha){
+        document.getElementById('errFecha').classList.add('show');
+        errores.push('fecha');
+    }
+    if(!estado.hora){
+        document.getElementById('errHora').classList.add('show');
+        errores.push('hora');
+    }
+    if(!estado.motivo){
+        document.getElementById('grupoMotivo').style.display='block';
+        document.getElementById('errMotivo').classList.add('show');
+        errores.push('motivo');
+    }
+    if(errores.length > 0){
+        e.preventDefault();
+        showToast('Faltan: '+errores.join(', '), true);
+        // Scroll al primer error
+        document.querySelector('.field-msg.err.show').closest('.form-group')
+            .scrollIntoView({behavior:'smooth', block:'center'});
+    }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,147 @@
+from django.db import models
+from django.conf import settings
+
+
+class ConsultaGeneral(models.Model):
+    """
+    Historia clínica de consulta general — basada en el formulario físico de Zumedical.
+    Se crea una por cada consulta (puede haber múltiples por paciente).
+    """
+    paciente = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='consultas_generales',
+        verbose_name='Paciente',
+    )
+    medico = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='consultas_realizadas',
+        verbose_name='Médico',
+    )
+    fecha = models.DateField(auto_now_add=True)
+
+    # ── Motivo y antecedentes ─────────────────────────────────────────────
+    motivo_consulta          = models.TextField(verbose_name='Motivo de consulta')
+    antecedentes_personales  = models.TextField(blank=True, default='', verbose_name='Antecedentes personales')
+    antecedentes_familiares  = models.TextField(blank=True, default='', verbose_name='Antecedentes familiares')
+    antecedentes_alergicos   = models.TextField(blank=True, default='', verbose_name='Antecedentes alérgicos')
+    antecedentes_quirurgicos = models.TextField(blank=True, default='', verbose_name='Antecedentes quirúrgicos')
+    antecedentes_obstetricos = models.TextField(blank=True, default='', verbose_name='Antecedentes obstétricos')
+
+    # ── Examen físico ─────────────────────────────────────────────────────
+    examen_fisico = models.TextField(blank=True, default='', verbose_name='Examen físico')
+
+    # ── Signos vitales ────────────────────────────────────────────────────
+    presion_arterial      = models.CharField(max_length=20, blank=True, default='', verbose_name='Presión arterial (P/A)')
+    saturacion_oxigeno    = models.IntegerField(null=True, blank=True, verbose_name='Saturación de oxígeno (%)')
+    frecuencia_cardiaca   = models.IntegerField(null=True, blank=True, verbose_name='Frecuencia cardíaca (lpm)')
+    frecuencia_respiratoria = models.IntegerField(null=True, blank=True, verbose_name='Frecuencia respiratoria (rpm)')
+    temperatura           = models.FloatField(null=True, blank=True, verbose_name='Temperatura (°C)')
+    talla                 = models.FloatField(null=True, blank=True, verbose_name='Talla (m)')
+    peso                  = models.FloatField(null=True, blank=True, verbose_name='Peso (kg)')
+
+    # ── Evolución y plan ──────────────────────────────────────────────────
+    examenes_enviados     = models.TextField(blank=True, default='', verbose_name='Exámenes enviados')
+    evolucion_enfermedad  = models.TextField(blank=True, default='', verbose_name='Evolución de la enfermedad')
+    plan                  = models.TextField(blank=True, default='', verbose_name='Plan')
+    tratamiento           = models.TextField(blank=True, default='', verbose_name='Tratamiento')
+
+    # ── Diagnóstico CIE-10 (hasta 3 diagnósticos) ────────────────────────
+    diagnostico_1_patologia   = models.CharField(max_length=200, blank=True, default='', verbose_name='Patología 1')
+    diagnostico_1_cie10       = models.CharField(max_length=20,  blank=True, default='', verbose_name='CIE-10 1')
+    diagnostico_1_presuntivo  = models.BooleanField(default=False, verbose_name='Presuntivo 1')
+    diagnostico_1_definitivo  = models.BooleanField(default=False, verbose_name='Definitivo 1')
+
+    diagnostico_2_patologia   = models.CharField(max_length=200, blank=True, default='', verbose_name='Patología 2')
+    diagnostico_2_cie10       = models.CharField(max_length=20,  blank=True, default='', verbose_name='CIE-10 2')
+    diagnostico_2_presuntivo  = models.BooleanField(default=False, verbose_name='Presuntivo 2')
+    diagnostico_2_definitivo  = models.BooleanField(default=False, verbose_name='Definitivo 2')
+
+    diagnostico_3_patologia   = models.CharField(max_length=200, blank=True, default='', verbose_name='Patología 3')
+    diagnostico_3_cie10       = models.CharField(max_length=20,  blank=True, default='', verbose_name='CIE-10 3')
+    diagnostico_3_presuntivo  = models.BooleanField(default=False, verbose_name='Presuntivo 3')
+    diagnostico_3_definitivo  = models.BooleanField(default=False, verbose_name='Definitivo 3')
+
+    # ── Próxima cita ──────────────────────────────────────────────────────
+    proxima_cita = models.DateField(null=True, blank=True, verbose_name='Próxima cita')
+
+    class Meta:
+        verbose_name        = 'Consulta General'
+        verbose_name_plural = 'Consultas Generales'
+        ordering            = ['-fecha']
+
+    def __str__(self):
+        return f"Consulta — {self.paciente.get_full_name()} — {self.fecha}"
+
+    @property
+    def imc(self):
+        if self.peso and self.talla and self.talla > 0:
+            return round(self.peso / (self.talla ** 2), 1)
+        return None
+
+    @property
+    def diagnosticos(self):
+        """Lista limpia de diagnósticos con datos."""
+        result = []
+        for i in [1, 2, 3]:
+            pat = getattr(self, f'diagnostico_{i}_patologia')
+            if pat:
+                result.append({
+                    'patologia':  pat,
+                    'cie10':      getattr(self, f'diagnostico_{i}_cie10'),
+                    'presuntivo': getattr(self, f'diagnostico_{i}_presuntivo'),
+                    'definitivo': getattr(self, f'diagnostico_{i}_definitivo'),
+                })
+        return result
+
+
+class ProgramacionParto(models.Model):
+    """
+    Programación de parto o cesárea — la crea el médico para una paciente prenatal.
+    La paciente la ve en su panel de dashboard.
+    """
+    TIPO_CHOICES = [
+        ('parto_natural', 'Parto Natural'),
+        ('cesarea',       'Cesárea Programada'),
+        ('induccion',     'Inducción del Parto'),
+    ]
+    ESTADO_CHOICES = [
+        ('programado',  'Programado'),
+        ('confirmado',  'Confirmado'),
+        ('realizado',   'Realizado'),
+        ('cancelado',   'Cancelado'),
+        ('reprogramado','Reprogramado'),
+    ]
+
+    paciente = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='programaciones_parto',
+        verbose_name='Paciente',
+    )
+    medico = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='partos_programados',
+        verbose_name='Médico responsable',
+    )
+    tipo               = models.CharField(max_length=20, choices=TIPO_CHOICES, default='parto_natural', verbose_name='Tipo')
+    fecha_programada   = models.DateField(verbose_name='Fecha programada')
+    hora_programada    = models.TimeField(verbose_name='Hora programada')
+    semanas_gestacion  = models.IntegerField(null=True, blank=True, verbose_name='Semanas de gestación al momento')
+    lugar              = models.CharField(max_length=200, blank=True, default='Zumedical — Centro Médico', verbose_name='Lugar / Sala')
+    indicaciones       = models.TextField(blank=True, default='', verbose_name='Indicaciones para la paciente')
+    estado             = models.CharField(max_length=15, choices=ESTADO_CHOICES, default='programado', verbose_name='Estado')
+    fecha_registro     = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name        = 'Programación de Parto'
+        verbose_name_plural = 'Programaciones de Parto'
+        ordering            = ['-fecha_programada']
+
+    def __str__(self):
+        return f"{self.get_tipo_display()} — {self.paciente.get_full_name()} — {self.fecha_programada}"

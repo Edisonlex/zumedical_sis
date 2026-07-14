@@ -1,0 +1,109 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Historial Consultas Generales — Zumedical</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root{--mg:#b03580;--mg-l:#cc4d99;--mg-d:#8a2563;--mg-bg:#fbf0f7;--mg-border:#e8aad4;--text:#2a1020;--muted:#8a6070;--white:#fff;--bg:#fdf5fa;--sw:260px;--green:#2e7d52;--green-bg:#edfaf3;--green-border:#a8dfc0;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:"DM Sans",sans-serif;background:var(--bg);display:flex;height:100vh;overflow:hidden;}
+    .sidebar{width:var(--sw);height:100vh;background:linear-gradient(175deg,#8a2563 0%,#b03580 55%,#cc4d99 100%);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;overflow-y:auto;}
+    .sb-brand{padding:1.5rem;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:.75rem;}
+    .sb-logo{width:40px;height:40px;background:white;border-radius:50%;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;}
+    .sb-logo img{width:36px;height:36px;object-fit:contain;}
+    .sb-brand h2{font-family:"Cormorant Garamond",serif;font-size:1.3rem;font-weight:600;color:white;}
+    .sb-brand span{font-size:.7rem;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.1em;}
+    .sb-user{padding:1rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:.75rem;text-decoration:none;}
+    .sb-av{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:600;color:white;flex-shrink:0;text-transform:uppercase;}
+    .sb-user-info p{font-size:.7rem;color:rgba(255,255,255,.6);text-transform:uppercase;}
+    .sb-user-info h3{font-size:.88rem;font-weight:500;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px;}
+    .sb-nav{flex:1;padding:1rem .75rem;}
+    .nav-lbl{font-size:.68rem;color:rgba(255,255,255,.5);letter-spacing:.1em;text-transform:uppercase;padding:.5rem .75rem;margin-top:.5rem;}
+    .nav-item{display:flex;align-items:center;gap:.75rem;padding:.7rem 1rem;border-radius:10px;color:rgba(255,255,255,.85);text-decoration:none;font-size:.88rem;margin-bottom:.2rem;transition:all .2s;}
+    .nav-item:hover,.nav-item.active{background:rgba(255,255,255,.18);color:white;}
+    .nav-item svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;flex-shrink:0;}
+    .sb-footer{padding:1rem .75rem;border-top:1px solid rgba(255,255,255,.12);}
+    .btn-logout{display:flex;align-items:center;gap:.75rem;padding:.7rem 1rem;border-radius:10px;color:rgba(255,255,255,.8);text-decoration:none;font-size:.88rem;transition:all .2s;width:100%;}
+    .btn-logout:hover{background:rgba(255,255,255,.15);color:white;}
+    .btn-logout svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;}
+    .main{margin-left:var(--sw);flex:1;padding:2rem 2.5rem;height:100vh;overflow-y:auto;}
+    .top-row{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:1.75rem;flex-wrap:wrap;gap:1rem;}
+    .page-title{font-family:"Cormorant Garamond",serif;font-size:1.9rem;font-weight:600;color:var(--text);}
+    .page-sub{color:var(--muted);font-size:.88rem;margin-top:.2rem;}
+    .btn-primary{background:var(--mg);color:white;border:none;padding:.65rem 1.4rem;border-radius:10px;font-size:.9rem;font-weight:500;cursor:pointer;text-decoration:none;transition:all .2s;display:inline-flex;align-items:center;gap:.5rem;}
+    .btn-primary:hover{background:var(--mg-d);}
+    /* Filter */
+    .filter-bar{background:white;border:1px solid var(--mg-border);border-radius:14px;padding:.9rem 1.25rem;display:flex;gap:.75rem;flex-wrap:wrap;align-items:center;margin-bottom:1.25rem;}
+    .filter-bar select,.filter-bar input{padding:.55rem .9rem;border:1.5px solid var(--mg-border);border-radius:9px;font-family:"DM Sans",sans-serif;font-size:.85rem;background:var(--bg);color:var(--text);outline:none;}
+    .filter-bar select:focus,.filter-bar input:focus{border-color:var(--mg);}
+    .btn-filter{background:var(--mg-bg);color:var(--mg);border:1px solid var(--mg-border);padding:.55rem 1.1rem;border-radius:9px;font-size:.85rem;font-weight:500;cursor:pointer;text-decoration:none;}
+    .btn-filter:hover{background:var(--mg);color:white;}
+    /* Table */
+    .table-card{background:white;border-radius:16px;border:1px solid var(--mg-border);overflow:hidden;}
+    table{width:100%;border-collapse:collapse;min-width:700px;}
+    thead tr{background:var(--mg-bg);border-bottom:1px solid var(--mg-border);}
+    thead th{padding:.8rem 1.1rem;font-size:.72rem;font-weight:500;color:var(--mg-d);text-transform:uppercase;letter-spacing:.07em;text-align:left;white-space:nowrap;}
+    tbody tr{border-bottom:1px solid #f5e6f0;transition:background .15s;}
+    tbody tr:last-child{border-bottom:none;}
+    tbody tr:hover{background:var(--mg-bg);}
+    tbody td{padding:.8rem 1.1rem;font-size:.875rem;color:var(--text);vertical-align:middle;}
+    .t-wrap{overflow-x:auto;}
+    .btn-ver{display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .8rem;background:var(--mg-bg);color:var(--mg);border:1px solid var(--mg-border);border-radius:8px;text-decoration:none;font-size:.8rem;font-weight:500;transition:all .2s;}
+    .btn-ver:hover{background:var(--mg);color:white;}
+    .empty{text-align:center;padding:3rem;color:var(--muted);}
+    .empty-icon{font-size:2.5rem;margin-bottom:.75rem;}
+    .pac-name{font-weight:500;}
+    .pac-sub{font-size:.75rem;color:var(--muted);}
+    .motivo-text{max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  </style>
+</head>
+<body>
+{% include 'medico/sidebar_medico.html' %}
+
+<main class="main">
+  <div class="top-row">
+    <div><div class="page-title">Historial de Consultas Generales</div><p class="page-sub">Registro de todas las consultas médicas generales</p></div>
+    <a href="{% url 'registrar_consulta_general' %}" class="btn-primary">+ Nueva Consulta</a>
+  </div>
+
+  <form method="get" class="filter-bar">
+    <select name="paciente">
+      <option value="">— Todos los pacientes —</option>
+      {% for p in pacientes %}<option value="{{ p.usuario.id }}" {% if paciente_filtrado_id == p.usuario.id %}selected{% endif %}>{{ p.usuario.get_full_name|default:p.usuario.username }}</option>{% endfor %}
+    </select>
+    <button type="submit" class="btn-filter">Filtrar</button>
+    {% if paciente_filtrado_id %}<a href="{% url 'historial_consultas_generales' %}" class="btn-filter">✕ Limpiar</a>{% endif %}
+    <span style="margin-left:auto;font-size:.82rem;color:var(--muted)">{{ consultas|length }} consulta{{ consultas|length|pluralize }}</span>
+  </form>
+
+  <div class="table-card">
+    {% if consultas %}
+    <div class="t-wrap">
+      <table>
+        <thead><tr><th>Fecha</th><th>Paciente</th><th>Motivo</th><th>P/A</th><th>Temp.</th><th>Diagnóstico principal</th><th>Próx. cita</th><th>Acción</th></tr></thead>
+        <tbody>
+          {% for c in consultas %}
+          <tr>
+            <td>{{ c.fecha|date:"d/m/Y" }}</td>
+            <td><div class="pac-name">{{ c.paciente.get_full_name|default:c.paciente.username }}</div><div class="pac-sub">@{{ c.paciente.username }}</div></td>
+            <td><div class="motivo-text" title="{{ c.motivo_consulta }}">{{ c.motivo_consulta }}</div></td>
+            <td>{{ c.presion_arterial|default:"—" }}</td>
+            <td>{% if c.temperatura %}{{ c.temperatura }}°C{% else %}—{% endif %}</td>
+            <td>{% if c.diagnostico_1_patologia %}{{ c.diagnostico_1_patologia }}{% if c.diagnostico_1_cie10 %} <span style="font-size:.75rem;color:var(--muted)">({{ c.diagnostico_1_cie10 }})</span>{% endif %}{% else %}<span style="color:var(--muted);font-style:italic">Sin diagnóstico</span>{% endif %}</td>
+            <td>{{ c.proxima_cita|date:"d/m/Y"|default:"—" }}</td>
+            <td><a href="{% url 'ver_consulta_general' c.id %}" class="btn-ver">👁 Ver</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty"><div class="empty-icon">📭</div><p>No hay consultas registradas{% if paciente_filtrado_id %} para este paciente{% endif %}.</p></div>
+    {% endif %}
+  </div>
+</main>
+</body>
+</html>

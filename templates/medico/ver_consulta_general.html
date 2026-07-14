@@ -1,0 +1,149 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Consulta — {{ consulta.paciente.get_full_name }} — Zumedical</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root{--mg:#b03580;--mg-l:#cc4d99;--mg-d:#8a2563;--mg-bg:#fbf0f7;--mg-border:#e8aad4;--text:#2a1020;--muted:#8a6070;--white:#fff;--bg:#fdf5fa;--green:#2e7d52;--green-bg:#edfaf3;--green-border:#a8dfc0;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:"DM Sans",sans-serif;background:var(--bg);min-height:100vh;}
+    .topbar{background:linear-gradient(135deg,var(--mg-d),var(--mg-l));padding:1rem 2.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
+    .topbar-brand{display:flex;align-items:center;gap:.75rem;}
+    .topbar-logo{width:36px;height:36px;background:white;border-radius:50%;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+    .topbar-logo img{width:32px;height:32px;object-fit:contain;}
+    .topbar-title{font-family:"Cormorant Garamond",serif;font-size:1.3rem;font-weight:600;color:white;}
+    .topbar-sub{font-size:.75rem;color:rgba(255,255,255,.7);}
+    .btn-back{background:rgba(255,255,255,.15);color:white;border:1px solid rgba(255,255,255,.3);padding:.5rem 1.1rem;border-radius:8px;text-decoration:none;font-size:.85rem;font-weight:500;transition:all .2s;}
+    .btn-back:hover{background:rgba(255,255,255,.25);}
+    .container{max-width:960px;margin:0 auto;padding:2.5rem;}
+    /* Patient header */
+    .pac-header{background:linear-gradient(135deg,var(--mg-d),var(--mg));border-radius:16px;padding:1.5rem 2rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:1.25rem;}
+    .pac-av{width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:700;color:white;flex-shrink:0;text-transform:uppercase;}
+    .pac-info h2{font-family:"Cormorant Garamond",serif;font-size:1.6rem;font-weight:700;color:white;}
+    .pac-info p{font-size:.85rem;color:rgba(255,255,255,.8);margin-top:.2rem;}
+    /* Cards */
+    .card{background:white;border-radius:16px;border:1px solid var(--mg-border);padding:1.5rem 2rem;margin-bottom:1.25rem;box-shadow:0 2px 8px rgba(176,53,128,.04);}
+    .sec-title{display:flex;align-items:center;gap:.6rem;font-family:"Cormorant Garamond",serif;font-size:1.15rem;font-weight:600;color:var(--mg-d);margin-bottom:1.25rem;padding-bottom:.6rem;border-bottom:2px solid var(--mg-bg);}
+    .sec-icon{width:32px;height:32px;background:var(--mg-bg);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+    .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;}
+    .full{grid-column:1/-1;}
+    .dato{background:var(--bg);border-radius:10px;padding:.75rem 1rem;}
+    .dato-lbl{font-size:.7rem;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.3rem;}
+    .dato-val{font-size:.9rem;color:var(--text);line-height:1.5;}
+    .dato-val.empty{color:var(--muted);font-style:italic;font-size:.85rem;}
+    /* CIE table */
+    .cie-table{width:100%;border-collapse:collapse;}
+    .cie-table th{padding:.65rem 1rem;background:var(--mg-bg);font-size:.72rem;font-weight:500;color:var(--mg-d);text-transform:uppercase;letter-spacing:.06em;text-align:left;border:1px solid var(--mg-border);}
+    .cie-table td{padding:.65rem 1rem;border:1px solid #f0e0ee;font-size:.875rem;}
+    .check-yes{color:var(--green);font-weight:600;}
+    .check-no{color:var(--muted);}
+    @media(max-width:700px){.grid2,.grid4{grid-template-columns:1fr}.container{padding:1.25rem}}
+  </style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="topbar-logo"><img src="{% static 'img/Logo.png' %}" alt="Zumedical"/></div>
+    <div><div class="topbar-title">Zumedical</div><div class="topbar-sub">Detalle de Consulta General</div></div>
+  </div>
+  <div style="display:flex;gap:.75rem">
+    <a href="{% url 'historial_consultas_generales' %}" class="btn-back">← Historial</a>
+    <a href="{% url 'registrar_consulta_general' %}" class="btn-back">+ Nueva Consulta</a>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Encabezado paciente -->
+  <div class="pac-header">
+    <div class="pac-av">{% if consulta.paciente.first_name %}{{ consulta.paciente.first_name|slice:":1" }}{{ consulta.paciente.last_name|slice:":1" }}{% else %}{{ consulta.paciente.username|slice:":1"|upper }}{% endif %}</div>
+    <div class="pac-info">
+      <h2>{{ consulta.paciente.get_full_name|default:consulta.paciente.username }}</h2>
+      <p>Consulta del {{ consulta.fecha|date:"d/m/Y" }} · Médico: Dr(a). {{ consulta.medico.get_full_name|default:consulta.medico.username }}</p>
+    </div>
+  </div>
+
+  <!-- Motivo -->
+  <div class="card">
+    <div class="sec-title"><div class="sec-icon">💬</div>Motivo de Consulta</div>
+    <p style="font-size:.95rem;line-height:1.6;color:var(--text)">{{ consulta.motivo_consulta }}</p>
+  </div>
+
+  <!-- Antecedentes -->
+  <div class="card">
+    <div class="sec-title"><div class="sec-icon">📋</div>Antecedentes</div>
+    <div class="grid2">
+      <div class="dato"><div class="dato-lbl">Personales</div><div class="dato-val {% if not consulta.antecedentes_personales %}empty{% endif %}">{{ consulta.antecedentes_personales|default:"Sin registro" }}</div></div>
+      <div class="dato"><div class="dato-lbl">Familiares</div><div class="dato-val {% if not consulta.antecedentes_familiares %}empty{% endif %}">{{ consulta.antecedentes_familiares|default:"Sin registro" }}</div></div>
+      <div class="dato"><div class="dato-lbl">Alérgicos</div><div class="dato-val {% if not consulta.antecedentes_alergicos %}empty{% endif %}">{{ consulta.antecedentes_alergicos|default:"Sin registro" }}</div></div>
+      <div class="dato"><div class="dato-lbl">Quirúrgicos</div><div class="dato-val {% if not consulta.antecedentes_quirurgicos %}empty{% endif %}">{{ consulta.antecedentes_quirurgicos|default:"Sin registro" }}</div></div>
+      {% if consulta.antecedentes_obstetricos %}<div class="dato full"><div class="dato-lbl">Obstétricos</div><div class="dato-val">{{ consulta.antecedentes_obstetricos }}</div></div>{% endif %}
+    </div>
+  </div>
+
+  <!-- Examen físico y signos vitales -->
+  <div class="card">
+    <div class="sec-title"><div class="sec-icon">🩺</div>Examen Físico y Signos Vitales</div>
+    {% if consulta.examen_fisico %}<div class="dato full" style="margin-bottom:1rem"><div class="dato-lbl">Examen físico</div><div class="dato-val">{{ consulta.examen_fisico }}</div></div>{% endif %}
+    <div class="grid4">
+      <div class="dato"><div class="dato-lbl">P/A</div><div class="dato-val">{{ consulta.presion_arterial|default:"—" }}</div></div>
+      <div class="dato"><div class="dato-lbl">Saturación O₂</div><div class="dato-val">{% if consulta.saturacion_oxigeno %}{{ consulta.saturacion_oxigeno }}%{% else %}—{% endif %}</div></div>
+      <div class="dato"><div class="dato-lbl">FC</div><div class="dato-val">{% if consulta.frecuencia_cardiaca %}{{ consulta.frecuencia_cardiaca }} lpm{% else %}—{% endif %}</div></div>
+      <div class="dato"><div class="dato-lbl">FR</div><div class="dato-val">{% if consulta.frecuencia_respiratoria %}{{ consulta.frecuencia_respiratoria }} rpm{% else %}—{% endif %}</div></div>
+      <div class="dato"><div class="dato-lbl">Temperatura</div><div class="dato-val">{% if consulta.temperatura %}{{ consulta.temperatura }}°C{% else %}—{% endif %}</div></div>
+      <div class="dato"><div class="dato-lbl">Talla</div><div class="dato-val">{% if consulta.talla %}{{ consulta.talla }} m{% else %}—{% endif %}</div></div>
+      <div class="dato"><div class="dato-lbl">Peso</div><div class="dato-val">{% if consulta.peso %}{{ consulta.peso }} kg{% else %}—{% endif %}</div></div>
+      <div class="dato"><div class="dato-lbl">IMC</div><div class="dato-val">{% if consulta.imc %}{{ consulta.imc }}{% else %}—{% endif %}</div></div>
+    </div>
+  </div>
+
+  <!-- Evolución, plan y tratamiento -->
+  <div class="card">
+    <div class="sec-title"><div class="sec-icon">🧪</div>Evolución, Plan y Tratamiento</div>
+    <div class="grid2">
+      {% if consulta.examenes_enviados %}<div class="dato"><div class="dato-lbl">Exámenes enviados</div><div class="dato-val">{{ consulta.examenes_enviados }}</div></div>{% endif %}
+      {% if consulta.evolucion_enfermedad %}<div class="dato"><div class="dato-lbl">Evolución de la enfermedad</div><div class="dato-val">{{ consulta.evolucion_enfermedad }}</div></div>{% endif %}
+      {% if consulta.plan %}<div class="dato"><div class="dato-lbl">Plan</div><div class="dato-val">{{ consulta.plan }}</div></div>{% endif %}
+      {% if consulta.tratamiento %}<div class="dato"><div class="dato-lbl">Tratamiento</div><div class="dato-val">{{ consulta.tratamiento }}</div></div>{% endif %}
+    </div>
+  </div>
+
+  <!-- Diagnóstico -->
+  {% if consulta.diagnosticos %}
+  <div class="card">
+    <div class="sec-title"><div class="sec-icon">🏥</div>Diagnóstico</div>
+    <div style="overflow-x:auto">
+      <table class="cie-table">
+        <thead><tr><th>Patología</th><th>CIE-10</th><th>Presuntivo</th><th>Definitivo</th></tr></thead>
+        <tbody>
+          {% for d in consulta.diagnosticos %}
+          <tr>
+            <td>{{ d.patologia }}</td>
+            <td>{{ d.cie10|default:"—" }}</td>
+            <td class="{% if d.presuntivo %}check-yes{% else %}check-no{% endif %}">{% if d.presuntivo %}✔ Sí{% else %}No{% endif %}</td>
+            <td class="{% if d.definitivo %}check-yes{% else %}check-no{% endif %}">{% if d.definitivo %}✔ Sí{% else %}No{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if consulta.proxima_cita %}
+  <div class="card">
+    <div class="sec-title"><div class="sec-icon">📅</div>Próxima Cita</div>
+    <div class="dato" style="display:inline-block">
+      <div class="dato-lbl">Fecha programada</div>
+      <div class="dato-val" style="font-size:1.1rem;font-weight:600;color:var(--mg-d)">{{ consulta.proxima_cita|date:"d/m/Y" }}</div>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+</body>
+</html>

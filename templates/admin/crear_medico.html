@@ -1,0 +1,428 @@
+﻿{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zumedical — Crear Médico</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--mg:#B03580;--mg-l:#CC4D99;--mg-d:#8A2563;--mg-bg:#FBF0F7;--mg-border:#E8AAD4;--text:#2A1020;--muted:#8A6070;--white:#fff;--bg:#FDF5FA;--sw:260px;--success:#2E7D32;--success-bg:#E8F5E9;--error:#C0392B;--error-bg:#FFEBEE}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);min-height:100vh;display:flex;opacity:0;animation:fadeIn .4s ease .05s forwards}
+@keyframes fadeIn{to{opacity:1}}
+.sidebar{width:var(--sw);height:100vh;background:linear-gradient(175deg,#8A2563 0%,#B03580 55%,#CC4D99 100%);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:200;overflow:hidden;transition:transform .3s ease;box-shadow:4px 0 24px rgba(138,37,99,.2)}
+.sb-brand{padding:1.75rem 1.5rem 1.25rem;border-bottom:1px solid rgba(255,255,255,0.12);display:flex;align-items:center;gap:0.75rem}
+.sb-logo{width:42px;height:42px;background:white;border-radius:50%;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.sb-logo img{width:38px;height:38px;object-fit:contain}
+.sb-brand-text h2{font-family:'Cormorant Garamond',serif;font-size:1.35rem;font-weight:600;color:white;line-height:1}
+.sb-brand-text span{font-size:0.7rem;color:rgba(255,255,255,0.65);letter-spacing:0.1em;text-transform:uppercase}
+.sb-user{padding:1rem 1.5rem;border-bottom:1px solid rgba(255,255,255,0.12);display:flex;align-items:center;gap:0.7rem}
+.sb-avatar{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:500;color:white;flex-shrink:0;text-transform:uppercase}
+.sb-user-info p{font-size:0.72rem;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.1rem}
+.sb-user-info h3{font-size:0.88rem;font-weight:500;color:white}
+.sb-nav{flex:1;padding:1rem 0.75rem;overflow-y:auto}
+.nav-lbl{font-size:0.68rem;color:rgba(255,255,255,0.45);letter-spacing:0.1em;text-transform:uppercase;padding:0.5rem 0.75rem;margin-top:0.75rem}
+.nav-item{display:flex;align-items:center;gap:0.7rem;padding:0.7rem 1rem;border-radius:10px;color:rgba(255,255,255,0.82);text-decoration:none;font-size:0.88rem;transition:all 0.2s;margin-bottom:0.2rem}
+.nav-badge{margin-left:auto;background:rgba(255,255,255,.25);color:white;font-size:.68rem;font-weight:600;padding:.15rem .5rem;border-radius:999px;min-width:20px;text-align:center}
+.nav-badge-alert{background:#e74c3c}
+.nav-item:hover,.nav-item.active{background:rgba(255,255,255,0.18);color:white}
+.nav-item i{width:18px;text-align:center;font-size:15px;flex-shrink:0}
+.sb-footer{padding:1rem 0.75rem;border-top:1px solid rgba(255,255,255,0.12)}
+.btn-logout{display:flex;align-items:center;gap:0.7rem;padding:0.7rem 1rem;border-radius:10px;color:rgba(255,255,255,0.75);text-decoration:none;font-size:0.88rem;transition:all 0.2s}
+.btn-logout:hover{background:rgba(255,255,255,0.15);color:white}
+.btn-logout i{width:17px;text-align:center;font-size:15px}
+.mobile-topbar{display:none;align-items:center;justify-content:space-between;padding:1rem 1.25rem;background:linear-gradient(135deg,#8A2563,#CC4D99);position:fixed;top:0;left:0;right:0;z-index:300}
+.mobile-topbar-brand{display:flex;align-items:center;gap:.6rem}
+.mobile-topbar-brand img{width:32px;height:32px;background:white;border-radius:50%;padding:2px;object-fit:contain}
+.mobile-topbar-brand span{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;color:white}
+.hamburger{background:rgba(255,255,255,.15);border:none;border-radius:8px;padding:.5rem .65rem;cursor:pointer;display:flex;flex-direction:column;gap:4px}
+.hamburger span{display:block;width:20px;height:2px;background:white;border-radius:2px;transition:all .3s}
+.hamburger.open span:nth-child(1){transform:translateY(6px) rotate(45deg)}
+.hamburger.open span:nth-child(2){opacity:0}
+.hamburger.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:150;opacity:0;pointer-events:none;transition:opacity .3s}
+.sidebar-overlay.active{opacity:1;pointer-events:auto}
+.main{margin-left:var(--sw);flex:1;padding:2.5rem;min-height:100vh}
+.page-header{margin-bottom:2rem;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem;max-width:700px}
+.page-header h1{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:600;color:var(--text);margin-bottom:0.25rem}
+.page-header p{color:var(--muted);font-size:0.88rem;font-weight:300}
+.page-header-actions{display:flex;gap:0.75rem;flex-wrap:wrap;align-items:center}
+.alert{padding:0.85rem 1.25rem;border-radius:12px;font-size:0.88rem;display:flex;align-items:center;gap:0.6rem;margin-bottom:1.5rem;max-width:700px}
+.alert svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0}
+.alert-success{background:var(--success-bg);color:var(--success);border:1px solid #C8E6C9}
+.alert-error{background:var(--error-bg);color:var(--error);border:1px solid #FFCDD2}
+.form-card{background:var(--white);border-radius:16px;border:1px solid var(--mg-border);padding:2rem;max-width:700px;position:relative;overflow:hidden}
+.form-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:linear-gradient(180deg,var(--mg-d),var(--mg-l))}
+.form-card-title{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:600;color:var(--text);margin-bottom:1.5rem;padding-bottom:0.75rem;border-bottom:1px solid var(--mg-border);display:flex;align-items:center;gap:0.5rem}
+.form-card-title svg{width:18px;height:18px;stroke:var(--mg);fill:none;stroke-width:1.8}
+.form-section{margin-bottom:1.5rem;padding-bottom:1.5rem;border-bottom:1px solid rgba(232,170,212,0.4)}
+.form-section:last-of-type{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.form-section-title{font-size:0.78rem;font-weight:500;color:var(--mg-d);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:1rem}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.form-group{margin-bottom:1.1rem}
+.form-group label{display:block;font-size:0.72rem;font-weight:500;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.45rem}
+.input-wrap{position:relative}
+.input-wrap svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;stroke:var(--mg-l);fill:none;stroke-width:1.8;pointer-events:none}
+.form-group input,.form-group select{width:100%;padding:0.8rem 1rem 0.8rem 2.5rem;border:1.5px solid var(--mg-border);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:0.9rem;color:var(--text);background:var(--white);transition:all 0.2s;outline:none}
+.form-group input:focus,.form-group select:focus{border-color:var(--mg);box-shadow:0 0 0 4px rgba(176,53,128,0.08)}
+.form-group input::placeholder{color:#D4A8C4}
+.form-group select{cursor:pointer}
+.input-hint{font-size:0.75rem;color:var(--muted);margin-top:0.35rem}
+.form-group input.input-valid{border-color:#2E7D32;background:#F4FAF5}
+.form-group input.input-invalid{border-color:var(--error);background:#FFF8F8}
+.form-group select.input-invalid{border-color:var(--error);background:#FFF8F8}
+.field-error{font-size:0.75rem;color:var(--error);margin-top:0.35rem;display:none;align-items:center;gap:0.3rem}
+.field-error.show{display:flex}
+.field-error svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0}
+.pwd-rules{margin-top:0.5rem;display:flex;flex-direction:column;gap:0.3rem}
+.pwd-rule{font-size:0.74rem;color:var(--muted);display:flex;align-items:center;gap:0.4rem;transition:color 0.15s}
+.pwd-rule svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0}
+.pwd-rule.met{color:#2E7D32}
+.pwd-rule .icon-x{display:block}
+.pwd-rule .icon-check{display:none}
+.pwd-rule.met .icon-x{display:none}
+.pwd-rule.met .icon-check{display:block}
+.pwd-strength{height:4px;border-radius:2px;background:var(--mg-border);margin-top:0.6rem;overflow:hidden}
+.pwd-strength-bar{height:100%;width:0%;border-radius:2px;background:var(--error);transition:width 0.25s ease,background 0.25s ease}
+.form-actions{display:flex;gap:0.75rem;align-items:center;margin-top:1.75rem;flex-wrap:wrap}
+.btn-primary{display:inline-flex;align-items:center;gap:0.5rem;padding:0.8rem 1.6rem;background:linear-gradient(135deg,var(--mg-d),var(--mg-l));color:white;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:500;cursor:pointer;transition:opacity 0.2s;text-decoration:none}
+.btn-primary:hover{opacity:0.9}
+.btn-primary:disabled{opacity:0.45;cursor:not-allowed}
+.btn-primary:disabled:hover{opacity:0.45}
+.btn-primary svg{width:15px;height:15px;stroke:white;fill:none;stroke-width:2}
+.btn-secondary{display:inline-flex;align-items:center;gap:0.5rem;padding:0.8rem 1.4rem;background:var(--white);color:var(--muted);border:1.5px solid var(--mg-border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:400;text-decoration:none;transition:all 0.2s}
+.btn-secondary:hover{border-color:var(--mg);color:var(--mg)}
+.btn-secondary svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}
+.btn-danger{display:inline-flex;align-items:center;gap:0.5rem;padding:0.8rem 1.4rem;background:#FFEBEE;color:var(--error);border:1.5px solid #FFCDD2;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:500;cursor:pointer;text-decoration:none;transition:all 0.2s}
+.btn-danger:hover{background:#FFCDD2}
+.btn-danger svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}
+.btn-sm{padding:0.45rem 0.9rem;font-size:0.78rem;border-radius:8px}
+.btn-new{display:inline-flex;align-items:center;gap:0.5rem;padding:0.7rem 1.3rem;background:linear-gradient(135deg,var(--mg-d),var(--mg-l));color:white;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:500;cursor:pointer;text-decoration:none;transition:opacity 0.2s}
+.btn-new:hover{opacity:0.9}
+.btn-new svg{width:15px;height:15px;stroke:white;fill:none;stroke-width:2.5}
+.back-btn{display:inline-flex;align-items:center;gap:0.4rem;padding:0.6rem 1.2rem;background:var(--white);color:var(--mg);border:1.5px solid var(--mg-border);border-radius:10px;text-decoration:none;font-size:0.85rem;font-weight:500;transition:all 0.2s}
+.back-btn:hover{background:var(--mg-bg);border-color:var(--mg)}
+.back-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}
+.table-card{background:var(--white);border-radius:16px;border:1px solid var(--mg-border);overflow:hidden}
+.table-toolbar{padding:1.25rem 1.5rem;border-bottom:1px solid var(--mg-border);display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.search-wrap{position:relative;flex:1;min-width:200px}
+.search-wrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:15px;height:15px;stroke:var(--muted);fill:none;stroke-width:1.8}
+.search-wrap input{width:100%;padding:0.6rem 1rem 0.6rem 2.3rem;border:1.5px solid var(--mg-border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.88rem;color:var(--text);outline:none;transition:all 0.2s}
+.search-wrap input:focus{border-color:var(--mg);box-shadow:0 0 0 3px rgba(176,53,128,0.08)}
+.table-count{font-size:0.82rem;color:var(--muted);white-space:nowrap}
+table{width:100%;border-collapse:collapse}
+thead tr{background:var(--mg-bg)}
+th{padding:0.85rem 1.25rem;text-align:left;font-size:0.7rem;font-weight:500;color:var(--mg-d);text-transform:uppercase;letter-spacing:0.08em;border-bottom:1px solid var(--mg-border)}
+td{padding:0.9rem 1.25rem;font-size:0.88rem;color:var(--text);border-bottom:1px solid rgba(232,170,212,0.3)}
+tr:last-child td{border-bottom:none}
+tbody tr{transition:background 0.15s}
+tbody tr:hover{background:var(--mg-bg)}
+.td-actions{display:flex;gap:0.5rem;align-items:center}
+.badge{display:inline-flex;padding:0.22rem 0.65rem;border-radius:20px;font-size:0.7rem;font-weight:500}
+.badge-admin{background:#FBF0F7;color:#8A2563}
+.badge-medico{background:#E8F5E9;color:#2E7D32}
+.badge-secretaria{background:#E3F2FD;color:#1565C0}
+.badge-paciente{background:#FFF3E0;color:#E65100}
+.badge-pendiente{background:#FFF3E0;color:#E65100}
+.badge-atendido{background:#E8F5E9;color:#2E7D32}
+.badge-cancelado{background:#FFEBEE;color:#C62828}
+.avatar-cell{display:flex;align-items:center;gap:0.7rem}
+.mini-avatar{width:32px;height:32px;border-radius:50%;background:var(--mg-bg);border:1px solid var(--mg-border);display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:500;color:var(--mg-d);flex-shrink:0;text-transform:uppercase}
+.empty-state{padding:3rem;text-align:center;color:var(--muted)}
+.empty-state svg{width:40px;height:40px;stroke:var(--mg-border);fill:none;stroke-width:1.5;margin:0 auto 1rem;display:block}
+@media(max-width:768px){body{flex-direction:column}.sidebar{position:fixed;top:64px;left:0;height:calc(100vh - 64px);transform:translateX(-100%);width:var(--sw)}.sidebar.open{transform:translateX(0)}.sidebar-overlay{display:block;z-index:150}.mobile-topbar{display:flex}.main{margin-left:0;padding:1.25rem;padding-top:calc(1.25rem + 64px)}.form-row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
+<div class="mobile-topbar">
+    <div class="mobile-topbar-brand">
+        <img src="/static/img/Logo.png" alt="Zumedical">
+        <span>Zumedical</span>
+    </div>
+    <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
+        <span></span><span></span><span></span>
+    </button>
+</div>
+<aside class="sidebar" id="sidebar">
+    <div class="sb-brand">
+        <div class="sb-logo"><img src="/static/img/Logo.png" alt="Zumedical"></div>
+        <div class="sb-brand-text"><h2>Zumedical</h2><span>Administrador</span></div>
+    </div>
+    <div class="sb-user">
+        <div class="sb-avatar">{% if request.user.first_name %}{{ request.user.first_name|slice:":1" }}{{ request.user.last_name|slice:":1" }}{% else %}{{ request.user.username|slice:":1"|upper }}{% endif %}</div>
+        <div class="sb-user-info"><p>Sesión activa</p><h3>{{ request.user.get_full_name|default:request.user.username }}</h3></div>
+    </div>
+    <nav class="sb-nav"><div class="nav-lbl">Panel</div>
+<a href="{% url 'admin_dashboard' %}" class="nav-item "><i class="fa-solid fa-grid-2"></i> Inicio</a>
+<div class="nav-lbl">Gestión</div>
+<a href="{% url 'lista_usuarios' %}" class="nav-item "><i class="fa-solid fa-users"></i> Usuarios</a>
+<a href="{% url 'lista_medicos' %}" class="nav-item active"><i class="fa-solid fa-user-doctor"></i> Médicos</a>
+<a href="{% url 'lista_pacientes' %}" class="nav-item "><i class="fa-solid fa-hospital-user"></i> Pacientes</a>
+<a href="{% url 'todas_citas' %}" class="nav-item ">
+    <i class="fa-regular fa-calendar-check"></i> Citas
+    {% if citas_pendientes %}<span class="nav-badge-alert">{{ citas_pendientes }}</span>{% endif %}
+</a>
+<a href="{% url 'controles_admin' %}" class="nav-item "><i class="fa-solid fa-heart-pulse"></i> Controles Prenatales</a>
+<div class="nav-lbl">Sistema</div>
+<a href="{% url 'auditoria_admin' %}" class="nav-item"><i class="fa-solid fa-shield-halved"></i> Auditoría</a>
+</nav>
+    <div class="sb-footer">
+        <a href="{% url 'logout' %}" class="btn-logout"><i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar sesión</a>
+    </div>
+</aside>
+<main class="main">
+<div class="page-header">
+    <div><h1>Registrar Médico</h1><p>Añadir un nuevo médico al sistema</p></div>
+    <a href="{% url 'lista_medicos' %}" class="back-btn"><svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>Volver</a>
+</div>
+{% if messages %}{% for message in messages %}
+<div class="alert alert-{{ message.tags }}">
+<svg viewBox="0 0 24 24">{% if message.tags == "error" %}<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>{% else %}<polyline points="20 6 9 17 4 12"/>{% endif %}</svg>
+{{ message }}
+</div>
+{% endfor %}{% endif %}
+<div class="form-card">
+<p class="form-card-title"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Datos del médico</p>
+<form method="POST">
+{% csrf_token %}
+<div class="form-section">
+<div class="form-section-title">Información personal</div>
+<div class="form-row">
+<div class="form-group"><label>Nombre</label><div class="input-wrap"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><input type="text" name="first_name" id="firstName" value="{{ form_data.first_name|default:'' }}" placeholder="Nombre" maxlength="40" autocomplete="off" required></div><div class="field-error" id="firstNameError"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span>Solo se permiten letras y espacios</span></div></div>
+<div class="form-group"><label>Apellidos</label><div class="input-wrap"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><input type="text" name="last_name" id="lastName" value="{{ form_data.last_name|default:'' }}" placeholder="Apellidos" maxlength="40" autocomplete="off" required></div><div class="field-error" id="lastNameError"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span>Solo se permiten letras y espacios</span></div></div>
+</div>
+<div class="form-row">
+<div class="form-group"><label>Email</label><div class="input-wrap"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><input type="email" name="email" id="emailInput" value="{{ form_data.email|default:'' }}" placeholder="correo@hospital.com" autocomplete="off"></div><div class="field-error" id="emailError"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span>Ingresa un correo electrónico válido</span></div></div>
+<div class="form-group"><label>Teléfono</label><div class="input-wrap"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.18 6.18l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg><input type="text" name="telefono" id="telefonoInput" value="{{ form_data.telefono|default:'' }}" placeholder="0999999999" maxlength="10" inputmode="numeric" autocomplete="off"></div><div class="field-error" id="telefonoError"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span>Debe tener 10 dígitos numéricos</span></div></div>
+</div>
+<div class="form-group">
+    <label>Especialidad</label>
+    <div class="input-wrap">
+        <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        <select name="especialidad_id">
+            <option value="">— Sin especialidad asignada —</option>
+            {% for esp in especialidades %}
+            <option value="{{ esp.id }}" {% if form_data.especialidad_id == esp.id|stringformat:"s" %}selected{% endif %}>
+                {{ esp.nombre }} ({{ esp.get_tipo_display }})
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+</div>
+<div class="form-section">
+<div class="form-section-title">Credenciales de acceso</div>
+<div class="form-row">
+<div class="form-group"><label>Usuario</label><div class="input-wrap"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg><input type="text" name="username" id="usernameInput" value="{{ form_data.username|default:'' }}" placeholder="dr_apellido" maxlength="30" autocomplete="off" required></div><div class="field-error" id="usernameError"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span>Solo letras, números, puntos y guion bajo, sin espacios</span></div></div>
+<div class="form-group"><label>Contraseña</label><div class="input-wrap"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><input type="password" name="password" id="passwordInput" placeholder="Mínimo 8 caracteres" autocomplete="new-password" required></div>
+<div class="pwd-strength"><div class="pwd-strength-bar" id="pwdStrengthBar"></div></div>
+<div class="pwd-rules">
+<div class="pwd-rule" id="ruleLength"><svg class="icon-x" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><svg class="icon-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span>Mínimo 8 caracteres</span></div>
+<div class="pwd-rule" id="ruleUpper"><svg class="icon-x" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><svg class="icon-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span>Una letra mayúscula</span></div>
+<div class="pwd-rule" id="ruleNumber"><svg class="icon-x" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><svg class="icon-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span>Un número</span></div>
+<div class="pwd-rule" id="ruleSymbol"><svg class="icon-x" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><svg class="icon-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span>Un símbolo (!@#$%...)</span></div>
+</div>
+</div>
+</div>
+</div>
+<div class="form-actions">
+<button type="submit" class="btn-primary" id="submitBtn" disabled><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Registrar médico</button>
+<a href="{% url 'lista_medicos' %}" class="btn-secondary">Cancelar</a>
+</div>
+</form>
+</div>
+</main>
+<script>
+// ── Hamburguesa móvil ──
+function toggleSidebar() {
+    const sb = document.getElementById('sidebar');
+    const ov = document.getElementById('overlay');
+    const hb = document.getElementById('hamburger');
+    sb.classList.toggle('open');
+    ov.classList.toggle('active');
+    hb.classList.toggle('open');
+}
+function closeSidebar() {
+    const sb = document.getElementById('sidebar');
+    const ov = document.getElementById('overlay');
+    const hb = document.getElementById('hamburger');
+    sb.classList.remove('open');
+    ov.classList.remove('active');
+    hb.classList.remove('open');
+}
+
+// ── Validación en tiempo real ──
+const soloLetras = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]*$/;
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const usuarioRegex = /^[A-Za-z0-9._]*$/;
+const soloNumeros = /^[0-9]*$/;
+
+function bloquearCaracterInvalido(input, regex) {
+    input.addEventListener('input', function () {
+        let valor = this.value;
+        let limpio = '';
+        for (const ch of valor) {
+            const test = limpio + ch;
+            if (regex.test(test)) limpio = test;
+        }
+        if (limpio !== valor) this.value = limpio;
+    });
+}
+
+function validarCampoLetras(inputId, errorId) {
+    const input = document.getElementById(inputId);
+    const error = document.getElementById(errorId);
+    bloquearCaracterInvalido(input, soloLetras);
+    input.addEventListener('input', function () {
+        const valido = this.value.trim().length > 0 && soloLetras.test(this.value);
+        if (this.value.length === 0) {
+            this.classList.remove('input-valid', 'input-invalid');
+            error.classList.remove('show');
+        } else if (valido) {
+            this.classList.add('input-valid');
+            this.classList.remove('input-invalid');
+            error.classList.remove('show');
+        } else {
+            this.classList.add('input-invalid');
+            this.classList.remove('input-valid');
+            error.classList.add('show');
+        }
+        validarFormulario();
+    });
+}
+
+validarCampoLetras('firstName', 'firstNameError');
+validarCampoLetras('lastName', 'lastNameError');
+
+// Teléfono: solo números, 10 dígitos
+const telefonoInput = document.getElementById('telefonoInput');
+const telefonoError = document.getElementById('telefonoError');
+bloquearCaracterInvalido(telefonoInput, soloNumeros);
+telefonoInput.addEventListener('input', function () {
+    if (this.value.length === 0) {
+        this.classList.remove('input-valid', 'input-invalid');
+        telefonoError.classList.remove('show');
+    } else if (this.value.length === 10) {
+        this.classList.add('input-valid');
+        this.classList.remove('input-invalid');
+        telefonoError.classList.remove('show');
+    } else {
+        this.classList.add('input-invalid');
+        this.classList.remove('input-valid');
+        telefonoError.classList.add('show');
+    }
+    validarFormulario();
+});
+
+// Usuario: sin espacios ni símbolos raros
+const usernameInput = document.getElementById('usernameInput');
+const usernameError = document.getElementById('usernameError');
+bloquearCaracterInvalido(usernameInput, usuarioRegex);
+usernameInput.addEventListener('input', function () {
+    const valido = this.value.length >= 3 && usuarioRegex.test(this.value);
+    if (this.value.length === 0) {
+        this.classList.remove('input-valid', 'input-invalid');
+        usernameError.classList.remove('show');
+    } else if (valido) {
+        this.classList.add('input-valid');
+        this.classList.remove('input-invalid');
+        usernameError.classList.remove('show');
+    } else {
+        this.classList.add('input-invalid');
+        this.classList.remove('input-valid');
+        usernameError.classList.add('show');
+    }
+    validarFormulario();
+});
+
+// Email
+const emailInput = document.getElementById('emailInput');
+const emailError = document.getElementById('emailError');
+emailInput.addEventListener('input', function () {
+    if (this.value.length === 0) {
+        this.classList.remove('input-valid', 'input-invalid');
+        emailError.classList.remove('show');
+    } else if (emailRegex.test(this.value)) {
+        this.classList.add('input-valid');
+        this.classList.remove('input-invalid');
+        emailError.classList.remove('show');
+    } else {
+        this.classList.add('input-invalid');
+        this.classList.remove('input-valid');
+        emailError.classList.add('show');
+    }
+    validarFormulario();
+});
+
+// Contraseña: medidor de fuerza en tiempo real
+const passwordInput = document.getElementById('passwordInput');
+const pwdStrengthBar = document.getElementById('pwdStrengthBar');
+const ruleLength = document.getElementById('ruleLength');
+const ruleUpper  = document.getElementById('ruleUpper');
+const ruleNumber = document.getElementById('ruleNumber');
+const ruleSymbol = document.getElementById('ruleSymbol');
+
+function passwordChecks(valor) {
+    return {
+        length: valor.length >= 8,
+        upper:  /[A-ZÁÉÍÓÚÑ]/.test(valor),
+        number: /[0-9]/.test(valor),
+        symbol: /[^A-Za-z0-9ÁÉÍÓÚÑáéíóúñ]/.test(valor)
+    };
+}
+
+function actualizarRegla(el, cumple) {
+    el.classList.toggle('met', cumple);
+}
+
+passwordInput.addEventListener('input', function () {
+    const checks = passwordChecks(this.value);
+    actualizarRegla(ruleLength, checks.length);
+    actualizarRegla(ruleUpper, checks.upper);
+    actualizarRegla(ruleNumber, checks.number);
+    actualizarRegla(ruleSymbol, checks.symbol);
+
+    const cumplidos = Object.values(checks).filter(Boolean).length;
+    const porcentaje = (cumplidos / 4) * 100;
+    pwdStrengthBar.style.width = porcentaje + '%';
+
+    if (cumplidos <= 1) pwdStrengthBar.style.background = '#C0392B';
+    else if (cumplidos === 2) pwdStrengthBar.style.background = '#E67E22';
+    else if (cumplidos === 3) pwdStrengthBar.style.background = '#F1C40F';
+    else pwdStrengthBar.style.background = '#2E7D32';
+
+    if (this.value.length === 0) {
+        this.classList.remove('input-valid', 'input-invalid');
+    } else if (cumplidos === 4) {
+        this.classList.add('input-valid');
+        this.classList.remove('input-invalid');
+    } else {
+        this.classList.add('input-invalid');
+        this.classList.remove('input-valid');
+    }
+    validarFormulario();
+});
+
+// Habilita el botón solo si todo el formulario es válido
+function validarFormulario() {
+    const firstName = document.getElementById('firstName').value.trim();
+    const lastName  = document.getElementById('lastName').value.trim();
+    const email     = emailInput.value.trim();
+    const telefono  = telefonoInput.value.trim();
+    const username  = usernameInput.value.trim();
+    const password  = passwordInput.value;
+
+    const nombreOk   = firstName.length > 0 && soloLetras.test(firstName);
+    const apellidoOk = lastName.length > 0 && soloLetras.test(lastName);
+    const emailOk    = email.length === 0 || emailRegex.test(email);
+    const telefonoOk = telefono.length === 0 || telefono.length === 10;
+    const usuarioOk  = username.length >= 3 && usuarioRegex.test(username);
+    const pwdChecks  = passwordChecks(password);
+    const pwdOk      = pwdChecks.length && pwdChecks.upper && pwdChecks.number && pwdChecks.symbol;
+
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = !(nombreOk && apellidoOk && emailOk && telefonoOk && usuarioOk && pwdOk);
+}
+</script>
+</body></html>

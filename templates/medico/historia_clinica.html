@@ -1,0 +1,408 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Historia Clínica — {{ paciente.get_full_name }} — Zumedical</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root{
+      --mg:#b03580;--mg-l:#cc4d99;--mg-d:#8a2563;
+      --mg-bg:#fbf0f7;--mg-border:#e8aad4;
+      --text:#2a1020;--muted:#8a6070;--white:#fff;--bg:#fdf5fa;
+      --green:#2e7d52;--green-bg:#edfaf3;--green-border:#a8dfc0;
+      --yellow:#b45309;--yellow-bg:#fffbeb;--yellow-border:#fcd34d;
+      --red:#b91c1c;--red-bg:#fef2f2;--red-border:#fca5a5;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:"DM Sans",sans-serif;background:var(--bg);min-height:100vh}
+    .topbar{background:linear-gradient(135deg,var(--mg-d),var(--mg-l));padding:1rem 2.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+    .topbar-brand{display:flex;align-items:center;gap:.75rem}
+    .topbar-logo{width:36px;height:36px;background:white;border-radius:50%;display:flex;align-items:center;justify-content:center;overflow:hidden}
+    .topbar-logo img{width:32px;height:32px;object-fit:contain}
+    .topbar-title{font-family:"Cormorant Garamond",serif;font-size:1.35rem;font-weight:600;color:white}
+    .topbar-sub{font-size:.78rem;color:rgba(255,255,255,.7)}
+    .btn-nav{background:rgba(255,255,255,.15);color:white;border:1px solid rgba(255,255,255,.3);padding:.5rem 1rem;border-radius:8px;text-decoration:none;font-size:.85rem;font-weight:500;transition:all .2s}
+    .btn-nav:hover{background:rgba(255,255,255,.25)}
+    .btn-nav.primary{background:rgba(255,255,255,.3)}
+    .container{max-width:1100px;margin:0 auto;padding:2.5rem}
+    .card{background:white;border-radius:16px;border:1px solid var(--mg-border);padding:1.75rem 2rem;margin-bottom:1.5rem;box-shadow:0 2px 8px rgba(176,53,128,.04)}
+    .card-title{display:flex;align-items:center;gap:.75rem;font-family:"Cormorant Garamond",serif;font-size:1.35rem;font-weight:600;color:var(--mg-d);margin-bottom:1.25rem;padding-bottom:.75rem;border-bottom:2px solid var(--mg-bg)}
+    .card-icon{width:36px;height:36px;background:var(--mg-bg);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1.1rem}
+    .card-actions{margin-left:auto}
+    .btn-edit{background:var(--mg-bg);color:var(--mg);border:1px solid var(--mg-border);padding:.4rem .9rem;border-radius:8px;text-decoration:none;font-size:.82rem;font-weight:500;transition:all .2s}
+    .btn-edit:hover{background:var(--mg);color:white}
+</style>
+    /* Paciente header */
+    .pac-header{background:linear-gradient(135deg,var(--mg-d),var(--mg));border-radius:16px;padding:1.5rem 2rem;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+    .pac-left{display:flex;align-items:center;gap:1rem}
+    .pac-avatar{width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:700;color:white;flex-shrink:0}
+    .pac-info h2{font-family:"Cormorant Garamond",serif;font-size:1.8rem;font-weight:700;color:white}
+    .pac-info p{font-size:.85rem;color:rgba(255,255,255,.8);margin-top:.2rem}
+    .pac-badges{display:flex;gap:.5rem;margin-top:.5rem;flex-wrap:wrap}
+    .badge{display:inline-flex;align-items:center;gap:.3rem;padding:.25rem .75rem;border-radius:20px;font-size:.75rem;font-weight:600}
+    .badge-white{background:rgba(255,255,255,.2);color:white;border:1px solid rgba(255,255,255,.3)}
+    .badge-green{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+    .badge-yellow{background:var(--yellow-bg);color:var(--yellow);border:1px solid var(--yellow-border)}
+    .badge-red{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border)}
+    /* Stats row */
+    .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem}
+    .stat-card{background:white;border:1px solid var(--mg-border);border-radius:14px;padding:1.1rem 1.3rem;display:flex;align-items:center;gap:.9rem}
+    .stat-icon{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
+    .stat-icon.mg{background:var(--mg-bg)}
+    .stat-icon.green{background:var(--green-bg)}
+    .stat-icon.yellow{background:var(--yellow-bg)}
+    .stat-icon.red{background:var(--red-bg)}
+    .stat-label{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.2rem}
+    .stat-val{font-family:"Cormorant Garamond",serif;font-size:1.5rem;font-weight:700;color:var(--text);line-height:1}
+    /* Grid datos */
+    .dato-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+    .dato-item{background:var(--bg);border-radius:10px;padding:.85rem 1rem}
+    .dato-lbl{font-size:.7rem;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.3rem}
+    .dato-val{font-size:.95rem;font-weight:500;color:var(--text)}
+    .dato-val.empty{color:var(--muted);font-style:italic;font-weight:300;font-size:.85rem}
+    /* Tabla controles */
+    .table-wrap{overflow-x:auto}
+    table{width:100%;border-collapse:collapse;min-width:700px}
+    thead tr{background:var(--mg-bg);border-bottom:1px solid var(--mg-border)}
+    thead th{padding:.75rem 1rem;text-align:left;font-size:.72rem;font-weight:500;color:var(--mg-d);text-transform:uppercase;letter-spacing:.07em;white-space:nowrap}
+    tbody tr{border-bottom:1px solid #f5e6f0;transition:background .15s}
+    tbody tr:last-child{border-bottom:none}
+    tbody tr:hover{background:var(--mg-bg)}
+    tbody td{padding:.8rem 1rem;font-size:.875rem;color:var(--text);vertical-align:middle}
+    .chip{display:inline-flex;align-items:center;gap:.3rem;padding:.22rem .65rem;border-radius:20px;font-size:.75rem;font-weight:600;border:1px solid}
+    .chip.bajo{background:var(--green-bg);color:var(--green);border-color:var(--green-border)}
+    .chip.medio{background:var(--yellow-bg);color:var(--yellow);border-color:var(--yellow-border)}
+    .chip.alto{background:var(--red-bg);color:var(--red);border-color:var(--red-border)}
+    .chip.nd{background:var(--mg-bg);color:var(--muted);border-color:var(--mg-border)}
+    /* Empty */
+    .empty{text-align:center;padding:3rem;color:var(--muted)}
+    .empty .e-icon{font-size:2.5rem;margin-bottom:.75rem}
+    .empty h3{font-family:"Cormorant Garamond",serif;font-size:1.25rem;color:var(--text);margin-bottom:.35rem}
+    .btn-crear{display:inline-flex;align-items:center;gap:.5rem;margin-top:1rem;background:var(--mg);color:white;padding:.65rem 1.4rem;border-radius:10px;text-decoration:none;font-size:.9rem;font-weight:500;transition:all .2s}
+    .btn-crear:hover{background:var(--mg-d)}
+    /* Chart */
+    .chart-container{position:relative;height:320px}
+    /* Dos columnas */
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+    @media(max-width:900px){.stats-row{grid-template-columns:1fr 1fr}.dato-grid{grid-template-columns:1fr 1fr}.two-col{grid-template-columns:1fr}}
+    @media(max-width:600px){.stats-row{grid-template-columns:1fr 1fr}.container{padding:1.25rem}}
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="topbar-logo"><img src="{% static 'img/Logo.png' %}" alt="Zumedical"/></div>
+    <div><div class="topbar-title">Zumedical</div><div class="topbar-sub">Historia Clínica Obstétrica</div></div>
+  </div>
+  <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+    {% if historia %}
+    <a href="{% url 'editar_historia_clinica' historia.id %}" class="btn-nav">✏️ Editar Historia</a>
+    {% else %}
+    <a href="{% url 'crear_historia_clinica' paciente.id %}" class="btn-nav primary">+ Nueva Historia</a>
+    {% endif %}
+    <a href="{% url 'registrar_control' %}" class="btn-nav">+ Registrar Control</a>
+    <a href="{% url 'ver_predicciones_paciente' paciente.id %}" class="btn-nav">🧠 Panel IA</a>
+    <a href="{% url 'pacientes_medico' %}" class="btn-nav">← Pacientes</a>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Encabezado paciente -->
+  <div class="pac-header">
+    <div class="pac-left">
+      <div class="pac-avatar">{% if paciente.first_name %}{{ paciente.first_name|slice:":1" }}{{ paciente.last_name|slice:":1" }}{% else %}{{ paciente.username|slice:":1"|upper }}{% endif %}</div>
+      <div class="pac-info">
+        <h2>{{ paciente.get_full_name|default:paciente.username }}</h2>
+        <p>@{{ paciente.username }} · {{ paciente.email }}</p>
+        <div class="pac-badges">
+          {% if perfil.cedula %}<span class="badge badge-white">🪪 {{ perfil.cedula }}</span>{% endif %}
+          {% if perfil.edad %}<span class="badge badge-white">🎂 {{ perfil.edad }} años</span>{% endif %}
+          {% if perfil.fecha_probable_parto %}<span class="badge badge-white">🤰 FPP: {{ perfil.fecha_probable_parto|date:"d/m/Y" }}</span>{% endif %}
+          {% if historia %}<span class="badge badge-white">📋 {{ historia.formula_obstetrica }}</span>{% endif %}
+          {% if ultima_prediccion %}
+            <span class="badge {% if ultima_prediccion.nivel_riesgo == 'Alto' %}badge-red{% elif ultima_prediccion.nivel_riesgo == 'Medio' %}badge-yellow{% else %}badge-green{% endif %}">
+              {{ ultima_prediccion.icono }} Riesgo {{ ultima_prediccion.nivel_riesgo }}
+            </span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% if historia %}
+    <div style="text-align:right">
+      <div style="font-size:.75rem;color:rgba(255,255,255,.7)">Historia registrada</div>
+      <div style="font-size:1rem;font-weight:600;color:white">{{ historia.fecha_registro|date:"d/m/Y" }}</div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-icon mg">📋</div>
+      <div><div class="stat-label">Controles</div><div class="stat-val">{{ controles.count }}</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon green">⚖️</div>
+      <div>
+        <div class="stat-label">Peso Actual</div>
+        <div class="stat-val">{% if controles %}{{ controles.last.peso }} <small style="font-size:.8rem;color:var(--muted)">kg</small>{% else %}—{% endif %}</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon yellow">📈</div>
+      <div>
+        <div class="stat-label">Ganancia Total</div>
+        <div class="stat-val">
+          {% if controles and peso_inicial %}
+            {% with ganancia=controles.last.peso|floatformat:1 %}
+            {{ controles.last.peso|add:"-0" }} <small style="font-size:.8rem;color:var(--muted)">kg</small>
+            {% endwith %}
+          {% else %}—{% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon {% if ultima_prediccion.nivel_riesgo == 'Alto' %}red{% elif ultima_prediccion.nivel_riesgo == 'Medio' %}yellow{% else %}green{% endif %}">🧠</div>
+      <div>
+        <div class="stat-label">Riesgo IA</div>
+        <div class="stat-val" style="font-size:1.1rem">{% if ultima_prediccion %}{{ ultima_prediccion.icono }} {{ ultima_prediccion.nivel_riesgo }}{% else %}Sin datos{% endif %}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Historia Clínica o aviso de crear -->
+  {% if historia %}
+  <div class="two-col">
+    <!-- Antecedentes -->
+    <div class="card">
+      <div class="card-title"><div class="card-icon">📋</div>Antecedentes <a href="{% url 'editar_historia_clinica' historia.id %}" class="btn-edit card-actions">✏️ Editar</a></div>
+      <div style="display:flex;flex-direction:column;gap:.9rem">
+        <div><div class="dato-lbl">Patológicos personales</div><div class="dato-val {% if not historia.antecedentes_personales %}empty{% endif %}">{{ historia.antecedentes_personales|default:"Sin registro" }}</div></div>
+        <div><div class="dato-lbl">Familiares</div><div class="dato-val {% if not historia.antecedentes_familiares %}empty{% endif %}">{{ historia.antecedentes_familiares|default:"Sin registro" }}</div></div>
+        <div><div class="dato-lbl">Obstétricos y ginecológicos</div><div class="dato-val {% if not historia.antecedentes_obstetricos %}empty{% endif %}">{{ historia.antecedentes_obstetricos|default:"Sin registro" }}</div></div>
+        <div><div class="dato-lbl">Motivo de consulta</div><div class="dato-val {% if not historia.motivo_consulta %}empty{% endif %}">{{ historia.motivo_consulta|default:"Sin registro" }}</div></div>
+      </div>
+    </div>
+    <!-- Score Mamá inicial -->
+    <div class="card">
+      <div class="card-title"><div class="card-icon">🩺</div>Score Mamá — Primera Consulta</div>
+      <div class="dato-grid" style="grid-template-columns:1fr 1fr">
+        <div class="dato-item"><div class="dato-lbl">Presión arterial</div><div class="dato-val">{{ historia.presion_arterial_inicial|default:"—" }}</div></div>
+        <div class="dato-item"><div class="dato-lbl">Temperatura</div><div class="dato-val">{{ historia.temperatura_inicial|default:"—" }}{% if historia.temperatura_inicial %} °F{% endif %}</div></div>
+        <div class="dato-item"><div class="dato-lbl">Frecuencia cardíaca</div><div class="dato-val">{{ historia.frecuencia_cardiaca_inicial|default:"—" }}{% if historia.frecuencia_cardiaca_inicial %} lpm{% endif %}</div></div>
+        <div class="dato-item"><div class="dato-lbl">Frec. respiratoria</div><div class="dato-val">{{ historia.frecuencia_respiratoria|default:"—" }}{% if historia.frecuencia_respiratoria %} rpm{% endif %}</div></div>
+        <div class="dato-item"><div class="dato-lbl">Saturación O₂</div><div class="dato-val">{{ historia.saturacion_oxigeno|default:"—" }}{% if historia.saturacion_oxigeno %}%{% endif %}</div></div>
+        <div class="dato-item"><div class="dato-lbl">Estado de conciencia</div><div class="dato-val">{{ historia.estado_conciencia|default:"—" }}</div></div>
+        <div class="dato-item"><div class="dato-lbl">Proteinuria</div><div class="dato-val">{{ historia.proteinuria|default:"—" }}</div></div>
+        <div class="dato-item"><div class="dato-lbl">IMC preconcepcional</div><div class="dato-val">{{ historia.imc_inicial|default:"—" }}{% if historia.imc_inicial %} ({{ historia.categoria_imc|title }}){% endif %}</div></div>
+      </div>
+      {% if historia.peso_inicial %}
+      <div style="margin-top:1rem;background:var(--mg-bg);border-radius:10px;padding:.85rem 1rem">
+        <div class="dato-lbl">Ganancia recomendada total</div>
+        <div style="font-size:1rem;font-weight:600;color:var(--mg-d)">{{ historia.ganancia_recomendada.0 }} – {{ historia.ganancia_recomendada.1 }} kg</div>
+        <div style="font-size:.75rem;color:var(--muted);margin-top:.2rem">Según IMC preconcepcional (guías IOM)</div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% else %}
+  <div class="card">
+    <div class="empty">
+      <div class="e-icon">📋</div>
+      <h3>Sin Historia Clínica registrada</h3>
+      <p>Esta paciente aún no tiene una Historia Clínica Obstétrica completa en el sistema.</p>
+      <a href="{% url 'crear_historia_clinica' paciente.id %}" class="btn-crear">+ Crear Historia Clínica</a>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Gráfico de ganancia de peso -->
+  <div class="card">
+    <div class="card-title"><div class="card-icon">📈</div>Curva de Ganancia de Peso por Semana</div>
+    {% if controles %}
+    <div class="chart-container">
+      <canvas id="pesoChart"></canvas>
+    </div>
+    {% if historia and historia.imc_inicial %}
+    <div style="margin-top:.75rem;font-size:.8rem;color:var(--muted);text-align:center">
+      IMC preconcepcional: {{ historia.imc_inicial }} ({{ historia.categoria_imc|title }}) · 
+      Ganancia recomendada: {{ historia.ganancia_recomendada.0 }}–{{ historia.ganancia_recomendada.1 }} kg
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="empty" style="padding:2rem">
+      <div class="e-icon">📊</div>
+      <p>No hay controles registrados aún para mostrar la curva de peso.</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Tabla de controles -->
+  <div class="card">
+    <div class="card-title">
+      <div class="card-icon">🗂️</div>Historial de Controles Prenatales
+      <a href="{% url 'registrar_control' %}" class="btn-edit card-actions">+ Nuevo Control</a>
+    </div>
+    {% if controles %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th><th>Semanas</th><th>Presión</th><th>Peso</th><th>IMC</th>
+            <th>Glucosa</th><th>Proteinuria</th><th>Riesgo IA</th><th>Próx. Cita</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in controles reversed %}
+          <tr>
+            <td>{{ c.fecha|date:"d/m/Y" }}</td>
+            <td>{{ c.semanas_gestacion }} sem.</td>
+            <td>{{ c.presion_arterial }}</td>
+            <td>{{ c.peso }} kg</td>
+            <td>{{ c.imc }}</td>
+            <td>{{ c.glucosa }} mg/dL</td>
+            <td>{{ c.proteinuria|default:"—" }}</td>
+            <td>
+              {% if c.prediccion_ia %}
+              <a href="{% url 'ver_predicciones_paciente' paciente.id %}" style="text-decoration:none">
+                <span class="chip {{ c.prediccion_ia.nivel_riesgo|lower }}">{{ c.prediccion_ia.icono }} {{ c.prediccion_ia.nivel_riesgo }} {{ c.prediccion_ia.puntuacion_riesgo }}%</span>
+              </a>
+              {% else %}
+              <span class="chip nd">Sin datos</span>
+              {% endif %}
+            </td>
+            <td>{{ c.proxima_cita|date:"d/m/Y"|default:"—" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty"><div class="e-icon">📭</div><p>Sin controles registrados todavía.</p></div>
+    {% endif %}
+  </div>
+
+  <!-- Diagnóstico y tratamiento del último control -->
+  {% if controles %}{% with ultimo=controles.last %}
+  {% if ultimo.diagnostico or ultimo.tratamiento or ultimo.resultado_examenes %}
+  <div class="two-col">
+    {% if ultimo.diagnostico or ultimo.tratamiento %}
+    <div class="card">
+      <div class="card-title"><div class="card-icon">🏥</div>Último Control — Diagnóstico y Tratamiento</div>
+      {% if ultimo.diagnostico %}<div style="margin-bottom:1rem"><div class="dato-lbl">Diagnóstico</div><div class="dato-val">{{ ultimo.diagnostico }}</div></div>{% endif %}
+      {% if ultimo.tratamiento %}<div><div class="dato-lbl">Tratamiento</div><div class="dato-val">{{ ultimo.tratamiento }}</div></div>{% endif %}
+    </div>
+    {% endif %}
+    {% if ultimo.resultado_examenes %}
+    <div class="card">
+      <div class="card-title"><div class="card-icon">🔬</div>Resultado de Exámenes</div>
+      <div class="dato-val">{{ ultimo.resultado_examenes }}</div>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+  {% endwith %}{% endif %}
+
+</div>
+
+<script>
+const rawData = {{ datos_peso_json|safe }};
+{% if historia and historia.ganancia_recomendada %}
+const RANGO_MIN = {{ historia.ganancia_recomendada.0 }};
+const RANGO_MAX = {{ historia.ganancia_recomendada.1 }};
+{% else %}
+const RANGO_MIN = null;
+const RANGO_MAX = null;
+{% endif %}
+const PESO_INICIAL = {{ peso_inicial|default:"null" }};
+
+if (rawData.length > 0 && document.getElementById('pesoChart')) {
+  const labels  = rawData.map(d => `Sem. ${d.semana}`);
+  const pesos   = rawData.map(d => d.peso);
+  const ganancias = rawData.map(d => d.ganancia);
+
+  const datasets = [
+    {
+      label: 'Peso (kg)',
+      data: pesos,
+      borderColor: '#b03580',
+      backgroundColor: 'rgba(176,53,128,.1)',
+      fill: true,
+      tension: .4,
+      pointRadius: 5,
+      pointBackgroundColor: '#b03580',
+      yAxisID: 'yPeso',
+    },
+    {
+      label: 'Ganancia desde inicio (kg)',
+      data: ganancias,
+      borderColor: '#2e7d52',
+      backgroundColor: 'rgba(46,125,82,.08)',
+      fill: false,
+      tension: .4,
+      pointRadius: 4,
+      pointBackgroundColor: '#2e7d52',
+      yAxisID: 'yGanancia',
+      borderDash: [5,3],
+    },
+  ];
+
+  // Banda de rango recomendado de ganancia
+  if (RANGO_MIN !== null && rawData.length > 1) {
+    const semanas = rawData.map(d => d.semana);
+    const sMax = Math.max(...semanas);
+    // Línea inferior del rango
+    datasets.push({
+      label: `Ganancia mín. (${RANGO_MIN} kg)`,
+      data: rawData.map(d => +(RANGO_MIN * (d.semana / sMax)).toFixed(1)),
+      borderColor: 'rgba(46,125,82,.4)',
+      borderDash: [4,4],
+      pointRadius: 0,
+      fill: false,
+      yAxisID: 'yGanancia',
+    });
+    datasets.push({
+      label: `Ganancia máx. (${RANGO_MAX} kg)`,
+      data: rawData.map(d => +(RANGO_MAX * (d.semana / sMax)).toFixed(1)),
+      borderColor: 'rgba(180,83,9,.4)',
+      borderDash: [4,4],
+      pointRadius: 0,
+      fill: false,
+      yAxisID: 'yGanancia',
+    });
+  }
+
+  new Chart(document.getElementById('pesoChart'), {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'top', labels: { font: { family: 'DM Sans', size: 12 } } },
+        tooltip: {
+          callbacks: {
+            afterBody(items) {
+              const idx = items[0]?.dataIndex;
+              return rawData[idx] ? [`Fecha: ${rawData[idx].fecha}`] : [];
+            }
+          }
+        }
+      },
+      scales: {
+        yPeso:    { type: 'linear', position: 'left',  title: { display: true, text: 'Peso (kg)' } },
+        yGanancia:{ type: 'linear', position: 'right', title: { display: true, text: 'Ganancia (kg)' }, grid: { drawOnChartArea: false } },
+        x: { grid: { color: 'rgba(0,0,0,.05)' } },
+      },
+    }
+  });
+}
+</script>
+</body>
+</html>

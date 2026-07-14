@@ -1,0 +1,497 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zumedical — Panel Médico</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        :root{
+            --mg:#B03580;--mg-l:#CC4D99;--mg-d:#8A2563;
+            --mg-bg:#FBF0F7;--mg-border:#E8AAD4;
+            --text:#2A1020;--muted:#8A6070;--white:#fff;--bg:#FDF5FA;
+            --sw:260px;
+            --green:#1a7a4a;--green-bg:#edfaf3;--green-border:#a8dfc0;
+            --amber:#b06a00;--amber-bg:#fff8ed;--amber-border:#f5d08a;
+            --red:#b03030;--red-bg:#fdf0f0;--red-border:#f0b8b8;
+            --blue:#1565c0;--blue-bg:#e3f2fd;--blue-border:#90caf9;
+        }
+        html,body{height:100%}
+        body{font-family:'DM Sans',sans-serif;background:var(--bg);display:flex;opacity:0;animation:fadeIn .4s ease .05s forwards}
+        @keyframes fadeIn{to{opacity:1}}
+        @keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+        /* ── SIDEBAR ── */
+        .sidebar{width:var(--sw);height:100vh;background:linear-gradient(175deg,#8A2563 0%,#B03580 55%,#CC4D99 100%);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:200;box-shadow:4px 0 24px rgba(138,37,99,.22);transition:transform .3s ease;overflow:hidden}
+        .sb-brand{padding:1.75rem 1.5rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:.75rem}
+        .sb-logo{width:42px;height:42px;background:white;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+        .sb-logo i{color:var(--mg);font-size:18px}
+        .sb-brand-text h2{font-family:'Cormorant Garamond',serif;font-size:1.35rem;font-weight:600;color:white;line-height:1}
+        .sb-brand-text span{font-size:.7rem;color:rgba(255,255,255,.65);letter-spacing:.1em;text-transform:uppercase}
+        .sb-user{padding:1rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:.7rem;text-decoration:none;transition:background .2s}
+        .sb-user:hover{background:rgba(255,255,255,.1)}
+        .sb-avatar{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:600;color:white;flex-shrink:0;text-transform:uppercase}
+        .sb-user-info p{font-size:.7rem;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.1rem}
+        .sb-user-info h3{font-size:.88rem;font-weight:500;color:white}
+        .sb-nav{flex:1;padding:1rem .75rem;overflow-y:auto}
+        .nav-lbl{font-size:.68rem;color:rgba(255,255,255,.45);letter-spacing:.1em;text-transform:uppercase;padding:.5rem .75rem;margin-top:.75rem}
+        .nav-item{display:flex;align-items:center;gap:.7rem;padding:.72rem 1rem;border-radius:10px;color:rgba(255,255,255,.82);text-decoration:none;font-size:.88rem;transition:all .2s;margin-bottom:.2rem}
+        .nav-item:hover,.nav-item.active{background:rgba(255,255,255,.18);color:white}
+        .nav-item i{width:18px;text-align:center;font-size:15px}
+        .nav-badge{margin-left:auto;background:#e74c3c;color:white;font-size:.68rem;font-weight:600;padding:.15rem .5rem;border-radius:999px;min-width:20px;text-align:center}
+        .sb-footer{padding:1rem .75rem;border-top:1px solid rgba(255,255,255,.12)}
+        .btn-logout{display:flex;align-items:center;gap:.7rem;padding:.72rem 1rem;border-radius:10px;color:rgba(255,255,255,.75);text-decoration:none;font-size:.88rem;transition:all .2s}
+        .btn-logout:hover{background:rgba(255,255,255,.15);color:white}
+
+        /* ── MOBILE TOPBAR ── */
+        .mobile-topbar{display:none;align-items:center;justify-content:space-between;padding:1rem 1.25rem;background:linear-gradient(135deg,#8A2563,#CC4D99);position:fixed;top:0;left:0;right:0;z-index:300}
+        .mobile-topbar-brand{display:flex;align-items:center;gap:.6rem}
+        .mobile-topbar-brand span{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;color:white}
+        .hamburger{background:rgba(255,255,255,.15);border:none;border-radius:8px;padding:.5rem .65rem;cursor:pointer;display:flex;flex-direction:column;gap:4px}
+        .hamburger span{display:block;width:20px;height:2px;background:white;border-radius:2px;transition:all .3s}
+        .hamburger.open span:nth-child(1){transform:translateY(6px) rotate(45deg)}
+        .hamburger.open span:nth-child(2){opacity:0}
+        .hamburger.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+        .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:150;opacity:0;pointer-events:none;transition:opacity .3s}
+        .sidebar-overlay.active{opacity:1;pointer-events:auto}
+
+        /* ── MAIN ── */
+        .main{margin-left:var(--sw);flex:1;padding:2.5rem;height:100vh;overflow-y:auto}
+
+        /* ── TOPBAR ── */
+        .topbar{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;gap:1rem;flex-wrap:wrap}
+        .topbar-left .greeting{font-size:.85rem;color:var(--muted);margin-bottom:.3rem;display:flex;align-items:center;gap:.4rem}
+        .topbar-left h1{font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:600;color:var(--text);line-height:1.1;margin-bottom:.25rem}
+        .topbar-left .sub{color:var(--muted);font-size:.85rem}
+        .topbar-right{display:flex;align-items:center;gap:.65rem;flex-wrap:wrap}
+        .info-pill{display:flex;align-items:center;gap:.5rem;padding:.55rem 1rem;background:var(--white);border:1px solid var(--mg-border);border-radius:999px;font-size:.82rem;color:var(--text)}
+        .info-pill i{color:var(--mg);font-size:13px}
+        .live-dot{width:7px;height:7px;border-radius:50%;background:#4ade80;animation:pulse 2s infinite;flex-shrink:0}
+        .esp-tag{background:var(--mg-bg);color:var(--mg);font-size:.78rem;font-weight:500;padding:.2rem .65rem;border-radius:999px;border:1px solid var(--mg-border)}
+
+        /* ── STATS ── */
+        .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem}
+        .stat-card{background:var(--white);border-radius:16px;padding:1.4rem 1.3rem;border:1px solid var(--mg-border);position:relative;overflow:hidden;transition:all .25s;animation:slideUp .4s ease both;cursor:default}
+        .stat-card:nth-child(1){animation-delay:.05s}
+        .stat-card:nth-child(2){animation-delay:.1s}
+        .stat-card:nth-child(3){animation-delay:.15s}
+        .stat-card:nth-child(4){animation-delay:.2s}
+        .stat-card:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(176,53,128,.12)}
+        .stat-card::after{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:linear-gradient(180deg,var(--mg-d),var(--mg-l))}
+        .stat-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.8rem}
+        .stat-icon{width:40px;height:40px;background:var(--mg-bg);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--mg);font-size:17px}
+        .stat-trend{font-size:.72rem;font-weight:600;padding:.2rem .55rem;border-radius:999px}
+        .stat-val{font-family:'Cormorant Garamond',serif;font-size:2.4rem;font-weight:600;color:var(--text);line-height:1;margin-bottom:.25rem}
+        .stat-lbl{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem}
+        .stat-chip{display:inline-flex;align-items:center;gap:.3rem;font-size:.72rem;font-weight:500;padding:.2rem .55rem;border-radius:999px}
+        .chip-green{background:var(--green-bg);color:var(--green)}
+        .chip-amber{background:var(--amber-bg);color:var(--amber)}
+        .chip-red{background:var(--red-bg);color:var(--red)}
+        .chip-blue{background:var(--blue-bg);color:var(--blue)}
+        .chip-mg{background:var(--mg-bg);color:var(--mg)}
+
+        /* ── RESUMEN HOY ── */
+        .two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem}
+        .card{background:var(--white);border-radius:16px;border:1px solid var(--mg-border);overflow:hidden;animation:slideUp .4s ease .25s both}
+        .card-header{padding:1rem 1.4rem;border-bottom:1px solid var(--mg-border);display:flex;align-items:center;justify-content:space-between}
+        .card-header-left{display:flex;align-items:center;gap:.65rem}
+        .card-header-icon{width:32px;height:32px;background:var(--mg-bg);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--mg);font-size:13px}
+        .card-header h3{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:var(--text)}
+        .card-badge{font-size:.72rem;background:var(--mg-bg);color:var(--mg);padding:.2rem .6rem;border-radius:999px;font-weight:500;border:1px solid var(--mg-border)}
+        .card-body{padding:1.25rem 1.4rem}
+
+        /* resumen hoy mini */
+        .hoy-row{display:flex;align-items:center;justify-content:space-between;padding:.65rem 0;border-bottom:1px solid rgba(232,170,212,.25)}
+        .hoy-row:last-child{border-bottom:none}
+        .hoy-label{font-size:.82rem;color:var(--muted);display:flex;align-items:center;gap:.5rem}
+        .hoy-label i{color:var(--mg);font-size:13px;width:16px}
+        .hoy-val{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;color:var(--text)}
+
+        /* próxima cita destacada */
+        .proxima-card{background:linear-gradient(135deg,var(--mg-d),var(--mg-l));border-radius:14px;padding:1.25rem 1.4rem;color:white;position:relative;overflow:hidden}
+        .proxima-card::before{content:'';position:absolute;right:-20px;top:-20px;width:120px;height:120px;background:rgba(255,255,255,.07);border-radius:50%}
+        .proxima-label{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;opacity:.75;margin-bottom:.5rem}
+        .proxima-time{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:600;line-height:1;margin-bottom:.3rem}
+        .proxima-patient{font-size:.88rem;opacity:.9;margin-bottom:.25rem}
+        .proxima-esp{font-size:.78rem;opacity:.7}
+        .no-proxima{text-align:center;padding:1.5rem;color:var(--muted);font-size:.88rem}
+        .no-proxima i{display:block;font-size:1.8rem;color:var(--mg-border);margin-bottom:.5rem}
+
+        /* ── TABLA CITAS ── */
+        .citas-card{background:var(--white);border-radius:16px;border:1px solid var(--mg-border);overflow:hidden;animation:slideUp .4s ease .3s both;margin-bottom:1.5rem}
+        .table-scroll{overflow-x:auto}
+        table{width:100%;border-collapse:collapse}
+        thead tr{background:var(--mg-bg)}
+        th{padding:.75rem 1.25rem;font-size:.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;text-align:left;white-space:nowrap}
+        td{padding:.9rem 1.25rem;font-size:.86rem;color:var(--text);border-top:1px solid rgba(232,170,212,.3);vertical-align:middle}
+        .fila-cita{cursor:pointer;transition:background .15s}
+        .fila-cita:hover td{background:#fdf0fa}
+        .pac-cell{display:flex;align-items:center;gap:.65rem}
+        .pac-av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--mg-d),var(--mg-l));color:white;font-size:.72rem;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;text-transform:uppercase}
+        .badge{display:inline-flex;align-items:center;gap:.3rem;font-size:.73rem;font-weight:600;padding:.25rem .65rem;border-radius:999px}
+        .badge-pendiente{background:var(--amber-bg);color:var(--amber)}
+        .badge-atendido{background:var(--green-bg);color:var(--green)}
+        .badge-cancelado,.badge-cancelada{background:var(--red-bg);color:var(--red)}
+        .badge-confirmada{background:var(--blue-bg);color:var(--blue)}
+        .empty-state{text-align:center;padding:3rem;color:var(--muted)}
+        .empty-state i{font-size:2.2rem;color:var(--mg-border);display:block;margin-bottom:.75rem}
+
+        /* ── MODAL ── */
+        .modal-ov{position:fixed;inset:0;background:rgba(42,16,32,.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1.5rem;opacity:0;pointer-events:none;transition:opacity .2s}
+        .modal-ov.open{opacity:1;pointer-events:all}
+        .modal{background:var(--white);border-radius:20px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(138,37,99,.22);transform:translateY(16px) scale(.98);transition:transform .28s cubic-bezier(.34,1.56,.64,1),opacity .2s;opacity:0}
+        .modal-ov.open .modal{transform:translateY(0) scale(1);opacity:1}
+        .modal-head{background:linear-gradient(135deg,var(--mg-d),var(--mg-l));padding:1.4rem 1.5rem;display:flex;align-items:flex-start;justify-content:space-between;gap:1rem}
+        .modal-head-info .modal-tag{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:.35rem}
+        .modal-head-info .modal-pac{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;color:white;line-height:1.2}
+        .modal-head-info .modal-sub{font-size:.82rem;color:rgba(255,255,255,.8);margin-top:.2rem}
+        .modal-close{background:rgba(255,255,255,.2);border:none;border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:white;flex-shrink:0;transition:background .2s}
+        .modal-close:hover{background:rgba(255,255,255,.35)}
+        .modal-close i{font-size:14px}
+        .modal-body{padding:1.5rem}
+        .modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:.85rem}
+        .modal-field{background:var(--bg);border:1px solid var(--mg-border);border-radius:12px;padding:.85rem 1rem}
+        .modal-field-label{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.3rem;font-weight:500}
+        .modal-field-val{font-size:.9rem;color:var(--text);font-weight:500}
+        .modal-field.full{grid-column:1/-1}
+        .modal-footer{padding:1rem 1.5rem;border-top:1px solid var(--mg-border);display:flex;justify-content:flex-end}
+        .btn-cerrar{padding:.65rem 1.4rem;background:var(--mg);color:white;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:500;cursor:pointer;transition:opacity .2s}
+        .btn-cerrar:hover{opacity:.88}
+
+        /* ── RESPONSIVE ── */
+        @media(max-width:1100px){.stats-grid{grid-template-columns:repeat(2,1fr)}.two-col{grid-template-columns:1fr}}
+        @media(max-width:768px){
+            body{flex-direction:column}
+            .sidebar{position:fixed;top:64px;left:0;height:calc(100vh - 64px);transform:translateX(-100%);z-index:250}
+            .sidebar.open{transform:translateX(0)}
+            .sidebar-overlay{display:block;z-index:200}
+            .mobile-topbar{display:flex}
+            .main{margin-left:0;padding:1.1rem;padding-top:calc(1.1rem + 64px);height:auto;overflow-y:visible}
+            .stats-grid{grid-template-columns:1fr 1fr;gap:.75rem}
+            .two-col{grid-template-columns:1fr}
+            .topbar{flex-direction:column;gap:.75rem}
+            .topbar-right{width:100%}
+            .topbar-left h1{font-size:1.75rem}
+            th:nth-child(3),td:nth-child(3){display:none}
+            .modal-ov{padding:.75rem}
+            .modal-grid{grid-template-columns:1fr}
+            .modal-field.full{grid-column:1}
+        }
+        @media(max-width:480px){
+            .stats-grid{grid-template-columns:1fr}
+        }
+    </style>
+</head>
+<body>
+
+<!-- OVERLAY -->
+<div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<!-- MOBILE TOPBAR -->
+<div class="mobile-topbar">
+    <div class="mobile-topbar-brand">
+        <div style="width:32px;height:32px;background:white;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <img src="{% static 'img/logo.png' %}" alt="Zumedical" style="width:28px;height:28px;object-fit:contain">
+        </div>
+        <span>Zumedical</span>
+    </div>
+    <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
+        <span></span><span></span><span></span>
+    </button>
+</div>
+
+<!-- SIDEBAR -->
+{% include 'medico/sidebar_medico.html' %}
+
+<!-- MAIN -->
+<main class="main">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <div class="topbar-left">
+            <div class="greeting">
+                <i class="fa-solid fa-user-doctor" style="color:var(--mg);font-size:13px"></i>
+                Panel médico
+            </div>
+            <h1>Dr(a). {{ request.user.first_name }} {{ request.user.last_name }}</h1>
+            <p class="sub">
+                {% if request.user.medico.especialidad %}Especialidad: {{ request.user.medico.especialidad.nombre }}{% else %}Médico General{% endif %}
+            </p>
+        </div>
+        <div class="topbar-right">
+            {% if request.user.medico.especialidad %}
+            <div class="info-pill">
+                <i class="fa-solid fa-stethoscope"></i>
+                <span class="esp-tag">{{ request.user.medico.especialidad.nombre }}</span>
+            </div>
+            {% endif %}
+            <div class="info-pill">
+                <div class="live-dot"></div>
+                <span id="reloj">--:--</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-top">
+                <div class="stat-icon"><i class="fa-regular fa-calendar-check"></i></div>
+                <span class="stat-trend chip-blue"><i class="fa-solid fa-chart-simple"></i> Total</span>
+            </div>
+            <div class="stat-val">{{ total_citas }}</div>
+            <div class="stat-lbl">Citas registradas</div>
+            <span class="stat-chip chip-blue"><i class="fa-solid fa-list"></i> Historial completo</span>
+        </div>
+        <div class="stat-card">
+            <div class="stat-top">
+                <div class="stat-icon"><i class="fa-regular fa-clock"></i></div>
+                <span class="stat-trend chip-amber"><i class="fa-solid fa-hourglass-half"></i> Hoy</span>
+            </div>
+            <div class="stat-val">{{ citas_pendientes }}</div>
+            <div class="stat-lbl">Pendientes</div>
+            <span class="stat-chip chip-amber"><i class="fa-solid fa-hourglass-half"></i> Por atender</span>
+        </div>
+        <div class="stat-card">
+            <div class="stat-top">
+                <div class="stat-icon"><i class="fa-solid fa-circle-check"></i></div>
+                <span class="stat-trend chip-green"><i class="fa-solid fa-check"></i> OK</span>
+            </div>
+            <div class="stat-val">{{ citas_atendidas }}</div>
+            <div class="stat-lbl">Atendidas</div>
+            <span class="stat-chip chip-green"><i class="fa-solid fa-check-double"></i> Completadas</span>
+        </div>
+        <div class="stat-card">
+            <div class="stat-top">
+                <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
+                <span class="stat-trend chip-mg"><i class="fa-solid fa-user-group"></i> Activos</span>
+            </div>
+            <div class="stat-val">{{ total_pacientes }}</div>
+            <div class="stat-lbl">Pacientes</div>
+            <span class="stat-chip chip-mg"><i class="fa-solid fa-hospital-user"></i> Registrados</span>
+        </div>
+    </div>
+
+    <!-- DOS COLUMNAS: PRÓXIMA CITA + RESUMEN HOY -->
+    <div class="two-col">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-header-left">
+                    <div class="card-header-icon"><i class="fa-solid fa-bolt"></i></div>
+                    <h3>Próxima cita</h3>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if proximas_citas %}
+                {% with c=proximas_citas.0 %}
+                <div class="proxima-card">
+                    <div class="proxima-label"><i class="fa-regular fa-clock"></i> &nbsp;Próxima pendiente</div>
+                    <div class="proxima-time">{{ c.hora|time:"H:i" }}</div>
+                    <div class="proxima-patient"><i class="fa-solid fa-user"></i> &nbsp;{{ c.paciente.get_full_name|default:c.paciente.username }}</div>
+                    <div class="proxima-esp">{{ c.fecha|date:"d/m/Y" }} &nbsp;·&nbsp; {{ c.especialidad|default:"General" }}</div>
+                </div>
+                {% endwith %}
+                {% else %}
+                <div class="no-proxima">
+                    <i class="fa-regular fa-calendar-xmark"></i>
+                    Sin citas pendientes
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-header-left">
+                    <div class="card-header-icon"><i class="fa-solid fa-chart-pie"></i></div>
+                    <h3>Resumen</h3>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="hoy-row">
+                    <span class="hoy-label"><i class="fa-regular fa-clock"></i> Citas pendientes</span>
+                    <span class="hoy-val">{{ citas_pendientes_futuras }}</span>
+                </div>
+                <div class="hoy-row">
+                    <span class="hoy-label"><i class="fa-solid fa-circle-check"></i> Citas atendidas</span>
+                    <span class="hoy-val">{{ citas_atendidas }}</span>
+                </div>
+                <div class="hoy-row">
+                    <span class="hoy-label"><i class="fa-solid fa-users"></i> Total pacientes</span>
+                    <span class="hoy-val">{{ total_pacientes }}</span>
+                </div>
+                <div class="hoy-row">
+                    <span class="hoy-label"><i class="fa-solid fa-list-check"></i> Total citas</span>
+                    <span class="hoy-val">{{ total_citas }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TABLA CITAS -->
+    <div class="citas-card">
+        <div class="card-header">
+            <div class="card-header-left">
+                <div class="card-header-icon"><i class="fa-regular fa-calendar-check"></i></div>
+                <h3>Próximas citas pendientes</h3>
+            </div>
+            <span class="card-badge">{{ proximas_citas|length }} cita{{ proximas_citas|length|pluralize }}</span>
+        </div>
+
+        {% if proximas_citas %}
+        <div class="table-scroll">
+        <table>
+            <thead>
+                <tr>
+                    <th>Paciente</th>
+                    <th>Especialidad</th>
+                    <th>Fecha</th>
+                    <th>Hora</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cita in proximas_citas %}
+                <tr class="fila-cita"
+                    data-pac="{{ cita.paciente.get_full_name|default:cita.paciente.username }}"
+                    data-ini="{{ cita.paciente.first_name|slice:':1'|upper }}{{ cita.paciente.last_name|slice:':1'|upper }}"
+                    data-esp="{{ cita.especialidad|default:'General' }}"
+                    data-fecha="{{ cita.fecha|date:'d/m/Y' }}"
+                    data-hora="{{ cita.hora|time:'H:i' }}"
+                    data-estado="{{ cita.estado }}"
+                    data-motivo="{{ cita.motivo|default:'Sin motivo especificado' }}"
+                    data-medico="{{ request.user.get_full_name }}">
+                    <td>
+                        <div class="pac-cell">
+                            <div class="pac-av">{{ cita.paciente.first_name|slice:":1" }}{{ cita.paciente.last_name|slice:":1" }}</div>
+                            <strong>{{ cita.paciente.get_full_name|default:cita.paciente.username }}</strong>
+                        </div>
+                    </td>
+                    <td>{{ cita.especialidad|default:"General" }}</td>
+                    <td>{{ cita.fecha|date:"d/m/Y" }}</td>
+                    <td><strong>{{ cita.hora|time:"H:i" }}</strong></td>
+                    <td>
+                        <span class="badge badge-{{ cita.estado }}">
+                            {% if cita.estado == 'pendiente' %}<i class="fa-solid fa-hourglass-half"></i>{% elif cita.estado == 'atendido' %}<i class="fa-solid fa-check"></i>{% elif cita.estado == 'cancelado' or cita.estado == 'cancelada' %}<i class="fa-solid fa-xmark"></i>{% endif %}
+                            {{ cita.get_estado_display|default:cita.estado }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fa-regular fa-calendar-xmark"></i>
+            <p>No tienes citas pendientes por el momento.</p>
+        </div>
+        {% endif %}
+    </div>
+
+</main>
+
+<!-- MODAL DETALLE CITA -->
+<div class="modal-ov" id="modalOv" onclick="closeModalOut(event)">
+    <div class="modal">
+        <div class="modal-head">
+            <div class="modal-head-info">
+                <div class="modal-tag"><i class="fa-regular fa-calendar-check"></i> &nbsp;Detalle de cita</div>
+                <div class="modal-pac" id="m-pac">—</div>
+                <div class="modal-sub" id="m-esp">—</div>
+            </div>
+            <button class="modal-close" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="modal-grid">
+                <div class="modal-field">
+                    <div class="modal-field-label"><i class="fa-regular fa-calendar"></i> Fecha</div>
+                    <div class="modal-field-val" id="m-fecha">—</div>
+                </div>
+                <div class="modal-field">
+                    <div class="modal-field-label"><i class="fa-regular fa-clock"></i> Hora</div>
+                    <div class="modal-field-val" id="m-hora">—</div>
+                </div>
+                <div class="modal-field">
+                    <div class="modal-field-label"><i class="fa-solid fa-stethoscope"></i> Especialidad</div>
+                    <div class="modal-field-val" id="m-esp2">—</div>
+                </div>
+                <div class="modal-field">
+                    <div class="modal-field-label"><i class="fa-solid fa-circle-dot"></i> Estado</div>
+                    <div class="modal-field-val" id="m-estado">—</div>
+                </div>
+                <div class="modal-field">
+                    <div class="modal-field-label"><i class="fa-solid fa-user-doctor"></i> Médico</div>
+                    <div class="modal-field-val" id="m-medico">—</div>
+                </div>
+                <div class="modal-field full">
+                    <div class="modal-field-label"><i class="fa-regular fa-comment"></i> Motivo de consulta</div>
+                    <div class="modal-field-val" id="m-motivo">—</div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-cerrar" onclick="closeModal()">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ── RELOJ ──
+function actualizarReloj() {
+    const ahora = new Date();
+    document.getElementById('reloj').textContent =
+        String(ahora.getHours()).padStart(2,'0') + ':' + String(ahora.getMinutes()).padStart(2,'0');
+}
+actualizarReloj();
+setInterval(actualizarReloj, 30000);
+
+// ── HAMBURGUESA ──
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('overlay').classList.toggle('active');
+    document.getElementById('hamburger').classList.toggle('open');
+}
+function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('overlay').classList.remove('active');
+    document.getElementById('hamburger').classList.remove('open');
+}
+
+// ── MODAL CITA ──
+const ESTADOS = {pendiente:'Pendiente',atendido:'Atendido',confirmada:'Confirmada',cancelado:'Cancelado',cancelada:'Cancelada'};
+
+document.querySelectorAll('.fila-cita').forEach(function(row) {
+    row.addEventListener('click', function() {
+        var d = row.dataset;
+        document.getElementById('m-pac').textContent    = d.pac;
+        document.getElementById('m-esp').textContent    = d.esp;
+        document.getElementById('m-fecha').textContent  = d.fecha;
+        document.getElementById('m-hora').textContent   = d.hora;
+        document.getElementById('m-esp2').textContent   = d.esp;
+        document.getElementById('m-medico').textContent = 'Dr(a). ' + d.medico;
+        document.getElementById('m-motivo').textContent = d.motivo;
+        var estadoEl = document.getElementById('m-estado');
+        estadoEl.textContent = ESTADOS[d.estado] || d.estado;
+        estadoEl.style.color =
+            d.estado === 'atendido' ? 'var(--green)' :
+            d.estado === 'pendiente' ? 'var(--amber)' :
+            (d.estado === 'cancelado' || d.estado === 'cancelada') ? 'var(--red)' : 'var(--text)';
+        document.getElementById('modalOv').classList.add('open');
+    });
+});
+
+function closeModal() {
+    document.getElementById('modalOv').classList.remove('open');
+}
+function closeModalOut(e) {
+    if (e.target === document.getElementById('modalOv')) closeModal();
+}
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
+</script>
+</body>
+</html>

@@ -1,0 +1,425 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zumedical — Pacientes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        :root{
+            --mg:#B03580;--mg-l:#CC4D99;--mg-d:#8A2563;
+            --mg-bg:#FBF0F7;--mg-border:#E8AAD4;
+            --text:#2A1020;--muted:#8A6070;--white:#fff;--bg:#FDF5FA;
+            --sw:260px;
+            --green:#1a7a4a;--green-bg:#edfaf3;
+            --amber:#b06a00;--amber-bg:#fff8ed;
+            --red:#b03030;--red-bg:#fdf0f0;
+        }
+        html,body{height:100%}
+        body{font-family:'DM Sans',sans-serif;background:var(--bg);display:flex;opacity:0;animation:fadeIn .4s ease .05s forwards}
+        @keyframes fadeIn{to{opacity:1}}
+        @keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+        /* ── SIDEBAR ── */
+        .sidebar{width:var(--sw);height:100vh;background:linear-gradient(175deg,#8A2563 0%,#B03580 55%,#CC4D99 100%);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:200;box-shadow:4px 0 24px rgba(138,37,99,.22);transition:transform .3s ease;overflow:hidden}
+        .sb-brand{padding:1.75rem 1.5rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:.75rem}
+        .sb-logo{width:42px;height:42px;background:white;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+        .sb-logo img{width:38px;height:38px;object-fit:contain}
+        .sb-brand-text h2{font-family:'Cormorant Garamond',serif;font-size:1.35rem;font-weight:600;color:white;line-height:1}
+        .sb-brand-text span{font-size:.7rem;color:rgba(255,255,255,.65);letter-spacing:.1em;text-transform:uppercase}
+        .sb-user{padding:1rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:.7rem;text-decoration:none;transition:background .2s}
+        .sb-user:hover{background:rgba(255,255,255,.1)}
+        .sb-avatar{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:600;color:white;flex-shrink:0;text-transform:uppercase}
+        .sb-user-info p{font-size:.7rem;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.1rem}
+        .sb-user-info h3{font-size:.88rem;font-weight:500;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}
+        .sb-nav{flex:1;padding:1rem .75rem;overflow-y:auto}
+        .nav-lbl{font-size:.68rem;color:rgba(255,255,255,.45);letter-spacing:.1em;text-transform:uppercase;padding:.5rem .75rem;margin-top:.75rem}
+        .nav-item{display:flex;align-items:center;gap:.7rem;padding:.72rem 1rem;border-radius:10px;color:rgba(255,255,255,.82);text-decoration:none;font-size:.88rem;transition:all .2s;margin-bottom:.2rem}
+        .nav-item:hover,.nav-item.active{background:rgba(255,255,255,.18);color:white}
+        .nav-item i{width:18px;text-align:center;font-size:15px}
+        .nav-badge{margin-left:auto;background:#e74c3c;color:white;font-size:.68rem;font-weight:600;padding:.15rem .5rem;border-radius:999px;min-width:20px;text-align:center}
+        .sb-footer{padding:1rem .75rem;border-top:1px solid rgba(255,255,255,.12)}
+        .btn-logout{display:flex;align-items:center;gap:.7rem;padding:.72rem 1rem;border-radius:10px;color:rgba(255,255,255,.75);text-decoration:none;font-size:.88rem;transition:all .2s}
+        .btn-logout:hover{background:rgba(255,255,255,.15);color:white}
+
+        /* ── MOBILE TOPBAR ── */
+        .mobile-topbar{display:none;align-items:center;justify-content:space-between;padding:1rem 1.25rem;background:linear-gradient(135deg,#8A2563,#CC4D99);position:fixed;top:0;left:0;right:0;z-index:300;height:64px}
+        .mobile-topbar-brand{display:flex;align-items:center;gap:.6rem}
+        .mobile-topbar-logo{width:32px;height:32px;background:white;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+        .mobile-topbar-logo img{width:28px;height:28px;object-fit:contain}
+        .mobile-topbar-brand span{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;color:white}
+        .hamburger{background:rgba(255,255,255,.15);border:none;border-radius:8px;padding:.5rem .65rem;cursor:pointer;display:flex;flex-direction:column;gap:4px}
+        .hamburger span{display:block;width:20px;height:2px;background:white;border-radius:2px;transition:all .3s}
+        .hamburger.open span:nth-child(1){transform:translateY(6px) rotate(45deg)}
+        .hamburger.open span:nth-child(2){opacity:0}
+        .hamburger.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+        .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:150;opacity:0;pointer-events:none;transition:opacity .3s}
+        .sidebar-overlay.active{opacity:1;pointer-events:auto}
+
+        /* ── MAIN ── */
+        .main{margin-left:var(--sw);flex:1;padding:2.5rem;height:100vh;overflow-y:auto}
+
+        /* ── PAGE HEADER ── */
+        .page-header{margin-bottom:1.75rem;animation:slideUp .4s ease .05s both}
+        .page-header-top{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+        .page-header h1{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:600;color:var(--text);margin-bottom:.25rem}
+        .page-header p{color:var(--muted);font-size:.88rem}
+
+        /* ── STATS RÁPIDAS ── */
+        .stats-mini{display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1.5rem;animation:slideUp .4s ease .1s both}
+        .stat-mini{background:var(--white);border:1px solid var(--mg-border);border-radius:12px;padding:.75rem 1.1rem;display:flex;align-items:center;gap:.65rem;flex:1;min-width:130px}
+        .stat-mini-icon{width:32px;height:32px;background:var(--mg-bg);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--mg);font-size:13px;flex-shrink:0}
+        .stat-mini-info p{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.1rem}
+        .stat-mini-info strong{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;color:var(--text);line-height:1}
+
+        /* ── TOOLBAR ── */
+        .toolbar{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;margin-bottom:1.25rem;background:var(--white);border:1px solid var(--mg-border);border-radius:14px;padding:1rem 1.25rem;animation:slideUp .4s ease .15s both}
+        .search-wrap{position:relative;flex:1;min-width:180px}
+        .search-wrap i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px;pointer-events:none}
+        .search-input{width:100%;padding:.65rem 1rem .65rem 2.2rem;border:1.5px solid var(--mg-border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.88rem;color:var(--text);outline:none;transition:border .2s;background:var(--bg)}
+        .search-input:focus{border-color:var(--mg);background:var(--white)}
+        .filter-btn{display:flex;align-items:center;gap:.4rem;padding:.65rem .9rem;border:1.5px solid var(--mg-border);border-radius:10px;background:var(--bg);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:.82rem;cursor:pointer;transition:all .2s;white-space:nowrap}
+        .filter-btn:hover,.filter-btn.active{border-color:var(--mg);color:var(--mg);background:var(--mg-bg)}
+        .filter-btn i{font-size:12px}
+        .results-count{font-size:.8rem;color:var(--muted);white-space:nowrap}
+        .results-count strong{color:var(--text)}
+
+        /* ── TABLA ── */
+        .table-card{background:var(--white);border-radius:14px;border:1px solid var(--mg-border);overflow:hidden;animation:slideUp .4s ease .2s both}
+        .table-scroll{overflow-x:auto}
+        table{width:100%;border-collapse:collapse;min-width:560px}
+        thead tr{background:var(--mg-bg)}
+        th{padding:.75rem 1.25rem;font-size:.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;text-align:left;white-space:nowrap;cursor:pointer;user-select:none;transition:color .2s}
+        th:hover{color:var(--mg)}
+        th .sort-icon{margin-left:.3rem;opacity:.4;font-size:10px;transition:opacity .2s}
+        th.sorted .sort-icon{opacity:1;color:var(--mg)}
+        td{padding:.9rem 1.25rem;font-size:.88rem;color:var(--text);border-top:1px solid rgba(232,170,212,.25);vertical-align:middle}
+        .fila-pac{cursor:pointer;transition:background .15s}
+        .fila-pac:hover td{background:#fdf5fb}
+        .fila-pac.oculta{display:none}
+        .avatar-cell{display:flex;align-items:center;gap:.75rem}
+        .mini-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--mg-d),var(--mg-l));display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:600;color:white;flex-shrink:0;text-transform:uppercase}
+        .pac-name{font-weight:600;color:var(--text)}
+        .badge-estado{display:inline-flex;align-items:center;gap:.3rem;font-size:.72rem;font-weight:600;padding:.2rem .6rem;border-radius:999px}
+        .badge-activo{background:var(--green-bg);color:var(--green)}
+        .badge-inactivo{background:var(--red-bg);color:var(--red)}
+
+        /* ── EMPTY STATE ── */
+        .empty-state{text-align:center;padding:3.5rem 2rem;color:var(--muted)}
+        .empty-state i{font-size:2.5rem;color:var(--mg-border);display:block;margin-bottom:.75rem}
+        .empty-state p{font-size:.9rem}
+        .empty-state small{font-size:.8rem;display:block;margin-top:.3rem}
+
+        /* ── MODAL DETALLE ── */
+        .modal-ov{position:fixed;inset:0;background:rgba(42,16,32,.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1.5rem;opacity:0;pointer-events:none;transition:opacity .2s}
+        .modal-ov.open{opacity:1;pointer-events:all}
+        .modal{background:var(--white);border-radius:20px;width:100%;max-width:460px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(138,37,99,.22);transform:translateY(16px) scale(.98);transition:transform .28s cubic-bezier(.34,1.56,.64,1),opacity .2s;opacity:0}
+        .modal-ov.open .modal{transform:translateY(0) scale(1);opacity:1}
+        .modal-head{background:linear-gradient(135deg,var(--mg-d),var(--mg-l));padding:1.4rem 1.5rem;display:flex;align-items:flex-start;justify-content:space-between;gap:1rem}
+        .modal-avatar{width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;color:white;flex-shrink:0;text-transform:uppercase;border:2px solid rgba(255,255,255,.4)}
+        .modal-head-info{flex:1;min-width:0}
+        .modal-tag{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:.3rem}
+        .modal-pac{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;color:white;line-height:1.2}
+        .modal-close{background:rgba(255,255,255,.2);border:none;border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:white;flex-shrink:0;transition:background .2s}
+        .modal-close:hover{background:rgba(255,255,255,.35)}
+        .modal-body{padding:1.5rem}
+        .modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+        .modal-field{background:var(--bg);border:1px solid var(--mg-border);border-radius:12px;padding:.85rem 1rem}
+        .modal-field.full{grid-column:1/-1}
+        .modal-field-label{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.3rem;font-weight:500;display:flex;align-items:center;gap:.35rem}
+        .modal-field-label i{color:var(--mg);font-size:11px}
+        .modal-field-val{font-size:.9rem;color:var(--text);font-weight:500}
+        .modal-footer{padding:1rem 1.5rem;border-top:1px solid var(--mg-border);display:flex;justify-content:flex-end}
+        .btn-cerrar{padding:.65rem 1.4rem;background:var(--mg);color:white;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:500;cursor:pointer;transition:opacity .2s}
+        .btn-cerrar:hover{opacity:.88}
+
+        /* ── RESPONSIVE ── */
+        @media(max-width:768px){
+            body{flex-direction:column}
+            .sidebar{position:fixed;top:64px;left:0;height:calc(100vh - 64px);transform:translateX(-100%);z-index:250}
+            .sidebar.open{transform:translateX(0)}
+            .sidebar-overlay{display:block;z-index:200}
+            .mobile-topbar{display:flex}
+            .main{margin-left:0;padding:1.1rem;padding-top:calc(1.1rem + 64px);height:auto;overflow-y:visible}
+            .page-header-top{flex-direction:column;gap:.5rem}
+            .page-header h1{font-size:1.6rem}
+            .stats-mini{gap:.5rem}
+            .stat-mini{min-width:calc(50% - .25rem);flex:none}
+            .toolbar{flex-direction:column;align-items:stretch;gap:.65rem}
+            .search-wrap{min-width:unset}
+            .results-count{text-align:center}
+            
+            .modal-ov{padding:.75rem}
+            .modal-grid{grid-template-columns:1fr}
+            .modal-field.full{grid-column:1}
+        }
+        @media(max-width:480px){
+            .stat-mini{min-width:100%;flex:none}
+        
+        }
+    </style>
+</head>
+<body>
+
+<!-- OVERLAY -->
+<div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<!-- MOBILE TOPBAR -->
+<div class="mobile-topbar">
+    <div class="mobile-topbar-brand">
+        <div class="mobile-topbar-logo">
+            <img src="{% static 'img/logo.png' %}" alt="Zumedical">
+        </div>
+        <span>Zumedical</span>
+    </div>
+    <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
+        <span></span><span></span><span></span>
+    </button>
+</div>
+
+<!-- SIDEBAR -->
+{% include 'medico/sidebar_medico.html' %}
+
+<!-- MAIN -->
+<main class="main">
+
+    <div class="page-header">
+        <div class="page-header-top">
+            <div>
+                <h1>Pacientes</h1>
+                <p>Listado de pacientes generales registrados</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- STATS RÁPIDAS -->
+    <div class="stats-mini">
+        <div class="stat-mini">
+            <div class="stat-mini-icon"><i class="fa-solid fa-users"></i></div>
+            <div class="stat-mini-info">
+                <p>Total</p>
+                <strong id="stat-total">{{ pacientes|length }}</strong>
+            </div>
+        </div>
+        <div class="stat-mini">
+            <div class="stat-mini-icon"><i class="fa-solid fa-user-check"></i></div>
+            <div class="stat-mini-info">
+                <p>Activos</p>
+                <strong id="stat-activos">{{ pacientes_activos }}</strong>
+            </div>
+        </div>
+        <div class="stat-mini">
+            <div class="stat-mini-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
+            <div class="stat-mini-info">
+                <p>Resultados</p>
+                <strong id="stat-resultados">{{ pacientes|length }}</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+        <div class="search-wrap">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" class="search-input" id="buscador" placeholder="Buscar por nombre o cédula...">
+        </div>
+        <button class="filter-btn" id="btn-activos" onclick="filtrarActivos()">
+            <i class="fa-solid fa-circle-check"></i> Solo activos
+        </button>
+        <span class="results-count">Mostrando <strong id="results-count">{{ pacientes|length }}</strong> pacientes</span>
+    </div>
+
+    <!-- TABLA -->
+    <div class="table-card">
+        {% if pacientes %}
+        <div class="table-scroll">
+        <table>
+            <thead>
+                <tr>
+                    <th onclick="sortTable(0)">Paciente <i class="fa-solid fa-sort sort-icon"></i></th>
+                    <th onclick="sortTable(1)">Cédula <i class="fa-solid fa-sort sort-icon"></i></th>
+                    <th onclick="sortTable(2)">Teléfono <i class="fa-solid fa-sort sort-icon"></i></th>
+                    <th onclick="sortTable(3)">Correo <i class="fa-solid fa-sort sort-icon"></i></th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody id="tablaPacientes">
+                {% for paciente in pacientes %}
+                <tr class="fila-pac"
+                    data-nombre="{{ paciente.usuario.get_full_name|lower }}"
+                    data-cedula="{{ paciente.cedula|default:'' }}"
+                    data-activo="{{ paciente.usuario.is_active|yesno:'1,0' }}"
+                    data-pac="{{ paciente.usuario.get_full_name }}"
+                    data-ini="{{ paciente.usuario.first_name|first|upper }}{{ paciente.usuario.last_name|first|upper }}"
+                    data-cedula-val="{{ paciente.cedula|default:'—' }}"
+                    data-telefono="{{ paciente.telefono|default:'—' }}"
+                    data-email="{{ paciente.usuario.email|default:'—' }}"
+                    data-estado="{{ paciente.usuario.is_active|yesno:'Activo,Inactivo' }}">
+                    <td>
+                        <div class="avatar-cell">
+                            <div class="mini-avatar">{{ paciente.usuario.first_name|first }}{{ paciente.usuario.last_name|first }}</div>
+                            <span class="pac-name">{{ paciente.usuario.get_full_name }}</span>
+                        </div>
+                    </td>
+                    <td>{{ paciente.cedula|default:"—" }}</td>
+                    <td>{{ paciente.telefono|default:"—" }}</td>
+                    <td>{{ paciente.usuario.email|default:"—" }}</td>
+                    <td>
+                        {% if paciente.usuario.is_active %}
+                        <span class="badge-estado badge-activo"><i class="fa-solid fa-circle" style="font-size:6px"></i> Activo</span>
+                        {% else %}
+                        <span class="badge-estado badge-inactivo"><i class="fa-solid fa-circle" style="font-size:6px"></i> Inactivo</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fa-solid fa-users-slash"></i>
+            <p>No hay pacientes registrados.</p>
+            <small>Los pacientes aparecerán aquí una vez que se registren.</small>
+        </div>
+        {% endif %}
+    </div>
+
+</main>
+
+<!-- MODAL DETALLE PACIENTE -->
+<div class="modal-ov" id="modalOv" onclick="closeModalOut(event)">
+    <div class="modal">
+        <div class="modal-head">
+            <div class="modal-avatar" id="m-ini">—</div>
+            <div class="modal-head-info">
+                <div class="modal-tag"><i class="fa-solid fa-user"></i> &nbsp;Datos del paciente</div>
+                <div class="modal-pac" id="m-pac">—</div>
+            </div>
+            <button class="modal-close" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="modal-grid">
+                <div class="modal-field">
+                    <div class="modal-field-label"><i class="fa-solid fa-id-card"></i> Cédula</div>
+                    <div class="modal-field-val" id="m-cedula">—</div>
+                </div>
+                <div class="modal-field">
+                    <div class="modal-field-label"><i class="fa-solid fa-phone"></i> Teléfono</div>
+                    <div class="modal-field-val" id="m-telefono">—</div>
+                </div>
+                <div class="modal-field full">
+                    <div class="modal-field-label"><i class="fa-solid fa-envelope"></i> Correo electrónico</div>
+                    <div class="modal-field-val" id="m-email">—</div>
+                </div>
+                <div class="modal-field">
+                    <div class="modal-field-label"><i class="fa-solid fa-circle-dot"></i> Estado</div>
+                    <div class="modal-field-val" id="m-estado">—</div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-cerrar" onclick="closeModal()">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ── HAMBURGUESA ──
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('overlay').classList.toggle('active');
+    document.getElementById('hamburger').classList.toggle('open');
+}
+function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('overlay').classList.remove('active');
+    document.getElementById('hamburger').classList.remove('open');
+}
+
+// ── BÚSQUEDA ──
+let soloActivos = false;
+function actualizarTabla() {
+    const q = document.getElementById('buscador').value.toLowerCase().trim();
+    let visible = 0;
+    document.querySelectorAll('.fila-pac').forEach(f => {
+        const matchQ = !q || f.dataset.nombre.includes(q) || f.dataset.cedula.includes(q);
+        const matchA = !soloActivos || f.dataset.activo === '1';
+        const show = matchQ && matchA;
+        f.classList.toggle('oculta', !show);
+        if (show) visible++;
+    });
+    document.getElementById('results-count').textContent = visible;
+    document.getElementById('stat-resultados').textContent = visible;
+
+    // empty state dinámico
+    const tbody = document.getElementById('tablaPacientes');
+    let emptyRow = document.getElementById('empty-dynamic');
+    if (visible === 0 && tbody) {
+        if (!emptyRow) {
+            emptyRow = document.createElement('tr');
+            emptyRow.id = 'empty-dynamic';
+            emptyRow.innerHTML = '<td colspan="5" style="text-align:center;padding:2.5rem;color:var(--muted)"><i class="fa-solid fa-magnifying-glass" style="display:block;font-size:1.8rem;color:var(--mg-border);margin-bottom:.5rem"></i>Sin resultados para "<strong>' + (q||'filtro aplicado') + '"</strong></td>';
+            tbody.appendChild(emptyRow);
+        }
+    } else if (emptyRow) {
+        emptyRow.remove();
+    }
+}
+
+document.getElementById('buscador').addEventListener('input', actualizarTabla);
+
+function filtrarActivos() {
+    soloActivos = !soloActivos;
+    document.getElementById('btn-activos').classList.toggle('active', soloActivos);
+    actualizarTabla();
+}
+
+// ── ORDENAR COLUMNAS ──
+let sortCol = -1, sortAsc = true;
+function sortTable(col) {
+    const tbody = document.getElementById('tablaPacientes');
+    if (!tbody) return;
+    const filas = Array.from(tbody.querySelectorAll('.fila-pac'));
+    if (sortCol === col) { sortAsc = !sortAsc; } else { sortCol = col; sortAsc = true; }
+
+    filas.sort((a, b) => {
+        const aT = a.cells[col]?.textContent.trim().toLowerCase() || '';
+        const bT = b.cells[col]?.textContent.trim().toLowerCase() || '';
+        return sortAsc ? aT.localeCompare(bT) : bT.localeCompare(aT);
+    });
+    filas.forEach(f => tbody.appendChild(f));
+
+    document.querySelectorAll('th').forEach((th, i) => {
+        th.classList.toggle('sorted', i === col);
+        const icon = th.querySelector('.sort-icon');
+        if (icon) icon.className = 'fa-solid sort-icon ' + (i === col ? (sortAsc ? 'fa-sort-up' : 'fa-sort-down') : 'fa-sort');
+    });
+}
+
+// ── MODAL DETALLE ──
+document.querySelectorAll('.fila-pac').forEach(function(row) {
+    row.addEventListener('click', function() {
+        var d = row.dataset;
+        document.getElementById('m-ini').textContent    = d.ini || '?';
+        document.getElementById('m-pac').textContent    = d.pac;
+        document.getElementById('m-cedula').textContent = d.cedulaVal || d.cedula || '—';
+        document.getElementById('m-telefono').textContent = d.telefono;
+        document.getElementById('m-email').textContent  = d.email;
+        var estadoEl = document.getElementById('m-estado');
+        estadoEl.textContent = d.estado;
+        estadoEl.style.color = d.activo === '1' ? 'var(--green)' : 'var(--red)';
+        document.getElementById('modalOv').classList.add('open');
+    });
+});
+
+function closeModal() { document.getElementById('modalOv').classList.remove('open'); }
+function closeModalOut(e) { if (e.target === document.getElementById('modalOv')) closeModal(); }
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
+</script>
+</body>
+</html>
