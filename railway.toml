@@ -1,10 +1,10 @@
 [build]
 builder = "nixpacks"
-buildCommand = "pip install -r requirements.txt && python manage.py collectstatic --noinput"
+buildCommand = "pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate --noinput"
 
 [deploy]
-startCommand = "gunicorn sistema_prenatal.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120"
+startCommand = "gunicorn sistema_prenatal.wsgi:application --bind 0.0.0.0:$PORT --workers 1 --timeout 120 --log-level debug"
 healthcheckPath = "/health/"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"
-restartPolicyMaxRetries = 10
+restartPolicyMaxRetries = 3
