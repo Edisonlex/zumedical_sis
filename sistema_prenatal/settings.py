@@ -70,6 +70,7 @@ AUTH_USER_MODEL = 'usuarios.Usuario'
 # ============================================================
 
 MIDDLEWARE = [
+    'sistema_prenatal.middleware.HealthCheckMiddleware',  # responde /health/ sin tocar BD
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',  # sirve estáticos en producción
     'django.contrib.sessions.middleware.SessionMiddleware',
