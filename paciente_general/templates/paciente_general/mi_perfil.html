@@ -193,6 +193,11 @@
             <i class="fa-regular fa-calendar-check"></i> Mis Citas
             {% if citas_pendientes %}<span class="nav-badge">{{ citas_pendientes }}</span>{% endif %}
         </a>
+        {% if request.user.puede_prenatal %}
+        <a href="{% url 'paciente_dashboard' %}" class="nav-item">
+            <i class="fa-solid fa-person-pregnant"></i> Módulo prenatal
+        </a>
+        {% endif %}
     </nav>
     <div class="sb-footer">
         <a href="{% url 'logout' %}" class="btn-logout">

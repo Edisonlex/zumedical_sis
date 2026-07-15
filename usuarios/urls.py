@@ -21,6 +21,7 @@ urlpatterns = [
     path('cambiar-estado/<int:cita_id>/', views.cambiar_estado_cita, name='cambiar_estado_cita'),
     path('pacientes-medico/', views.pacientes_medico, name='pacientes_medico'),
     path('activar-embarazo/<int:paciente_id>/', views.activar_embarazo, name='activar_embarazo'),
+    path('desactivar-embarazo/<int:paciente_id>/', views.desactivar_embarazo, name='desactivar_embarazo'),
     path('registrar-control/', views.registrar_control, name='registrar_control'),
     path('historial-prenatal/', views.historial_prenatal, name='historial_prenatal'),
     path('editar-paciente/<int:paciente_id>/', views.editar_perfil_paciente, name='editar_perfil_paciente'),

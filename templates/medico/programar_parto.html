@@ -166,5 +166,21 @@ function selectTipo(el, val) {
   el.querySelector('input').checked = true;
 }
 </script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const el = document.querySelector('select[name="paciente"]');
+    if (el) {
+      new Choices(el, {
+        searchEnabled: true,
+        itemSelectText: '',
+        placeholderValue: '- Selecciona una paciente -',
+        noResultsText: 'No se encontraron pacientes',
+        shouldSort: false
+      });
+    }
+  });
+</script>
 </body>
 </html>

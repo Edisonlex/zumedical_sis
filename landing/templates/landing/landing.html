@@ -365,13 +365,19 @@
 
         /* ===== EQUIPO ===== */
         .equipo { background: white; }
-        .equipo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px; max-width: 1100px; margin: 0 auto; }
-        .medico-card { text-align: center; padding: 32px 20px; background: var(--pink-soft); border-radius: var(--radius); transition: transform 0.3s cubic-bezier(.21,.6,.35,1), box-shadow 0.3s ease, background 0.3s ease; }
+        .equipo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 28px; max-width: 1100px; margin: 0 auto; }
+        .medico-card { text-align: center; background: var(--pink-soft); border-radius: var(--radius); transition: transform 0.3s cubic-bezier(.21,.6,.35,1), box-shadow 0.3s ease, background 0.3s ease; overflow: hidden; display: flex; flex-direction: column; }
         .medico-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-hover); background: white; }
+        .medico-foto-wrap { width: 100%; aspect-ratio: 3/4; overflow: hidden; border-radius: var(--radius) var(--radius) 0 0; background: linear-gradient(135deg, var(--magenta), var(--purple)); display: flex; align-items: center; justify-content: center; }
+        .medico-foto-wrap img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+        .medico-foto-wrap i { font-size: 56px; color: rgba(255,255,255,.6); }
+        .medico-card-body { padding: 20px 20px 24px; flex: 1; display: flex; flex-direction: column; }
+        .medico-card h3 { font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 700; color: var(--text-dark); margin-bottom: 4px; line-height: 1.25; }
+        .medico-esp { font-size: 13px; color: var(--magenta); font-weight: 600; margin-bottom: 6px; display: block; }
+        .medico-exp { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text-light); background: rgba(176,53,128,.1); padding: 3px 10px; border-radius: 999px; margin-bottom: 10px; }
+        .medico-desc { font-size: 12.5px; color: var(--text-light); line-height: 1.65; }
         .medico-avatar { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--magenta), var(--purple)); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 32px; color: white; overflow: hidden; }
         .medico-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .medico-card h3 { font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 600; color: var(--text-dark); margin-bottom: 6px; }
-        .medico-card p { font-size: 13px; color: var(--magenta); font-weight: 500; }
         .equipo-placeholder { text-align: center; padding: 60px; color: var(--text-light); grid-column: 1 / -1; }
         .equipo-placeholder i { font-size: 48px; margin-bottom: 16px; color: var(--pink-mid); }
 
@@ -643,24 +649,61 @@
         <p class="section-subtitle">Un equipo de especialistas dedicados a tu salud y bienestar.</p>
     </div>
     <div class="equipo-grid reveal reveal-stagger">
-        {% for medico in medicos %}
+
+        <!-- Carlos García -->
         <div class="medico-card">
-            <div class="medico-avatar">
-                {% if medico.foto %}
-                    <img src="{{ medico.foto.url }}" alt="{{ medico.nombre }}">
-                {% else %}
-                    <i class="fa-solid fa-user-doctor"></i>
-                {% endif %}
+            <div class="medico-foto-wrap">
+                <img src="{% static 'img/equipo/carlos_garcia.jpg' %}" alt="Dr. Carlos Alberto García López"
+                     onerror="this.style.display='none';this.parentElement.innerHTML='<i class=\'fa-solid fa-user-doctor\'></i>'">
             </div>
-            <h3>{{ medico.nombre }}</h3>
-            <p>{{ medico.especialidad }}</p>
+            <div class="medico-card-body">
+                <h3>Dr. Carlos Alberto García López</h3>
+                <span class="medico-esp">Odontólogo General</span>
+                <span class="medico-exp"><i class="fa-regular fa-clock"></i> 2 años de experiencia</span>
+                <p class="medico-desc">Odontólogo general comprometido con brindar una atención integral, ética y de calidad, enfocada en la salud y el bienestar de cada paciente.</p>
+            </div>
         </div>
-        {% empty %}
-        <div class="equipo-placeholder">
-            <i class="fa-solid fa-user-doctor"></i>
-            <p>El equipo médico se presentará próximamente.</p>
+
+        <!-- Susana Jurado -->
+        <div class="medico-card">
+            <div class="medico-foto-wrap">
+                <img src="{% static 'img/equipo/susana_jurado.jpg' %}" alt="Lic. Susana Roxana Jurado Calderón"
+                     onerror="this.style.display='none';this.parentElement.innerHTML='<i class=\'fa-solid fa-user-nurse\'></i>'">
+            </div>
+            <div class="medico-card-body">
+                <h3>Lic. Susana Roxana Jurado Calderón</h3>
+                <span class="medico-esp">Auxiliar en Enfermería</span>
+                <span class="medico-exp"><i class="fa-regular fa-clock"></i> 18 años de experiencia</span>
+                <p class="medico-desc">Profesional de enfermería con amplia trayectoria en atención al paciente, brindando cuidados seguros, cálidos y oportunos con dedicación y vocación de servicio.</p>
+            </div>
         </div>
-        {% endfor %}
+
+        <!-- Zully Matute -->
+        <div class="medico-card">
+            <div class="medico-foto-wrap">
+                <img src="{% static 'img/equipo/zully_matute.jpg' %}" alt="Dra. Zully Elizabeth Matute Macías"
+                     onerror="this.style.display='none';this.parentElement.innerHTML='<i class=\'fa-solid fa-user-doctor\'></i>'">
+            </div>
+            <div class="medico-card-body">
+                <h3>Dra. Zully Elizabeth Matute Macías</h3>
+                <span class="medico-esp">Obstetra</span>
+                <p class="medico-desc">Profesional de la salud altamente calificada, comprometida con la atención integral, segura y humanizada de la mujer en todas sus etapas.</p>
+            </div>
+        </div>
+
+        <!-- Liseth Zambrano -->
+        <div class="medico-card">
+            <div class="medico-foto-wrap">
+                <img src="{% static 'img/equipo/liseth_zambrano.jpg' %}" alt="Dra. Liseth Zambrano"
+                     onerror="this.style.display='none';this.parentElement.innerHTML='<i class=\'fa-solid fa-user-doctor\'></i>'">
+            </div>
+            <div class="medico-card-body">
+                <h3>Dra. Liseth Zambrano</h3>
+                <span class="medico-esp">Obstetra</span>
+                <p class="medico-desc">Especialista en salud obstétrica comprometida con acompañar a cada paciente con calidez, profesionalismo y atención personalizada en cada etapa de su vida.</p>
+            </div>
+        </div>
+
     </div>
 </section>
 

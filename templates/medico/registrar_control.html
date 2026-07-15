@@ -293,9 +293,15 @@
     </div>
     {% endif %}
 
-    <div class="page-header">
-        <h1>Registrar control prenatal</h1>
-        <p>Completa los datos de la consulta prenatal de la paciente</p>
+    <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h1>Registrar control prenatal</h1>
+            <p>Completa los datos de la consulta prenatal de la paciente</p>
+        </div>
+        <a href="{% url 'registrar_consulta_general' %}" style="padding: 0.6rem 1.2rem; background: var(--mg); color: white; border-radius: 8px; text-decoration: none; font-size: 0.9rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.5rem; transition: background 0.2s;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+            Registrar Consulta General
+        </a>
     </div>
 
     <div class="form-layout">

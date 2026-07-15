@@ -1,4 +1,5 @@
-﻿<!doctype html>
+{% load static %}
+<!doctype html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
@@ -147,7 +148,7 @@
 <!-- SIDEBAR -->
 <aside class="sidebar">
   <div class="sb-brand">
-    <div class="sb-logo"><img src="/static/img/Logo.png" alt="Zumedical" /></div>
+    <div class="sb-logo"><img src="{% static 'img/Logo.png' %}" alt="Zumedical" /></div>
     <div><h2>Zumedical</h2><span>Paciente</span></div>
   </div>
   <a href="{% url 'mi_perfil' %}" class="sb-user">
@@ -157,8 +158,8 @@
   <nav class="sb-nav">
     <div class="nav-lbl">Menú</div>
     <a href="{% url 'paciente_dashboard' %}" class="nav-item">🏠 Inicio</a>
-    <a href="{% url 'agendar_cita' %}" class="nav-item">📅 Agendar Cita</a>
-    <a href="{% url 'ver_citas' %}" class="nav-item">🗓 Mis Citas</a>
+    <a href="{% url 'paciente_general_agendar' %}" class="nav-item">📅 Agendar Cita</a>
+    <a href="{% url 'paciente_general_citas' %}" class="nav-item">🗓 Mis Citas</a>
     <div class="nav-lbl">Inteligencia Artificial</div>
     <a href="{% url 'chatbot_page' %}" class="nav-item active">
       💬 Asistente Virtual

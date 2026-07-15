@@ -203,7 +203,7 @@
 
 <aside class="sidebar" id="sidebar">
     <div class="sb-brand">
-        <div class="sb-logo"><img src="{% static 'img/logo.png' %}" alt="Zumedical"></div>
+        <div class="sb-logo"><img src="{% static 'img/Logo.png' %}" alt="Zumedical"></div>
         <div class="sb-brand-text"><h2>Zumedical</h2><span>Paciente</span></div>
     </div>
     <a href="{% url 'paciente_general_perfil' %}" class="sb-user">
@@ -217,6 +217,11 @@
         <a href="{% url 'paciente_general_citas' %}" class="nav-item active"><i class="fa-regular fa-calendar-check"></i> Mis Citas
             {% if citas_pendientes %}<span class="nav-badge">{{ citas_pendientes }}</span>{% endif %}
         </a>
+        {% if request.user.puede_prenatal %}
+        <a href="{% url 'paciente_dashboard' %}" class="nav-item">
+            <i class="fa-solid fa-person-pregnant"></i> Módulo prenatal
+        </a>
+        {% endif %}
     </nav>
     <div class="sb-footer">
         <a href="{% url 'logout' %}" class="btn-logout"><i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar sesión</a>

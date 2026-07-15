@@ -742,6 +742,27 @@ def activar_embarazo(request, paciente_id):
     if referer:
         return redirect(referer)
     return redirect('pacientes_medico')
+
+
+@login_required
+def desactivar_embarazo(request, paciente_id):
+    if request.user.rol not in ['medico', 'secretaria', 'admin']:
+        return redirect('landing')
+
+    from pacientes.models import Paciente
+    paciente = get_object_or_404(Paciente, id=paciente_id)
+    nombre = paciente.usuario.get_full_name()
+    paciente.estado_embarazo = 'FINALIZADO'
+    paciente.mensaje_prenatal_visto = False
+    paciente.save()
+
+    registrar_log(request, 'UPDATE', 'Pacientes',
+        f'Embarazo desactivado para {nombre} por {request.user.get_full_name()}', 'INFO')
+    messages.success(request, f'Módulo prenatal desactivado para {nombre}. La paciente volvió a modo general.')
+    referer = request.META.get('HTTP_REFERER')
+    if referer:
+        return redirect(referer)
+    return redirect('pacientes_medico')
 @medico_prenatal_required
 @login_required
 def registrar_control(request):
@@ -2090,7 +2111,7 @@ def perfil_secretaria(request):
 @login_required
 @no_cache_view
 def registrar_consulta_general(request):
-    """Registra una nueva consulta general — solo médicos con especialidad general."""
+    """Registra una nueva consulta general — todos los médicos pueden usarla."""
     from paciente_general.models import ConsultaGeneral
     from citas.models import Cita
     from pacientes.models import Paciente
@@ -2098,28 +2119,45 @@ def registrar_consulta_general(request):
     if request.user.rol != 'medico':
         return redireccionar_por_rol(request.user)
 
-    # Solo pacientes que tienen citas con ESTE médico (evita ver los 8000 pacientes del sistema)
-    ids_mis_pacientes = Cita.objects.filter(
+    # Médico prenatal ve sus pacientes prenatales + pacientes con citas
+    # Médico general ve solo sus pacientes con citas
+    ids_citas = Cita.objects.filter(
         medico=request.user
     ).values_list('paciente_id', flat=True)
 
-    pacientes_generales = Paciente.objects.filter(
-        usuario_id__in=ids_mis_pacientes
-    ).select_related('usuario').order_by('usuario__first_name', 'usuario__last_name')
+    try:
+        es_prenatal = request.user.medico.especialidad and \
+                      request.user.medico.especialidad.tipo == 'prenatal'
+    except Exception:
+        es_prenatal = False
+
+    if es_prenatal:
+        # Incluye pacientes con citas + pacientes que este médico tiene asignados como prenatal
+        from django.db.models import Q
+        pacientes_generales = Paciente.objects.filter(
+            Q(usuario_id__in=ids_citas) | Q(medico_prenatal=request.user)
+        ).select_related('usuario').distinct().order_by('usuario__first_name', 'usuario__last_name')
+    else:
+        pacientes_generales = Paciente.objects.filter(
+            usuario_id__in=ids_citas
+        ).select_related('usuario').order_by('usuario__first_name', 'usuario__last_name')
+
+    # Pre-selección de paciente via ?pac=ID
+    pac_preseleccionado = request.GET.get('pac') or request.POST.get('paciente')
 
     if request.method == 'POST':
         paciente_id = request.POST.get('paciente')
         if not paciente_id:
             messages.error(request, 'Debes seleccionar una paciente.')
             return render(request, 'medico/registrar_consulta_general.html',
-                          {'pacientes': pacientes_generales})
+                          {'pacientes': pacientes_generales, 'pac_preseleccionado': pac_preseleccionado})
 
         try:
             paciente_obj = Usuario.objects.get(id=paciente_id, rol='paciente')
         except Usuario.DoesNotExist:
             messages.error(request, 'Paciente no encontrada.')
             return render(request, 'medico/registrar_consulta_general.html',
-                          {'pacientes': pacientes_generales})
+                          {'pacientes': pacientes_generales, 'pac_preseleccionado': pac_preseleccionado})
 
         def _val(campo, default=''):
             v = request.POST.get(campo, default).strip()
@@ -2172,7 +2210,7 @@ def registrar_consulta_general(request):
         return redirect('ver_consulta_general', consulta_id=consulta.id)
 
     return render(request, 'medico/registrar_consulta_general.html',
-                  {'pacientes': pacientes_generales})
+                  {'pacientes': pacientes_generales, 'pac_preseleccionado': pac_preseleccionado})
 
 
 @login_required
