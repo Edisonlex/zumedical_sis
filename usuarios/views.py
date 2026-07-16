@@ -2216,32 +2216,56 @@ def registrar_consulta_general(request):
 @login_required
 @no_cache_view
 def historial_consultas_generales(request):
-    """Lista las consultas generales registradas por este médico específicamente."""
+    """Lista las consultas generales. El médico prenatal puede ver las de sus pacientes."""
     from paciente_general.models import ConsultaGeneral
 
     if request.user.rol != 'medico':
         return redireccionar_por_rol(request.user)
 
+    try:
+        es_prenatal = request.user.medico.especialidad and \
+                      request.user.medico.especialidad.tipo == 'prenatal'
+    except Exception:
+        es_prenatal = False
+
     paciente_id = request.GET.get('paciente')
 
-    # Solo consultas registradas por ESTE médico
-    consultas = ConsultaGeneral.objects.filter(
-        medico=request.user
-    ).select_related('paciente', 'medico').order_by('-fecha')
+    if es_prenatal:
+        # Médico prenatal ve consultas de todos los médicos para sus pacientes
+        from pacientes.models import Paciente
+        from django.db.models import Q
+        from citas.models import Cita
+        ids_citas = Cita.objects.filter(medico=request.user).values_list('paciente_id', flat=True)
+        ids_prenatales = Paciente.objects.filter(medico_prenatal=request.user).values_list('usuario_id', flat=True)
+        consultas = ConsultaGeneral.objects.filter(
+            Q(paciente_id__in=ids_citas) | Q(paciente_id__in=ids_prenatales)
+        ).select_related('paciente', 'medico').order_by('-fecha')
+    else:
+        # Médico general solo ve sus propias consultas
+        consultas = ConsultaGeneral.objects.filter(
+            medico=request.user
+        ).select_related('paciente', 'medico').order_by('-fecha')
 
     if paciente_id:
         consultas = consultas.filter(paciente_id=paciente_id)
 
-    # Selector de pacientes: solo los que este médico ha atendido
+    # Selector de pacientes
     from citas.models import Cita
     ids_mis_pacientes = Cita.objects.filter(
         medico=request.user
     ).values_list('paciente_id', flat=True)
 
     from pacientes.models import Paciente
-    pacientes_generales = Paciente.objects.filter(
-        usuario_id__in=ids_mis_pacientes
-    ).select_related('usuario').order_by('usuario__first_name')
+    if es_prenatal:
+        from django.db.models import Q
+        ids_prenatales = Paciente.objects.filter(medico_prenatal=request.user).values_list('usuario_id', flat=True)
+        pacientes_generales = Paciente.objects.filter(
+            Q(usuario_id__in=ids_mis_pacientes) | Q(usuario_id__in=ids_prenatales)
+        ).select_related('usuario').distinct().order_by('usuario__first_name')
+    else:
+        pacientes_generales = Paciente.objects.filter(
+            usuario_id__in=ids_mis_pacientes
+        ).select_related('usuario').order_by('usuario__first_name')
 
     return render(request, 'medico/historial_consultas_generales.html', {
         'consultas': consultas,

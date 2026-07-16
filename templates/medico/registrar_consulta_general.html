@@ -212,6 +212,17 @@ opts.forEach(o => {
   });
 });
 
+// Pre-selección via ?pac=ID (cuando viene desde lista de pacientes)
+const pacPresel = "{{ pac_preseleccionado|default:'' }}";
+if (pacPresel) {
+  const target = Array.from(opts).find(o => o.dataset.id === pacPresel);
+  if (target) {
+    search.value = target.dataset.name;
+    hidden.value = target.dataset.id;
+    target.classList.add('selected');
+  }
+}
+
 // IMC automático
 const pesoEl  = document.getElementById('peso');
 const tallaEl = document.getElementById('talla');
