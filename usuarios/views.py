@@ -641,7 +641,159 @@ def citas_medico(request):
     return render(request, template, {'citas': citas})
  
 @login_required
-def cambiar_estado_cita(request, cita_id):
+@no_cache_view
+def descargar_pdf_consulta_general(request, consulta_id):
+    """Genera y descarga PDF de una consulta general."""
+    from paciente_general.models import ConsultaGeneral
+    from datetime import datetime
+    from django.http import HttpResponse
+    
+    if request.user.rol != 'medico':
+        return redireccionar_por_rol(request.user)
+
+    consulta = get_object_or_404(ConsultaGeneral, id=consulta_id)
+
+    # Verificar permisos
+    if request.user.rol == 'medico' and consulta.medico_id != request.user.id:
+        return redirect('historial_consultas_generales')
+
+    # Usar reportlab para generar PDF
+    try:
+        from reportlab.lib.pagesizes import letter, A4
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.units import inch
+        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image, PageBreak
+        from reportlab.lib import colors
+        from io import BytesIO
+    except ImportError:
+        # Si no tiene reportlab, redirigir a ver_consulta_general
+        return redirect('ver_consulta_general', consulta_id=consulta.id)
+
+    # Crear BytesIO
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=0.5*inch, bottomMargin=0.5*inch)
+    
+    styles = getSampleStyleSheet()
+    elements = []
+
+    # ── HEADER ──
+    header_data = [
+        [Paragraph('<b>ZUMEDICAL</b>', ParagraphStyle(name='HeaderTitle', fontSize=16, alignment=1, textColor=colors.HexColor('#b03580'))),
+         Paragraph('<b>Centro de Atención Médica</b>', ParagraphStyle(name='HeaderSub', fontSize=9, alignment=1, textColor=colors.HexColor('#8a2563')))],
+        [Paragraph('control@zumedical.com | www.zumedical.com', ParagraphStyle(name='HeaderContact', fontSize=8, alignment=1, textColor=colors.grey))]
+    ]
+    header_table = Table(header_data, colWidths=[3*inch, 3*inch])
+    header_table.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('TOPPADDING', (0, 0), (-1, -1), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+        ('LINEBELOW', (0, -1), (-1, -1), 1, colors.HexColor('#b03580')),
+    ]))
+    elements.append(header_table)
+    elements.append(Spacer(1, 0.2*inch))
+
+    # ── TÍTULO ──
+    elements.append(Paragraph('<b>REGISTRO DE CONSULTA GENERAL</b>', 
+                             ParagraphStyle(name='Title', fontSize=14, alignment=1, textColor=colors.HexColor('#8a2563'), spaceAfter=12)))
+    elements.append(Spacer(1, 0.1*inch))
+
+    # ── INFO PACIENTE ──
+    info_data = [
+        ['<b>Paciente:</b>', f"{consulta.paciente.get_full_name()}", '<b>Fecha:</b>', f"{consulta.fecha.strftime('%d/%m/%Y')}"],
+        ['<b>Username:</b>', f"@{consulta.paciente.username}", '<b>Médico:</b>', f"Dr(a). {consulta.medico.get_full_name() if consulta.medico else 'N/A'}"],
+    ]
+    info_table = Table(info_data, colWidths=[1.2*inch, 1.8*inch, 1.2*inch, 1.8*inch])
+    info_table.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#e8aad4')),
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#fbf0f7')),
+        ('TOPPADDING', (0, 0), (-1, -1), 6),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+    ]))
+    elements.append(info_table)
+    elements.append(Spacer(1, 0.15*inch))
+
+    # ── MOTIVO ──
+    if consulta.motivo_consulta:
+        elements.append(Paragraph('<b>Motivo de Consulta:</b>', ParagraphStyle(name='SectionTitle', fontSize=10, textColor=colors.HexColor('#8a2563'))))
+        elements.append(Paragraph(consulta.motivo_consulta, ParagraphStyle(name='Normal', fontSize=9)))
+        elements.append(Spacer(1, 0.1*inch))
+
+    # ── SIGNOS VITALES ──
+    if any([consulta.presion_arterial, consulta.temperatura, consulta.peso, consulta.talla]):
+        elements.append(Paragraph('<b>Signos Vitales:</b>', ParagraphStyle(name='SectionTitle', fontSize=10, textColor=colors.HexColor('#8a2563'))))
+        vitals_data = [
+            ['P/A', consulta.presion_arterial or '—', 'Saturación O₂', f"{consulta.saturacion_oxigeno or '—'}%", 'Temp.', f"{consulta.temperatura or '—'}°C"],
+            ['FC', f"{consulta.frecuencia_cardiaca or '—'} lpm", 'FR', f"{consulta.frecuencia_respiratoria or '—'} rpm", 'Peso/Talla', f"{consulta.peso or '—'} kg / {consulta.talla or '—'} m"],
+        ]
+        vitals_table = Table(vitals_data, colWidths=[1*inch, 1.2*inch, 1.2*inch, 1.2*inch, 0.9*inch, 1.5*inch])
+        vitals_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 8),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#e8aad4')),
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#fbf0f7')),
+            ('TOPPADDING', (0, 0), (-1, -1), 4),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ]))
+        elements.append(vitals_table)
+        elements.append(Spacer(1, 0.1*inch))
+
+    # ── DIAGNÓSTICO ──
+    if any([consulta.diagnostico_1_patologia, consulta.diagnostico_2_patologia, consulta.diagnostico_3_patologia]):
+        elements.append(Paragraph('<b>Diagnóstico:</b>', ParagraphStyle(name='SectionTitle', fontSize=10, textColor=colors.HexColor('#8a2563'))))
+        diags_data = [['Patología', 'CIE-10', 'Presuntivo', 'Definitivo']]
+        for i in [1, 2, 3]:
+            pat = getattr(consulta, f'diagnostico_{i}_patologia')
+            if pat:
+                diags_data.append([
+                    pat,
+                    getattr(consulta, f'diagnostico_{i}_cie10') or '—',
+                    '✓' if getattr(consulta, f'diagnostico_{i}_presuntivo') else '',
+                    '✓' if getattr(consulta, f'diagnostico_{i}_definitivo') else '',
+                ])
+        diags_table = Table(diags_data, colWidths=[2.5*inch, 1*inch, 0.8*inch, 0.8*inch])
+        diags_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 8),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#e8aad4')),
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#fbf0f7')),
+            ('TOPPADDING', (0, 0), (-1, -1), 4),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ]))
+        elements.append(diags_table)
+        elements.append(Spacer(1, 0.1*inch))
+
+    # ── PRÓXIMA CITA ──
+    if consulta.proxima_cita:
+        elements.append(Paragraph('<b>Próxima Cita:</b>', ParagraphStyle(name='SectionTitle', fontSize=10, textColor=colors.HexColor('#8a2563'))))
+        proxima_text = consulta.proxima_cita.strftime('%d/%m/%Y')
+        if consulta.proxima_cita_hora:
+            proxima_text += f" a las {consulta.proxima_cita_hora.strftime('%H:%M')}"
+        elements.append(Paragraph(proxima_text, ParagraphStyle(name='Normal', fontSize=9)))
+        elements.append(Spacer(1, 0.1*inch))
+
+    # ── FOOTER ──
+    elements.append(Spacer(1, 0.2*inch))
+    footer_text = f"Documento generado el {datetime.now().strftime('%d/%m/%Y %H:%M')} | Sistema Zumedical"
+    elements.append(Paragraph(footer_text, ParagraphStyle(name='Footer', fontSize=7, alignment=1, textColor=colors.grey)))
+
+    # Build PDF
+    doc.build(elements)
+    buffer.seek(0)
+
+    # Return PDF
+    response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
+    filename = f"consulta_{consulta.paciente.username}_{consulta.fecha.strftime('%d-%m-%Y')}.pdf"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
     if request.user.rol != 'medico':
         return redireccionar_por_rol(request.user)
  
@@ -2205,6 +2357,7 @@ def registrar_consulta_general(request):
             diagnostico_3_presuntivo = bool(request.POST.get('diag3_presuntivo')),
             diagnostico_3_definitivo = bool(request.POST.get('diag3_definitivo')),
             proxima_cita             = request.POST.get('proxima_cita') or None,
+            proxima_cita_hora        = request.POST.get('proxima_cita_hora') or None,
         )
         messages.success(request, f'Consulta de {paciente_obj.get_full_name()} registrada correctamente.')
         return redirect('ver_consulta_general', consulta_id=consulta.id)
@@ -2218,6 +2371,7 @@ def registrar_consulta_general(request):
 def historial_consultas_generales(request):
     """Lista las consultas generales. El médico prenatal puede ver las de sus pacientes."""
     from paciente_general.models import ConsultaGeneral
+    import json
 
     if request.user.rol != 'medico':
         return redireccionar_por_rol(request.user)
@@ -2267,9 +2421,17 @@ def historial_consultas_generales(request):
             usuario_id__in=ids_mis_pacientes
         ).select_related('usuario').order_by('usuario__first_name')
 
+    # JSON para búsqueda en tiempo real
+    pacientes_json = json.dumps([{
+        'id': p.usuario.id,
+        'nombre': p.usuario.get_full_name() or p.usuario.username,
+        'cedula': p.usuario.username,
+    } for p in pacientes_generales])
+
     return render(request, 'medico/historial_consultas_generales.html', {
         'consultas': consultas,
         'pacientes': pacientes_generales,
+        'pacientes_json': pacientes_json,
         'paciente_filtrado_id': int(paciente_id) if paciente_id else None,
     })
 
@@ -2295,6 +2457,7 @@ def ver_consulta_general(request, consulta_id):
 def programar_parto(request):
     """El médico prenatal programa una fecha/hora de parto para una paciente."""
     from paciente_general.models import ProgramacionParto
+    import json
 
     if request.user.rol != 'medico':
         return redireccionar_por_rol(request.user)
@@ -2302,6 +2465,13 @@ def programar_parto(request):
     pacientes_prenatales = Usuario.objects.filter(
         rol='paciente', is_active=True
     ).filter(q_usuarios_con_acceso_prenatal()).distinct().order_by('first_name', 'last_name')
+
+    # Preparar JSON de pacientes para búsqueda en tiempo real
+    pacientes_json = json.dumps([{
+        'id': p.id,
+        'nombre': p.get_full_name() or p.username,
+        'cedula': p.username,  # Usar username como identificador
+    } for p in pacientes_prenatales])
 
     if request.method == 'POST':
         paciente_id      = request.POST.get('paciente')
@@ -2315,7 +2485,7 @@ def programar_parto(request):
         if not all([paciente_id, fecha_programada, hora_programada]):
             messages.error(request, 'Paciente, fecha y hora son obligatorios.')
             return render(request, 'medico/programar_parto.html',
-                          {'pacientes': pacientes_prenatales})
+                          {'pacientes': pacientes_prenatales, 'pacientes_json': pacientes_json})
 
         try:
             paciente_obj = Usuario.objects.filter(
@@ -2324,7 +2494,7 @@ def programar_parto(request):
         except Usuario.DoesNotExist:
             messages.error(request, 'Paciente prenatal no encontrada.')
             return render(request, 'medico/programar_parto.html',
-                          {'pacientes': pacientes_prenatales})
+                          {'pacientes': pacientes_prenatales, 'pacientes_json': pacientes_json})
 
         parto = ProgramacionParto.objects.create(
             paciente          = paciente_obj,
@@ -2345,7 +2515,7 @@ def programar_parto(request):
         return redirect('lista_programaciones_parto')
 
     return render(request, 'medico/programar_parto.html',
-                  {'pacientes': pacientes_prenatales})
+                  {'pacientes': pacientes_prenatales, 'pacientes_json': pacientes_json})
 
 
 @login_required
@@ -2353,6 +2523,7 @@ def programar_parto(request):
 def editar_parto(request, parto_id):
     """Edita o cambia el estado de una programación de parto."""
     from paciente_general.models import ProgramacionParto
+    import json
 
     if request.user.rol != 'medico':
         return redireccionar_por_rol(request.user)
@@ -2377,8 +2548,17 @@ def editar_parto(request, parto_id):
     pacientes_prenatales = Usuario.objects.filter(
         rol='paciente', is_active=True
     ).filter(q_usuarios_con_acceso_prenatal()).distinct().order_by('first_name')
+    
+    # Preparar JSON de pacientes para búsqueda en tiempo real
+    pacientes_json = json.dumps([{
+        'id': p.id,
+        'nombre': p.get_full_name() or p.username,
+        'cedula': p.username,
+    } for p in pacientes_prenatales])
+    
     return render(request, 'medico/programar_parto.html', {
         'pacientes': pacientes_prenatales,
+        'pacientes_json': pacientes_json,
         'parto':     parto,
         'modo':      'editar',
     })

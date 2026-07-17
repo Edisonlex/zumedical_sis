@@ -139,10 +139,16 @@
     <div class="sec-title"><div class="sec-icon">📅</div>Próxima Cita</div>
     <div class="dato" style="display:inline-block">
       <div class="dato-lbl">Fecha programada</div>
-      <div class="dato-val" style="font-size:1.1rem;font-weight:600;color:var(--mg-d)">{{ consulta.proxima_cita|date:"d/m/Y" }}</div>
+      <div class="dato-val" style="font-size:1.1rem;font-weight:600;color:var(--mg-d)">{{ consulta.proxima_cita|date:"d/m/Y" }}{% if consulta.proxima_cita_hora %} a las {{ consulta.proxima_cita_hora|time:"H:i" }}{% endif %}</div>
     </div>
   </div>
   {% endif %}
+
+  <!-- Acción: Descargar PDF -->
+  <div style="display:flex;gap:1rem;justify-content:flex-end;margin-top:2rem;margin-bottom:1rem;">
+    <a href="{% url 'historial_consultas_generales' %}" class="btn-back">← Historial</a>
+    <a href="{% url 'descargar_pdf_consulta_general' consulta.id %}" class="btn-back" style="background:linear-gradient(135deg,var(--mg-d),var(--mg-l));border-color:var(--mg);">📄 Descargar PDF</a>
+  </div>
 
 </div>
 </body>

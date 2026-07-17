@@ -66,6 +66,7 @@ class ConsultaGeneral(models.Model):
 
     # ── Próxima cita ──────────────────────────────────────────────────────
     proxima_cita = models.DateField(null=True, blank=True, verbose_name='Próxima cita')
+    proxima_cita_hora = models.TimeField(null=True, blank=True, verbose_name='Hora de próxima cita')
 
     class Meta:
         verbose_name        = 'Consulta General'

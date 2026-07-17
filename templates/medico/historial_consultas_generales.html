@@ -70,14 +70,68 @@
   </div>
 
   <form method="get" class="filter-bar">
-    <select name="paciente">
-      <option value="">— Todos los pacientes —</option>
-      {% for p in pacientes %}<option value="{{ p.usuario.id }}" {% if paciente_filtrado_id == p.usuario.id %}selected{% endif %}>{{ p.usuario.get_full_name|default:p.usuario.username }}</option>{% endfor %}
-    </select>
+    <div style="position:relative;flex:1;max-width:300px;">
+      <input type="text" id="pac-search" placeholder="Buscar por nombre o cédula..." style="width:100%;"/>
+      <input type="hidden" name="paciente" id="pac-hidden"/>
+      <ul id="pac-list" style="position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid var(--mg-border);border-top:none;border-radius:0 0 9px 9px;max-height:200px;overflow-y:auto;list-style:none;display:none;z-index:10;margin:0;padding:0;">
+      </ul>
+    </div>
     <button type="submit" class="btn-filter">Filtrar</button>
     {% if paciente_filtrado_id %}<a href="{% url 'historial_consultas_generales' %}" class="btn-filter">✕ Limpiar</a>{% endif %}
     <span style="margin-left:auto;font-size:.82rem;color:var(--muted)">{{ consultas|length }} consulta{{ consultas|length|pluralize }}</span>
   </form>
+
+  <script>
+  const pacientes = {{ pacientes_json|safe }};
+  const search = document.getElementById('pac-search');
+  const list = document.getElementById('pac-list');
+  const hidden = document.getElementById('pac-hidden');
+  
+  search.addEventListener('input', function() {
+    const query = this.value.toLowerCase().trim();
+    list.innerHTML = '';
+    
+    if (query.length === 0) {
+      list.style.display = 'none';
+      return;
+    }
+    
+    const filtrados = pacientes.filter(p => {
+      const nombre = p.nombre.toLowerCase();
+      const cedula = p.cedula.toLowerCase();
+      return nombre.includes(query) || cedula.includes(query);
+    });
+    
+    if (filtrados.length === 0) {
+      list.innerHTML = '<li style="padding:0.7rem 1rem;color:var(--muted);font-size:0.85rem;">No se encontraron pacientes</li>';
+      list.style.display = 'block';
+      return;
+    }
+    
+    filtrados.forEach(p => {
+      const li = document.createElement('li');
+      li.style.cssText = 'padding:0.7rem 1rem;cursor:pointer;border-bottom:1px solid var(--mg-border);transition:background 0.2s;';
+      li.innerHTML = `<div style="font-weight:500;color:var(--text);">${p.nombre}</div><div style="font-size:0.8rem;color:var(--muted);">ID: ${p.cedula}</div>`;
+      li.addEventListener('mouseenter', () => li.style.background = 'var(--mg-bg)');
+      li.addEventListener('mouseleave', () => li.style.background = 'transparent');
+      li.addEventListener('click', () => {
+        search.value = p.nombre;
+        hidden.value = p.id;
+        list.style.display = 'none';
+        document.querySelector('.filter-bar form').submit();
+      });
+      list.appendChild(li);
+    });
+    
+    list.style.display = 'block';
+  });
+  
+  document.addEventListener('click', function(e) {
+    if (e.target !== search && !list.contains(e.target)) {
+      list.style.display = 'none';
+    }
+  });
+  </script>
 
   <div class="table-card">
     {% if consultas %}

@@ -83,12 +83,25 @@
       <div class="sec-title"><div class="sec-icon">👤</div>Paciente</div>
       <div class="fg">
         <label>Paciente prenatal *</label>
-        <select name="paciente" required>
-          <option value="">— Selecciona una paciente —</option>
-          {% for p in pacientes %}
-          <option value="{{ p.id }}" {% if modo == 'editar' and parto.paciente_id == p.id %}selected{% endif %}>{{ p.get_full_name|default:p.username }}</option>
-          {% endfor %}
-        </select>
+        <div style="position:relative;">
+          <input 
+            type="text" 
+            id="paciente-search" 
+            placeholder="Buscar por nombre o cédula..." 
+            required
+            style="width:100%;"
+            value="{% if modo == 'editar' and parto %}{{ parto.paciente.get_full_name }}{% endif %}"
+          />
+          <input 
+            type="hidden" 
+            name="paciente" 
+            id="paciente-id"
+            value="{% if modo == 'editar' and parto %}{{ parto.paciente_id }}{% endif %}"
+          />
+          <ul id="paciente-list" style="position:absolute;top:100%;left:0;right:0;background:white;border:1px solid var(--mg-border);border-top:none;border-radius:0 0 9px 9px;max-height:200px;overflow-y:auto;list-style:none;display:none;z-index:10;margin:0;padding:0;">
+          </ul>
+        </div>
+        <span class="hint" style="display:none;" id="paciente-error">Por favor selecciona una paciente válida</span>
       </div>
     </div>
 
@@ -118,11 +131,11 @@
       <div class="grid2">
         <div class="fg">
           <label>Fecha programada *</label>
-          <input type="date" name="fecha_programada" required value="{% if modo and parto %}{{ parto.fecha_programada|date:'Y-m-d' }}{% endif %}"/>
+          <input type="date" name="fecha_programada" id="fecha_programada" required value="{% if modo and parto %}{{ parto.fecha_programada|date:'Y-m-d' }}{% endif %}" />
         </div>
         <div class="fg">
           <label>Hora programada *</label>
-          <input type="time" name="hora_programada" required value="{% if modo and parto %}{{ parto.hora_programada|time:'H:i' }}{% endif %}"/>
+          <input type="time" name="hora_programada" id="hora_programada" required value="{% if modo and parto %}{{ parto.hora_programada|time:'H:i' }}{% endif %}"/>
         </div>
         <div class="fg">
           <label>Semanas de gestación</label>
@@ -165,22 +178,92 @@ function selectTipo(el, val) {
   el.classList.add('selected');
   el.querySelector('input').checked = true;
 }
-</script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
-<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    const el = document.querySelector('select[name="paciente"]');
-    if (el) {
-      new Choices(el, {
-        searchEnabled: true,
-        itemSelectText: '',
-        placeholderValue: '- Selecciona una paciente -',
-        noResultsText: 'No se encontraron pacientes',
-        shouldSort: false
+
+// Búsqueda de pacientes en tiempo real
+document.addEventListener('DOMContentLoaded', function() {
+  const pacientes = {{ pacientes_json|safe }};
+  const searchInput = document.getElementById('paciente-search');
+  const pacienteList = document.getElementById('paciente-list');
+  const pacienteId = document.getElementById('paciente-id');
+  const pacienteError = document.getElementById('paciente-error');
+  
+  searchInput.addEventListener('input', function() {
+    const query = this.value.toLowerCase().trim();
+    pacienteList.innerHTML = '';
+    
+    if (query.length === 0) {
+      pacienteList.style.display = 'none';
+      return;
+    }
+    
+    const filtrados = pacientes.filter(p => {
+      const nombre = p.nombre.toLowerCase();
+      const cedula = p.cedula.toLowerCase();
+      return nombre.includes(query) || cedula.includes(query);
+    });
+    
+    if (filtrados.length === 0) {
+      pacienteList.innerHTML = '<li style="padding:0.7rem 1rem;color:var(--muted);font-size:0.85rem;">No se encontraron pacientes</li>';
+      pacienteList.style.display = 'block';
+      return;
+    }
+    
+    filtrados.forEach(p => {
+      const li = document.createElement('li');
+      li.style.cssText = 'padding:0.7rem 1rem;cursor:pointer;border-bottom:1px solid var(--mg-border);transition:background 0.2s;';
+      li.innerHTML = `<div style="font-weight:500;color:var(--text);">${p.nombre}</div><div style="font-size:0.8rem;color:var(--text-muted);">ID: ${p.cedula}</div>`;
+      li.addEventListener('mouseenter', () => li.style.background = 'var(--mg-bg)');
+      li.addEventListener('mouseleave', () => li.style.background = 'transparent');
+      li.addEventListener('click', () => {
+        searchInput.value = p.nombre;
+        pacienteId.value = p.id;
+        pacienteList.style.display = 'none';
+        pacienteError.style.display = 'none';
+        searchInput.style.borderColor = '1.5px solid var(--mg-border)';
       });
+      pacienteList.appendChild(li);
+    });
+    
+    pacienteList.style.display = 'block';
+  });
+  
+  // Cerrar lista al hacer click fuera
+  document.addEventListener('click', function(e) {
+    if (e.target !== searchInput && !pacienteList.contains(e.target)) {
+      pacienteList.style.display = 'none';
     }
   });
+  
+  // Validar que se seleccione una paciente antes de enviar
+  document.querySelector('form').addEventListener('submit', function(e) {
+    if (!pacienteId.value) {
+      e.preventDefault();
+      pacienteError.style.display = 'block';
+      searchInput.style.borderColor = 'var(--red)';
+    }
+  });
+});
+
+// Validar fechas/horas pasadas
+document.addEventListener('DOMContentLoaded', function() {
+  const hoy = new Date().toISOString().split('T')[0];
+  const fechaInput = document.getElementById('fecha_programada');
+  const horaInput = document.getElementById('hora_programada');
+  
+  // Establecer mínima fecha como hoy
+  fechaInput.setAttribute('min', hoy);
+  
+  // Validar hora si la fecha es hoy
+  fechaInput.addEventListener('change', function() {
+    if (this.value === hoy) {
+      const ahora = new Date();
+      const horaActual = String(ahora.getHours()).padStart(2, '0') + ':' + String(ahora.getMinutes()).padStart(2, '0');
+      horaInput.setAttribute('min', horaActual);
+    } else if (this.value > hoy) {
+      horaInput.removeAttribute('min');
+    }
+  });
+});
 </script>
 </body>
 </html>

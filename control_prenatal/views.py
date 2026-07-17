@@ -1,9 +1,12 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
 from .models import HistoriaClinica, ControlPrenatal
 from .forms import HistoriaClinicaForm, ControlPrenatalForm
 from django.conf import settings
+import json
 
 
 @login_required
@@ -93,6 +96,14 @@ def crear_control(request, paciente_id=None):
             control = form.save(commit=False)
             control.medico = request.user
             control.save()
+            
+            # Activar modo prenatal automáticamente si estaba en NINGUNO
+            if hasattr(control.paciente, 'paciente'):
+                perfil_pac = control.paciente.paciente
+                if perfil_pac.estado_embarazo == 'NINGUNO':
+                    perfil_pac.estado_embarazo = 'ACTIVO'
+                    perfil_pac.save()
+                    
             messages.success(request, 'Control prenatal registrado exitosamente.')
             # Redirigir a la historia clínica del paciente
             try:
@@ -147,4 +158,117 @@ def mi_historial(request):
         controles = []
     
     return render(request, 'control_prenatal/mi_historial.html', {'historia': historia, 'controles': controles})
+
+
+# ── API Endpoints para editar/eliminar controles ────────────────────────
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def editar_control_prenatal(request, control_id):
+    """
+    Edita un control prenatal existente mediante API JSON.
+    
+    GET: Retorna JSON con datos del control
+    POST: Recibe datos, valida, guarda y retorna JSON de éxito/error
+    """
+    # Verificar permisos: solo médicos y admin
+    if request.user.rol not in ['medico', 'admin']:
+        return JsonResponse({
+            'success': False,
+            'error': 'No tienes permisos para editar controles.'
+        }, status=403)
+    
+    control = get_object_or_404(ControlPrenatal, id=control_id)
+    
+    if request.method == 'GET':
+        # Retornar datos del control en formato JSON
+        return JsonResponse({
+            'success': True,
+            'data': {
+                'id': control.id,
+                'fecha': control.fecha.isoformat(),
+                'semanas_gestacion': control.semanas_gestacion,
+                'presion_arterial': control.presion_arterial,
+                'glucosa': control.glucosa,
+                'peso': control.peso,
+                'altura': control.altura,
+                'frecuencia_cardiaca': control.frecuencia_cardiaca,
+                'temperatura': control.temperatura,
+                'observaciones': control.observaciones,
+                'diagnostico': control.diagnostico,
+                'tratamiento': control.tratamiento,
+                'examen_fisico': control.examen_fisico,
+                'resultado_examenes': control.resultado_examenes,
+                'evolucion': control.evolucion,
+                'proteinuria': control.proteinuria,
+                'proxima_cita': control.proxima_cita.isoformat() if control.proxima_cita else None,
+            }
+        })
+    
+    elif request.method == 'POST':
+        try:
+            # Obtener datos JSON del request
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({
+                'success': False,
+                'error': 'Datos JSON inválidos.'
+            }, status=400)
+        
+        # Crear formulario con datos y la instancia del control
+        form = ControlPrenatalForm(data, instance=control, medico=request.user)
+        
+        if form.is_valid():
+            # Guardar el control actualizado
+            form.save()
+            return JsonResponse({
+                'success': True,
+                'message': 'Control prenatal actualizado correctamente.'
+            })
+        else:
+            # Retornar errores de validación
+            return JsonResponse({
+                'success': False,
+                'error': 'Error en los datos proporcionados.',
+                'errors': form.errors
+            }, status=400)
+
+
+@login_required
+@require_http_methods(["POST"])
+def eliminar_control_prenatal(request, control_id):
+    """
+    Elimina un control prenatal existente mediante API JSON.
+    
+    POST: Recibe control_id, elimina el control, retorna JSON de éxito
+    """
+    # Verificar permisos: solo médicos y admin
+    if request.user.rol not in ['medico', 'admin']:
+        return JsonResponse({
+            'success': False,
+            'error': 'No tienes permisos para eliminar controles.'
+        }, status=403)
+    
+    control = get_object_or_404(ControlPrenatal, id=control_id)
+    
+    try:
+        # Guardar información antes de eliminar (para logging si se necesita)
+        control_info = {
+            'paciente': control.paciente.get_full_name(),
+            'fecha': str(control.fecha),
+            'semanas': control.semanas_gestacion
+        }
+        
+        # Eliminar el control
+        control.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Control prenatal eliminado correctamente. ({control_info["fecha"]}, {control_info["semanas"]} semanas)'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Error al eliminar el control: {str(e)}'
+        }, status=500)
 

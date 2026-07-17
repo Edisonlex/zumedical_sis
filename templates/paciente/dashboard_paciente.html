@@ -1,327 +1,216 @@
 {% load static %}
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zumedical — Mi Panel</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/sidebar_paciente.css' %}">
     <style>
-      *,
-      *::before,
-      *::after {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        :root{
+            --mg:#B03580;--mg-l:#CC4D99;--mg-d:#8A2563;
+            --mg-bg:#FBF0F7;--mg-border:#E8AAD4;
+            --text:#2A1020;--muted:#8A6070;--white:#fff;--bg:#FDF5FA;
+            --sw:260px;
+            --green:#1a7a4a;--green-bg:#edfaf3;--green-border:#a8dfc0;
+            --amber:#b06a00;--amber-bg:#fff8ed;--amber-border:#f5d08a;
+            --red:#b03030;--red-bg:#fdf0f0;--red-border:#f0b8b8;
+            --blue:#1565c0;--blue-bg:#e3f2fd;--blue-border:#90caf9;
+        }
+        html,body{height:100%}
+        body{font-family:'DM Sans',sans-serif;background:var(--bg);display:flex;opacity:0;animation:fadeIn .4s ease .05s forwards}
+        @keyframes fadeIn{to{opacity:1}}
+        @keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+        @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
 
-      :root {
-        --magenta: #b03580;
-        --magenta-light: #cc4d99;
-        --magenta-dark: #8a2563;
-        --magenta-bg: #fbf0f7;
-        --magenta-border: #e8aad4;
-        --text: #2a1020;
-        --text-muted: #8a6070;
-        --white: #ffffff;
-        --bg: #fdf5fa;
-        --sidebar-w: 260px;
-      }
+        /* ── SIDEBAR ── */
+        .sidebar{width:var(--sw);height:100vh;background:linear-gradient(175deg,#8A2563 0%,#B03580 55%,#CC4D99 100%);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:200;box-shadow:4px 0 24px rgba(138,37,99,.22);transition:transform .3s ease;overflow:hidden}
+        .sb-brand{padding:1.75rem 1.5rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:.75rem}
+        .sb-logo{width:42px;height:42px;background:white;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden}
+        .sb-logo img{width:38px;height:38px;object-fit:contain}
+        .sb-brand-text h2{font-family:'Cormorant Garamond',serif;font-size:1.35rem;font-weight:600;color:white;line-height:1}
+        .sb-brand-text span{font-size:.7rem;color:rgba(255,255,255,.65);letter-spacing:.1em;text-transform:uppercase}
+        .sb-user{padding:1rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:.7rem;text-decoration:none;transition:background .2s;cursor:pointer}
+        .sb-user:hover{background:rgba(255,255,255,.1)}
+        .sb-avatar{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:600;color:white;flex-shrink:0;text-transform:uppercase}
+        .sb-user-info p{font-size:.7rem;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.1rem}
+        .sb-user-info h3{font-size:.88rem;font-weight:500;color:white}
+        .sb-nav{flex:1;padding:1rem .75rem;overflow-y:auto}
+        .nav-lbl{font-size:.68rem;color:rgba(255,255,255,.45);letter-spacing:.1em;text-transform:uppercase;padding:.5rem .75rem;margin-top:.75rem}
+        .nav-item{display:flex;align-items:center;gap:.7rem;padding:.72rem 1rem;border-radius:10px;color:rgba(255,255,255,.82);text-decoration:none;font-size:.88rem;transition:all .2s;margin-bottom:.2rem}
+        .nav-item:hover,.nav-item.active{background:rgba(255,255,255,.18);color:white}
+        .nav-item i{width:18px;text-align:center;font-size:15px}
+        .nav-badge{margin-left:auto;background:#e74c3c;color:white;font-size:.68rem;font-weight:600;padding:.15rem .5rem;border-radius:999px;min-width:20px;text-align:center}
+        .sb-footer{padding:1rem .75rem;border-top:1px solid rgba(255,255,255,.12)}
+        .btn-logout{display:flex;align-items:center;gap:.7rem;padding:.72rem 1rem;border-radius:10px;color:rgba(255,255,255,.75);text-decoration:none;font-size:.88rem;transition:all .2s}
+        .btn-logout:hover{background:rgba(255,255,255,.15);color:white}
 
-      body {
-        font-family: "DM Sans", sans-serif;
-        background: var(--bg);
-        min-height: 100vh;
-        display: flex;
-      }
+        /* ── MOBILE TOPBAR ── */
+        .mobile-topbar{display:none;align-items:center;justify-content:space-between;padding:1rem 1.25rem;background:linear-gradient(135deg,#8A2563,#CC4D99);position:fixed;top:0;left:0;right:0;z-index:300}
+        .mobile-topbar-brand{display:flex;align-items:center;gap:.6rem}
+        .mobile-topbar-brand img{width:30px;height:30px;background:white;border-radius:50%;padding:2px;object-fit:contain}
+        .mobile-topbar-brand span{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;color:white}
+        .hamburger{background:rgba(255,255,255,.15);border:none;border-radius:8px;padding:.5rem .65rem;cursor:pointer;display:flex;flex-direction:column;gap:4px}
+        .hamburger span{display:block;width:20px;height:2px;background:white;border-radius:2px;transition:all .3s}
+        .hamburger.open span:nth-child(1){transform:translateY(6px) rotate(45deg)}
+        .hamburger.open span:nth-child(2){opacity:0}
+        .hamburger.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+        .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:150;opacity:0;pointer-events:none;transition:opacity .3s}
+        .sidebar-overlay.active{opacity:1;pointer-events:auto}
 
-      /* ── SIDEBAR ── */
-      .sidebar {
-        width: var(--sidebar-w);
-        min-height: 100vh;
-        background: linear-gradient(
-          175deg,
-          #8a2563 0%,
-          #b03580 55%,
-          #cc4d99 100%
-        );
-        display: flex;
-        flex-direction: column;
-        position: fixed;
-        top: 0;
-        left: 0;
-        z-index: 200;
-        transition: transform 0.3s ease;
-        overflow: hidden;
-      }
-      .sidebar-brand {
-        padding: 2rem 1.5rem 1.5rem;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-      }
-      .sidebar-brand-logo {
-        width: 44px;
-        height: 44px;
-        background: white;
-        border-radius: 50%;
-        flex-shrink: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-      }
-      .sidebar-brand-logo img {
-        width: 40px;
-        height: 40px;
-        object-fit: contain;
-      }
-      .sidebar-brand-text h2 {
-        font-family: "Cormorant Garamond", serif;
-        font-size: 1.4rem;
-        font-weight: 600;
-        color: white;
-        line-height: 1;
-      }
-      .sidebar-brand-text span {
-        font-size: 0.72rem;
-        color: rgba(255, 255, 255, 0.7);
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-      }
-      .sidebar-user {
-        padding: 1.2rem 1.5rem;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        transition: background 0.2s;
-      }
-      .sidebar-user:hover {
-        background: rgba(255, 255, 255, 0.1);
-      }
-      .sidebar-avatar {
-        width: 38px;
-        height: 38px;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.2);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.85rem;
-        font-weight: 500;
-        color: white;
-        flex-shrink: 0;
-        text-transform: uppercase;
-      }
-      .sidebar-user-info p {
-        font-size: 0.78rem;
-        color: rgba(255, 255, 255, 0.6);
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        margin-bottom: 0.15rem;
-      }
-      .sidebar-user-info h3 {
-        font-size: 0.9rem;
-        font-weight: 500;
-        color: white;
-      }
-      .sidebar-nav {
-        flex: 1;
-        padding: 1rem 0.75rem;
-      }
-      .nav-label {
-        font-size: 0.7rem;
-        color: rgba(255, 255, 255, 0.5);
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        padding: 0.5rem 0.75rem;
-        margin-top: 0.5rem;
-      }
-      .nav-item {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        padding: 0.75rem 1rem;
-        border-radius: 10px;
-        color: rgba(255, 255, 255, 0.85);
-        text-decoration: none;
-        font-size: 0.9rem;
-        font-weight: 400;
-        transition: all 0.2s;
-        margin-bottom: 0.25rem;
-      }
-      .nav-item:hover,
-      .nav-item.active {
-        background: rgba(255, 255, 255, 0.18);
-        color: white;
-      }
-      .nav-item svg {
-        width: 18px;
-        height: 18px;
-        stroke: currentColor;
-        fill: none;
-        stroke-width: 1.8;
-        flex-shrink: 0;
-      }
-      .nav-badge {
-        margin-left: auto;
-        background: rgba(255, 255, 255, 0.25);
-        color: white;
-        font-size: 0.68rem;
-        font-weight: 500;
-        padding: 0.15rem 0.5rem;
-        border-radius: 20px;
-        letter-spacing: 0.05em;
-      }
-      .sidebar-footer {
-        padding: 1rem 0.75rem;
-        border-top: 1px solid rgba(255, 255, 255, 0.12);
-        flex-shrink: 0;
-      }
-      .btn-logout {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        padding: 0.75rem 1rem;
-        border-radius: 10px;
-        color: rgba(255, 255, 255, 0.8);
-        text-decoration: none;
-        font-size: 0.9rem;
-        transition: all 0.2s;
-        width: 100%;
-      }
-      .btn-logout:hover {
-        background: rgba(255, 255, 255, 0.15);
-        color: white;
-      }
-      .btn-logout svg {
-        width: 18px;
-        height: 18px;
-        stroke: currentColor;
-        fill: none;
-        stroke-width: 1.8;
-      }
+        /* ── MAIN ── */
+        .main{margin-left:var(--sw);flex:1;padding:2.5rem;height:100vh;overflow-y:auto}
 
-      /* ── MAIN ── */
-      .main {
-        margin-left: var(--sidebar-w);
-        flex: 1;
-        padding: 2.5rem;
-        min-height: 100vh;
-      }
+        /* ── TOPBAR ── */
+        .topbar{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;gap:1rem;flex-wrap:wrap}
+        .topbar-left .greeting{margin-bottom:.5rem;display:flex;align-items:center;gap:.5rem}
+        .greeting-badge{display:inline-flex;align-items:center;gap:.4rem;background:linear-gradient(135deg,var(--mg-bg),#fff);border:1px solid var(--mg-border);border-radius:999px;padding:.3rem .9rem;font-size:.78rem;font-weight:500;color:var(--mg);box-shadow:0 2px 8px rgba(176,53,128,.08)}
+        .greeting-emoji{font-size:1rem;line-height:1}
+        .topbar-left h1{font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:700;color:var(--text);line-height:1.1;margin-bottom:.3rem}
+        .topbar-left .sub{color:var(--muted);font-size:.82rem;display:flex;align-items:center;gap:.4rem}
+        .topbar-right{display:flex;align-items:center;gap:.65rem;flex-wrap:wrap}
+        .info-pill{display:flex;align-items:center;gap:.5rem;padding:.55rem 1rem;background:var(--white);border:1px solid var(--mg-border);border-radius:999px;font-size:.82rem;color:var(--text)}
+        .info-pill i{color:var(--mg);font-size:13px}
+        .live-dot{width:7px;height:7px;border-radius:50%;background:#4ade80;animation:pulse 2s infinite;flex-shrink:0}
 
-      /* ── MOBILE TOPBAR ── */
-      .mobile-topbar {
-        display: none;
-        align-items: center;
-        justify-content: space-between;
-        padding: 1rem 1.25rem;
-        background: linear-gradient(135deg, #8a2563, #cc4d99);
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        z-index: 300;
-        height: 64px;
-      }
-      .mobile-topbar-brand {
-        display: flex;
-        align-items: center;
-        gap: 0.6rem;
-      }
-      .mobile-topbar-logo {
-        width: 32px;
-        height: 32px;
-        background: white;
-        border-radius: 50%;
-        overflow: hidden;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-      }
-      .mobile-topbar-logo img {
-        width: 28px;
-        height: 28px;
-        object-fit: contain;
-      }
-      .mobile-topbar-brand span {
-        font-family: "Cormorant Garamond", serif;
-        font-size: 1.2rem;
-        font-weight: 600;
-        color: white;
-      }
-      .hamburger {
-        background: rgba(255, 255, 255, 0.15);
-        border: none;
-        border-radius: 8px;
-        padding: 0.5rem 0.65rem;
-        cursor: pointer;
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-      }
-      .hamburger span {
-        display: block;
-        width: 20px;
-        height: 2px;
-        background: white;
-        border-radius: 2px;
-        transition: all 0.3s;
-      }
-      .hamburger.open span:nth-child(1) {
-        transform: translateY(6px) rotate(45deg);
-      }
-      .hamburger.open span:nth-child(2) {
-        opacity: 0;
-      }
-      .hamburger.open span:nth-child(3) {
-        transform: translateY(-6px) rotate(-45deg);
-      }
-      .sidebar-overlay {
-        display: none;
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.45);
-        z-index: 150;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.3s;
-      }
-      .sidebar-overlay.active {
-        opacity: 1;
-        pointer-events: auto;
-      }
+        /* ── HERO BANNER ── */
+        .hero{background:linear-gradient(135deg,var(--mg-d) 0%,var(--mg) 60%,var(--mg-l) 100%);border-radius:20px;padding:2rem 2rem 2rem 2.5rem;color:white;margin-bottom:1.75rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;position:relative;overflow:hidden;animation:slideUp .4s ease .1s both}
+        .hero::before{content:'';position:absolute;right:-40px;top:-40px;width:200px;height:200px;background:rgba(255,255,255,.06);border-radius:50%}
+        .hero::after{content:'';position:absolute;right:60px;bottom:-60px;width:150px;height:150px;background:rgba(255,255,255,.04);border-radius:50%}
+        .hero-label{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;opacity:.75;margin-bottom:.5rem}
+        .hero-title{font-family:'Cormorant Garamond',serif;font-size:1.75rem;font-weight:600;line-height:1.2;margin-bottom:.5rem}
+        .hero-sub{font-size:.88rem;opacity:.8;margin-bottom:1.25rem}
+        .hero-btn{display:inline-flex;align-items:center;gap:.5rem;padding:.7rem 1.4rem;background:white;color:var(--mg-d);border-radius:999px;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;text-decoration:none;transition:all .2s;border:none;cursor:pointer}
+        .hero-btn:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(0,0,0,.15)}
+        .hero-icon{font-size:56px;opacity:.18;flex-shrink:0}
 
-      .page-header {
-        margin-bottom: 2.5rem;
-      }
-      .page-header .greeting {
-        font-size: 0.85rem;
-        color: var(--text-muted);
-        font-weight: 300;
-        margin-bottom: 0.2rem;
-      }
-      .page-header h1 {
-        font-family: "Cormorant Garamond", serif;
-        font-size: 2.2rem;
-        font-weight: 600;
-        color: var(--text);
-        margin-bottom: 0.4rem;
-      }
-      .page-header p {
-        color: var(--text-muted);
-        font-size: 0.9rem;
-        font-weight: 300;
-      }
+        /* ── STATS ── */
+        .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.75rem}
+        .stat-card{background:var(--white);border-radius:16px;padding:1.4rem 1.3rem;border:1px solid var(--mg-border);position:relative;overflow:hidden;transition:all .25s;animation:slideUp .4s ease both}
+        .stat-card:nth-child(1){animation-delay:.12s}
+        .stat-card:nth-child(2){animation-delay:.18s}
+        .stat-card:nth-child(3){animation-delay:.24s}
+        .stat-card:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(176,53,128,.1)}
+        .stat-card::after{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:linear-gradient(180deg,var(--mg-d),var(--mg-l))}
+        .stat-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.8rem}
+        .stat-icon{width:40px;height:40px;background:var(--mg-bg);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--mg);font-size:17px}
+        .stat-chip{font-size:.7rem;font-weight:600;padding:.2rem .55rem;border-radius:999px}
+        .chip-green{background:var(--green-bg);color:var(--green)}
+        .chip-amber{background:var(--amber-bg);color:var(--amber)}
+        .chip-blue{background:var(--blue-bg);color:var(--blue)}
+        .chip-mg{background:var(--mg-bg);color:var(--mg)}
+        .stat-val{font-family:'Cormorant Garamond',serif;font-size:2.4rem;font-weight:600;color:var(--text);line-height:1;margin-bottom:.2rem}
+        .stat-lbl{font-size:.74rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
 
-      /* ── SECTION TITLE ── */
+        /* ── DOS COLUMNAS ── */
+        .two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem}
+
+        /* ── PRÓXIMA CITA ── */
+        .proxima-card{background:linear-gradient(135deg,var(--mg-d),var(--mg-l));border-radius:14px;padding:1.25rem 1.4rem;color:white;position:relative;overflow:hidden;min-height:140px}
+        .proxima-card::before{content:'';position:absolute;right:-15px;top:-15px;width:100px;height:100px;background:rgba(255,255,255,.08);border-radius:50%}
+        .proxima-lbl{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;opacity:.72;margin-bottom:.5rem}
+        .proxima-time{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:600;line-height:1;margin-bottom:.3rem}
+        .proxima-pac{font-size:.86rem;opacity:.9;margin-bottom:.2rem}
+        .proxima-esp{font-size:.76rem;opacity:.68}
+        .no-proxima{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1.5rem;color:var(--muted);min-height:120px;gap:.5rem}
+        .no-proxima i{font-size:1.8rem;color:var(--mg-border)}
+
+        /* ── CARD GENÉRICO ── */
+        .card{background:var(--white);border-radius:16px;border:1px solid var(--mg-border);overflow:hidden;animation:slideUp .4s ease .25s both}
+        .card-header{padding:1rem 1.4rem;border-bottom:1px solid var(--mg-border);display:flex;align-items:center;justify-content:space-between}
+        .card-header-left{display:flex;align-items:center;gap:.65rem}
+        .card-header-icon{width:30px;height:30px;background:var(--mg-bg);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--mg);font-size:12px}
+        .card-header h3{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:600;color:var(--text)}
+        .card-badge{font-size:.72rem;background:var(--mg-bg);color:var(--mg);padding:.2rem .6rem;border-radius:999px;border:1px solid var(--mg-border)}
+        .card-body{padding:1.1rem 1.4rem}
+
+        /* ── CITAS LIST ── */
+        .citas-card{background:var(--white);border-radius:16px;border:1px solid var(--mg-border);overflow:hidden;animation:slideUp .4s ease .3s both;margin-bottom:1.5rem}
+        .cita-item{display:flex;align-items:center;gap:1rem;padding:1rem 1.4rem;border-bottom:1px solid rgba(232,170,212,.25);transition:background .15s;cursor:pointer}
+        .cita-item:last-child{border-bottom:none}
+        .cita-item:hover{background:var(--mg-bg)}
+        .cita-fecha-box{width:48px;height:52px;background:linear-gradient(135deg,var(--mg-d),var(--mg));border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;flex-shrink:0}
+        .cita-fecha-box .dia{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;line-height:1}
+        .cita-fecha-box .mes{font-size:.6rem;text-transform:uppercase;letter-spacing:.08em;opacity:.85}
+        .cita-info{flex:1;min-width:0}
+        .cita-esp{font-size:.88rem;font-weight:600;color:var(--text);margin-bottom:.15rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .cita-meta{font-size:.76rem;color:var(--muted)}
+        .badge{display:inline-flex;align-items:center;gap:.25rem;font-size:.71rem;font-weight:600;padding:.22rem .6rem;border-radius:999px;white-space:nowrap}
+        .badge-pendiente{background:var(--amber-bg);color:var(--amber)}
+        .badge-atendido{background:var(--green-bg);color:var(--green)}
+        .badge-cancelado,.badge-cancelada{background:var(--red-bg);color:var(--red)}
+        .badge-confirmada{background:var(--blue-bg);color:var(--blue)}
+        .empty-state{text-align:center;padding:2.5rem;color:var(--muted)}
+        .empty-state i{font-size:2rem;color:var(--mg-border);display:block;margin-bottom:.75rem}
+
+        /* ── ACCIONES RÁPIDAS ── */
+        .acciones-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.85rem;margin-bottom:1.5rem}
+        .accion-btn{background:var(--white);border:1px solid var(--mg-border);border-radius:14px;padding:1.25rem 1rem;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.65rem;text-decoration:none;color:var(--text);transition:all .2s;text-align:center;animation:slideUp .4s ease both}
+        .accion-btn:nth-child(1){animation-delay:.2s}
+        .accion-btn:nth-child(2){animation-delay:.25s}
+        .accion-btn:nth-child(3){animation-delay:.3s}
+        .accion-btn:hover{background:var(--mg-bg);border-color:var(--mg);transform:translateY(-2px);box-shadow:0 6px 18px rgba(176,53,128,.1)}
+        .accion-ico{width:44px;height:44px;background:var(--mg-bg);border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--mg);font-size:18px;transition:all .2s}
+        .accion-btn:hover .accion-ico{background:var(--mg);color:white}
+        .accion-lbl{font-size:.8rem;font-weight:500;color:var(--text)}
+
+        /* ── MODAL ── */
+        .modal-ov{position:fixed;inset:0;background:rgba(42,16,32,.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1.5rem;opacity:0;pointer-events:none;transition:opacity .2s}
+        .modal-ov.open{opacity:1;pointer-events:all}
+        .modal{background:var(--white);border-radius:20px;width:100%;max-width:460px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(138,37,99,.22);transform:translateY(16px) scale(.98);transition:transform .28s cubic-bezier(.34,1.56,.64,1),opacity .2s;opacity:0}
+        .modal-ov.open .modal{transform:translateY(0) scale(1);opacity:1}
+        .modal-head{background:linear-gradient(135deg,var(--mg-d),var(--mg-l));padding:1.4rem 1.5rem;display:flex;align-items:flex-start;justify-content:space-between;gap:1rem}
+        .modal-head-tag{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.72);margin-bottom:.3rem}
+        .modal-head-title{font-family:'Cormorant Garamond',serif;font-size:1.35rem;font-weight:600;color:white;line-height:1.2}
+        .modal-head-sub{font-size:.82rem;color:rgba(255,255,255,.8);margin-top:.2rem}
+        .modal-close{background:rgba(255,255,255,.2);border:none;border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:white;flex-shrink:0;transition:background .2s}
+        .modal-close:hover{background:rgba(255,255,255,.35)}
+        .modal-close i{font-size:14px}
+        .modal-body{padding:1.4rem}
+        .modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+        .modal-field{background:var(--bg);border:1px solid var(--mg-border);border-radius:11px;padding:.85rem 1rem}
+        .modal-field-lbl{font-size:.67rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.3rem;font-weight:500}
+        .modal-field-val{font-size:.9rem;color:var(--text);font-weight:500}
+        .modal-field.full{grid-column:1/-1}
+        .modal-foot{padding:1rem 1.4rem;border-top:1px solid var(--mg-border);display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap}
+        .btn-agendar{display:inline-flex;align-items:center;gap:.4rem;padding:.65rem 1.3rem;background:linear-gradient(135deg,var(--mg-d),var(--mg-l));color:white;border:none;border-radius:999px;font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:500;cursor:pointer;text-decoration:none;transition:opacity .2s}
+        .btn-agendar:hover{opacity:.88}
+        .btn-cerrar{padding:.65rem 1.2rem;background:var(--white);color:var(--muted);border:1px solid var(--mg-border);border-radius:999px;font-family:'DM Sans',sans-serif;font-size:.85rem;cursor:pointer;transition:all .2s}
+        .btn-cerrar:hover{color:var(--red);border-color:var(--red-border)}
+
+        /* ── RESPONSIVE ── */
+        @media(max-width:768px){
+            body{flex-direction:column}
+            .sidebar{position:fixed;top:64px;left:0;height:calc(100vh - 64px);transform:translateX(-100%);z-index:250}
+            .sidebar.open{transform:translateX(0)}
+            .sidebar-overlay{display:block;z-index:200}
+            .mobile-topbar{display:flex}
+            .main{margin-left:0;padding:1.1rem;padding-top:calc(1.1rem + 64px);height:auto;overflow-y:visible}
+            .topbar{flex-direction:column;gap:.5rem}
+            .topbar-right{width:100%}
+            .topbar-left h1{font-size:1.75rem}
+            .stats-grid{grid-template-columns:1fr 1fr;gap:.75rem}
+            .two-col{grid-template-columns:1fr}
+            .acciones-grid{grid-template-columns:repeat(3,1fr);gap:.5rem}
+            .accion-btn{padding:.9rem .5rem}
+            .accion-ico{width:36px;height:36px;font-size:15px}
+            .accion-lbl{font-size:.72rem}
+            .hero{padding:1.5rem}
+            .hero-title{font-size:1.4rem}
+            .hero-icon{font-size:40px}
+            .modal-ov{padding:.75rem}
+            .modal-grid{grid-template-columns:1fr}
+            .modal-field.full{grid-column:1}
+        }
+        @media(max-width:400px){
+            .stats-grid{grid-template-columns:1fr}
+            .acciones-grid{grid-template-columns:1fr 1fr}
+        }
+    /* ── SECTION TITLE ── */
       .section-title {
         display: flex;
         align-items: center;
@@ -1011,237 +900,99 @@
         box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.35);
       }
 
-      /* ── RESPONSIVE ── */
-      @media (max-width: 900px) {
-        .perfil-grid {
-          grid-template-columns: 1fr 1fr;
-        }
-        .perfil-item {
-          border-bottom: 1px solid var(--magenta-border);
-        }
-        .perfil-item:nth-child(2n) {
-          border-right: none;
-        }
-      }
+      
+</style>
+</head>
+<body>
 
-      @media (max-width: 768px) {
-        body {
-          flex-direction: column;
-        }
-        .sidebar {
-          width: var(--sidebar-w);
-          min-height: 0;
-          position: fixed;
-          top: 64px;
-          left: 0;
-          height: calc(100vh - 64px);
-          transform: translateX(-100%);
-          z-index: 250;
-          overflow-y: auto;
-        }
-        .sidebar.open {
-          transform: translateX(0);
-        }
-        .sidebar-overlay {
-          display: block;
-          z-index: 200;
-        }
-        .mobile-topbar {
-          display: flex;
-        }
-        .main {
-          margin-left: 0;
-          padding: 1.1rem;
-          padding-top: calc(1.1rem + 64px);
-          min-height: auto;
-        }
-        .ia-grid {
-          grid-template-columns: 1fr;
-        }
-        .perfil-grid {
-          grid-template-columns: 1fr 1fr;
-        }
-        .sidebar {
-          animation: none !important;
-        }
-        .page-header h1 {
-          font-size: 1.8rem;
-        }
-      }
+<!-- OVERLAY -->
+<div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
 
-      @media (max-width: 480px) {
-        .perfil-grid {
-          grid-template-columns: 1fr;
-        }
-        .perfil-card-header {
-          padding: 1rem 1.25rem;
-          flex-wrap: wrap;
-        }
-        .ia-card {
-          padding: 1.5rem;
-        }
-      }
-
-      /* ── Mensajes Django ── */
-      .msg-alert {
-        display: flex;
-        align-items: center;
-        gap: 0.65rem;
-        padding: 0.9rem 1.2rem;
-        border-radius: 12px;
-        font-size: 0.88rem;
-        font-weight: 500;
-        margin-bottom: 0.5rem;
-      }
-      .msg-alert svg {
-        width: 16px;
-        height: 16px;
-        flex-shrink: 0;
-      }
-      .msg-success {
-        background: #edfaf3;
-        color: #1a7a4a;
-        border: 1px solid #a8dfc0;
-      }
-      .msg-error {
-        background: #fdf0f0;
-        color: #b03030;
-        border: 1px solid #f0b8b8;
-      }
-      .msg-info {
-        background: #e3f2fd;
-        color: #1565c0;
-        border: 1px solid #90caf9;
-      }
-    </style>
-  </head>
-  <body>
-    <!-- OVERLAY -->
-    <div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
-
-    <!-- MOBILE TOPBAR -->
-    <div class="mobile-topbar">
-      <div class="mobile-topbar-brand">
-        <div class="mobile-topbar-logo">
-          <img src="{% static 'img/Logo.png' %}" alt="Zumedical" />
-        </div>
+<!-- MOBILE TOPBAR -->
+<div class="mobile-topbar">
+    <div class="mobile-topbar-brand">
+        <img src="{% static 'img/Logo.png' %}" alt="Zumedical">
         <span>Zumedical</span>
-      </div>
-      <button
-        type="button"
-        class="hamburger"
-        id="hamburger"
-        onclick="toggleSidebar()"
-      >
+    </div>
+    <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
         <span></span><span></span><span></span>
-      </button>
+    </button>
+</div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+    <div class="sb-brand">
+        <div class="sb-logo"><img src="{% static 'img/Logo.png' %}" alt="Zumedical"></div>
+        <div class="sb-brand-text"><h2>Zumedical</h2><span>Paciente</span></div>
+    </div>
+    <a href="{% url 'paciente_general_perfil' %}" class="sb-user">
+        <div class="sb-avatar">{{ user.first_name|first }}{{ user.last_name|first }}</div>
+        <div class="sb-user-info">
+            <p>Mi perfil</p>
+            <h3>{{ user.first_name }} {{ user.last_name }}</h3>
+        </div>
+    </a>
+    <nav class="sb-nav">
+        <div class="nav-lbl">Menú</div>
+        <a href="{% url 'paciente_general_dashboard' %}" class="nav-item">
+            <i class="fa-solid fa-house"></i> Inicio
+        </a>
+        <a href="{% url 'paciente_general_agendar' %}" class="nav-item">
+            <i class="fa-regular fa-calendar-plus"></i> Agendar Cita
+        </a>
+        <a href="{% url 'paciente_general_citas' %}" class="nav-item">
+            <i class="fa-regular fa-calendar-check"></i> Mis Citas
+            {% if citas_pendientes %}<span class="nav-badge">{{ citas_pendientes }}</span>{% endif %}
+        </a>
+        {% if request.user.paciente.estado_embarazo == 'ACTIVO' %}
+        <a href="{% url 'paciente_dashboard' %}" class="nav-item active" style="margin-top: 1.5rem;">
+            <i class="fa-solid fa-person-pregnant"></i> Mi embarazo
+        </a>
+        {% endif %}
+    </nav>
+    <div class="sb-footer">
+        <a href="{% url 'logout' %}" class="btn-logout">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar sesión
+        </a>
+    </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+<!-- TOPBAR -->
+    <div class="topbar">
+        <div class="topbar-left">
+            <div class="greeting">
+                <div class="greeting-badge">
+                    <span class="greeting-emoji" id="greetEmoji">🌅</span>
+                    <span id="greetText">Buenos días</span>
+                </div>
+            </div>
+            <h1>{{ user.first_name }} {{ user.last_name }}</h1>
+            <p class="sub">
+                <i class="fa-regular fa-calendar" style="color:var(--mg)"></i>
+                <span id="fechaEcuador">--/--/----</span>
+                &nbsp;•&nbsp;
+                <i class="fa-regular fa-clock" style="color:var(--mg)"></i>
+                <span id="reloj">--:--</span>
+                &nbsp;•&nbsp; Zumedical
+            </p>
+        </div>
+        <div class="topbar-right">
+            <div class="info-pill">
+                <i class="fa-solid fa-circle-check" style="color:var(--green)"></i>
+                <span style="font-size:.8rem;color:var(--green);font-weight:500">Sesión activa</span>
+            </div>
+            <div class="info-pill">
+                <i class="fa-solid fa-shield-halved" style="color:var(--mg)"></i>
+                <span style="font-size:.8rem;color:var(--muted);font-weight:500">Datos protegidos</span>
+            </div>
+        </div>
     </div>
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar" id="sidebar">
-      <div class="sidebar-brand">
-        <div class="sidebar-brand-logo">
-          <img src="{% static 'img/Logo.png' %}" alt="Zumedical" />
-        </div>
-        <div class="sidebar-brand-text">
-          <h2>Zumedical</h2>
-          <span>Paciente</span>
-        </div>
-      </div>
-
-      <a
-        href="{% url 'mi_perfil' %}"
-        class="sidebar-user"
-        style="text-decoration: none; cursor: pointer"
-      >
-        <div class="sidebar-avatar">{% if request.user.first_name %}{{ request.user.first_name|slice:":1" }}{{ request.user.last_name|slice:":1" }}{% else %}{{ request.user.username|slice:":1"|upper }}{% endif %}</div>
-        <div class="sidebar-user-info">
-          <p>Mi perfil</p>
-          <h3>{{ request.user.get_full_name|default:request.user.username }}</h3>
-        </div>
-      </a>
-
-      <nav class="sidebar-nav">
-        <div class="nav-label">Menú</div>
-
-        <a href="{% url 'paciente_dashboard' %}" class="nav-item active">
-          <svg viewBox="0 0 24 24">
-            <rect x="3" y="3" width="7" height="7" />
-            <rect x="14" y="3" width="7" height="7" />
-            <rect x="3" y="14" width="7" height="7" />
-            <rect x="14" y="14" width="7" height="7" />
-          </svg>
-          Inicio
-        </a>
-
-        <a href="{% url 'paciente_general_agendar' %}" class="nav-item">
-          <svg viewBox="0 0 24 24">
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-            <line x1="16" y1="2" x2="16" y2="6" />
-            <line x1="8" y1="2" x2="8" y2="6" />
-            <line x1="3" y1="10" x2="21" y2="10" />
-          </svg>
-          Agendar Cita
-        </a>
-
-        <a href="{% url 'paciente_general_citas' %}" class="nav-item">
-          <svg viewBox="0 0 24 24">
-            <path
-              d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
-            />
-            <polyline points="14 2 14 8 20 8" />
-            <line x1="16" y1="13" x2="8" y2="13" />
-            <line x1="16" y1="17" x2="8" y2="17" />
-          </svg>
-          Mis Citas
-        </a>
-
-        <div class="nav-label">Inteligencia Artificial</div>
-
-        <a href="{% url 'chatbot_page' %}" class="nav-item">
-          <svg viewBox="0 0 24 24">
-            <path
-              d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
-            />
-          </svg>
-          Asistente Virtual
-          <span class="nav-badge">IA</span>
-        </a>
-
-        <a href="{% url 'evaluar_riesgo' %}" class="nav-item">
-          <svg viewBox="0 0 24 24">
-            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-          </svg>
-          Evaluar Riesgo
-          <span class="nav-badge">IA</span>
-        </a>
-      </nav>
-
-      <div class="sidebar-footer">
-        <a href="{% url 'logout' %}" class="btn-logout">
-          <svg viewBox="0 0 24 24">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-            <polyline points="16 17 21 12 16 7" />
-            <line x1="21" y1="12" x2="9" y2="12" />
-          </svg>
-          Cerrar sesión
-        </a>
-      </div>
-    </aside>
-
-    <!-- MAIN -->
-    <main class="main">
-      <!-- HEADER -->
-      <div class="page-header">
-        <p class="greeting">Bienvenida</p>
-        <h1>{{ request.user.get_full_name|default:request.user.username }}</h1>
-        <p>
-          Gestiona tus citas y accede a las herramientas de inteligencia
-          artificial
-        </p>
-      </div>
-
-      <!-- MENSAJES DJANGO -->
+    
+<!-- MENSAJES DJANGO -->
       {% if messages %}
       <div style="margin-bottom: 1.5rem">
         {% for message in messages %}
@@ -1273,6 +1024,20 @@
             <line x1="12" y1="16" x2="12.01" y2="16" />
           </svg>
           {% endif %} {{ message }}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- NOTIFICACIÓN DE CITAS CONFIRMADAS -->
+      {% load citas %}
+      {% citas_confirmadas_recientes user as citas_confirmadas %}
+      {% if citas_confirmadas %}
+      <div style="margin-bottom: 1.5rem">
+        {% for cita in citas_confirmadas %}
+        <div class="msg-alert msg-info" style="background: #e8f4fd; color: #1565c0; border: 1px solid #90caf9;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="16 12 12 8 8 12"/></svg>
+          Tu cita con {{ cita.medico.get_full_name|default:cita.medico }} ha sido <strong>confirmada</strong> para el {{ cita.fecha|date:"d/m/Y" }} a las {{ cita.hora }}
         </div>
         {% endfor %}
       </div>
@@ -1472,95 +1237,68 @@
           perfil se actualizan después de cada consulta.
         </p>
       </div>
-    </main>
+    
+</main>
+<script>
+// ── RELOJ + SALUDO (zona horaria Ecuador) ──
+function tick() {
+    var tz = 'America/Guayaquil';
+    var ahora = new Date();
+    var h = parseInt(ahora.toLocaleString('es-EC', { timeZone: tz, hour: '2-digit', hour12: false }));
+    var min = ahora.toLocaleString('es-EC', { timeZone: tz, minute: '2-digit' }).padStart(2, '0');
+    document.getElementById('reloj').textContent = String(h).padStart(2,'0') + ':' + min;
 
-    <script>
-      function toggleSidebar() {
-        document.getElementById("sidebar").classList.toggle("open");
-        document.getElementById("overlay").classList.toggle("active");
-        document.getElementById("hamburger").classList.toggle("open");
-      }
-      function closeSidebar() {
-        document.getElementById("sidebar").classList.remove("open");
-        document.getElementById("overlay").classList.remove("active");
-        document.getElementById("hamburger").classList.remove("open");
-      }
-      document
-        .querySelectorAll(".nav-item, .sidebar-user, .btn-logout")
-        .forEach(function (el) {
-          el.addEventListener("click", closeSidebar);
-        });
-      (() => {
-        /* ── Ripple en tarjetas ── */
-        document.querySelectorAll(".accion-card, .ia-card").forEach((card) => {
-          card.addEventListener("click", function (e) {
-            const ripple = document.createElement("span");
-            const rect = this.getBoundingClientRect();
-            const size = Math.max(rect.width, rect.height);
-            ripple.style.cssText = `
-                    position:absolute; border-radius:50%; pointer-events:none;
-                    width:${size}px; height:${size}px;
-                    left:${e.clientX - rect.left - size / 2}px;
-                    top:${e.clientY - rect.top - size / 2}px;
-                    background:rgba(176,53,128,0.12);
-                    transform:scale(0); animation:rippleAnim 0.5s ease forwards;
-                `;
-            this.appendChild(ripple);
-            setTimeout(() => ripple.remove(), 500);
-          });
-        });
+    var dia  = ahora.toLocaleString('es-EC', { timeZone: tz, day: '2-digit' });
+    var mes  = ahora.toLocaleString('es-EC', { timeZone: tz, month: '2-digit' });
+    var anio = ahora.toLocaleString('es-EC', { timeZone: tz, year: 'numeric' });
+    var fechaEl = document.getElementById('fechaEcuador');
+    if (fechaEl) fechaEl.textContent = dia + '/' + mes + '/' + anio;
 
-        /* ── Saludo dinámico según la hora ── */
-        const greeting = document.querySelector(".page-header .greeting");
-        if (greeting) {
-          const hora = new Date().getHours();
-          if (hora >= 5 && hora < 12) greeting.textContent = "🌸 Buenos días";
-          else if (hora >= 12 && hora < 19)
-            greeting.textContent = "☀️ Buenas tardes";
-          else greeting.textContent = "🌙 Buenas noches";
-        }
+    var emoji = document.getElementById('greetEmoji');
+    var texto = document.getElementById('greetText');
+    if (emoji && texto) {
+        if (h >= 5 && h < 12)       { emoji.textContent = '🌅'; texto.textContent = 'Buenos días'; }
+        else if (h >= 12 && h < 19) { emoji.textContent = '☀️'; texto.textContent = 'Buenas tardes'; }
+        else                         { emoji.textContent = '🌙'; texto.textContent = 'Buenas noches'; }
+    }
+}
+tick(); setInterval(tick, 30000);
 
-        /* ── Tooltip en etiquetas de perfil ── */
-        const tooltipLabels = {
-          Cédula: "Número de identificación",
-          Teléfono: "Número de contacto registrado",
-          "Última menstruación": "Fecha de inicio del último período",
-          "Fecha probable de parto": "Calculada por tu médico tratante",
-        };
-        document.querySelectorAll(".perfil-item-label").forEach((label) => {
-          const texto = label.textContent.trim();
-          if (tooltipLabels[texto]) {
-            label.title = tooltipLabels[texto];
-            label.style.cursor = "help";
-          }
-        });
+// ── HAMBURGUESA ──
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('overlay').classList.toggle('active');
+    document.getElementById('hamburger').classList.toggle('open');
+}
+function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('overlay').classList.remove('active');
+    document.getElementById('hamburger').classList.remove('open');
+}
 
-        /* ── Contador animado en la fecha de parto ── */
-        const fechaEl = document.querySelector(
-          ".perfil-item.destacado .perfil-item-valor",
-        );
-        if (fechaEl && fechaEl.textContent.trim() !== "Pendiente") {
-          fechaEl.style.opacity = "0";
-          setTimeout(() => {
-            fechaEl.style.transition =
-              "opacity 0.6s ease, transform 0.6s cubic-bezier(0.34,1.56,0.64,1)";
-            fechaEl.style.transform = "scale(0.85)";
-            setTimeout(() => {
-              fechaEl.style.opacity = "1";
-              fechaEl.style.transform = "scale(1)";
-            }, 50);
-          }, 700);
-        }
-      })();
-    </script>
+// ── MODAL CITAS ──
+const ESTADOS = {pendiente:'Pendiente',atendido:'Atendido',confirmada:'Confirmada',cancelado:'Cancelado',cancelada:'Cancelada'};
+const ESTADO_COLOR = {pendiente:'var(--amber)',atendido:'var(--green)',confirmada:'var(--blue)',cancelado:'var(--red)',cancelada:'var(--red)'};
 
-    <style>
-      @keyframes rippleAnim {
-        to {
-          transform: scale(2.5);
-          opacity: 0;
-        }
-      }
-    </style>
-  </body>
+document.querySelectorAll('.cita-item').forEach(function(item) {
+    item.addEventListener('click', function() {
+        const d = item.dataset;
+        document.getElementById('m-esp').textContent       = d.esp;
+        document.getElementById('m-fecha-sub').textContent = d.fecha + ' · ' + d.hora;
+        document.getElementById('m-fecha').textContent     = d.fecha;
+        document.getElementById('m-hora').textContent      = d.hora;
+        document.getElementById('m-medico').textContent    = 'Dr(a). ' + d.medico;
+        document.getElementById('m-motivo').textContent    = d.motivo;
+        var estadoEl = document.getElementById('m-estado');
+        estadoEl.textContent = ESTADOS[d.estado] || d.estado;
+        estadoEl.style.color = ESTADO_COLOR[d.estado] || 'var(--text)';
+        document.getElementById('modalOv').classList.add('open');
+    });
+});
+
+function closeModal() { document.getElementById('modalOv').classList.remove('open'); }
+function closeModalOut(e) { if (e.target.id === 'modalOv') closeModal(); }
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
+</script>
+</body>
 </html>

@@ -11,5 +11,9 @@ urlpatterns = [
     path('controles/nuevo/<int:paciente_id>/', views.crear_control, name='crear_control_paciente'),
     path('controles/<int:control_id>/editar/', views.editar_control, name='editar_control'),
     
+    # API Endpoints para editar/eliminar controles (JSON)
+    path('api/control/<int:control_id>/editar/', views.editar_control_prenatal, name='api_editar_control'),
+    path('api/control/<int:control_id>/eliminar/', views.eliminar_control_prenatal, name='api_eliminar_control'),
+    
     path('mi-historial/', views.mi_historial, name='mi_historial'),
 ]

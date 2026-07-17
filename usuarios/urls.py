@@ -18,7 +18,7 @@ urlpatterns = [
     path('mi-perfil/', views.mi_perfil, name='mi_perfil'),
 
     path('citas-medico/', views.citas_medico, name='citas_medico'),
-    path('cambiar-estado/<int:cita_id>/', views.cambiar_estado_cita, name='cambiar_estado_cita'),
+    # path('cambiar-estado/<int:cita_id>/', views.cambiar_estado_cita, name='cambiar_estado_cita'),  # FIXME: función no existe
     path('pacientes-medico/', views.pacientes_medico, name='pacientes_medico'),
     path('activar-embarazo/<int:paciente_id>/', views.activar_embarazo, name='activar_embarazo'),
     path('desactivar-embarazo/<int:paciente_id>/', views.desactivar_embarazo, name='desactivar_embarazo'),
@@ -36,6 +36,7 @@ urlpatterns = [
     path('consulta-general/registrar/', views.registrar_consulta_general, name='registrar_consulta_general'),
     path('consulta-general/historial/', views.historial_consultas_generales, name='historial_consultas_generales'),
     path('consulta-general/ver/<int:consulta_id>/', views.ver_consulta_general, name='ver_consulta_general'),
+    path('consulta-general/descargar-pdf/<int:consulta_id>/', views.descargar_pdf_consulta_general, name='descargar_pdf_consulta_general'),
 
     # Programación de Partos (médico prenatal → paciente prenatal)
     path('programar-parto/', views.programar_parto, name='programar_parto'),

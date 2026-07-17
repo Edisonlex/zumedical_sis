@@ -148,6 +148,7 @@
         .fbtn.active{color:white;border-color:transparent}
         .fbtn.f-todos.active{background:var(--mg)} .fbtn.f-todos.active::before{background:rgba(255,255,255,.7)}
         .fbtn.f-pendiente.active{background:var(--yellow)} .fbtn.f-pendiente.active::before{background:rgba(255,255,255,.7)}
+        .fbtn.f-confirmada.active{background:#1a6fa8} .fbtn.f-confirmada.active::before{background:rgba(255,255,255,.7)}
         .fbtn.f-atendido.active{background:var(--green)} .fbtn.f-atendido.active::before{background:rgba(255,255,255,.7)}
         .fbtn.f-cancelado.active{background:var(--red)} .fbtn.f-cancelado.active::before{background:rgba(255,255,255,.7)}
         .date-wrap{position:relative}
@@ -392,6 +393,7 @@
         <div class="filter-btns">
             <button class="fbtn f-todos active" data-estado="todos">Todos</button>
             <button class="fbtn f-pendiente" data-estado="pendiente">Pendiente</button>
+            <button class="fbtn f-confirmada" data-estado="confirmada">Confirmada</button>
             <button class="fbtn f-atendido"  data-estado="atendido">Atendido</button>
             <button class="fbtn f-cancelado" data-estado="cancelado">Cancelado</button>
         </div>
