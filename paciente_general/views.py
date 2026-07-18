@@ -159,10 +159,12 @@ def mis_citas(request):
 def cancelar_cita(request, cita_id):
     cita = get_object_or_404(Cita, id=cita_id, paciente=request.user)
     if request.method == 'POST':
+        motivo_cancelacion = request.POST.get('motivo_cancelacion', '').strip()
         cita.estado = 'cancelada'
+        cita.motivo_cancelacion = motivo_cancelacion
         cita.save()
         registrar_log(request, 'UPDATE', 'Citas',
-            f'Cita #{cita.id} cancelada por el paciente', 'INFO')
+            f'Cita #{cita.id} cancelada por el paciente. Motivo: {motivo_cancelacion}', 'INFO')
         messages.success(request, 'Cita cancelada correctamente.')
     return redirect('paciente_general_citas')
 
@@ -298,16 +300,15 @@ def horas_disponibles(request):
     medico_id = request.GET.get('medico_id')
     fecha = request.GET.get('fecha')
     todas_horas = [
-        '08:00', '08:30', '09:00', '09:30', '10:00', '10:30',
-        '11:00', '11:30', '14:00', '14:30', '15:00', '15:30',
-        '16:00', '16:30', '17:00', '17:30',
+        '08:30', '09:00', '09:30', '10:00', '10:30',
+        '11:00', '11:30', '12:00', '12:30', '13:00', '13:30',
+        '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00',
     ]
     if medico_id and fecha:
         ocupadas = Cita.objects.filter(
             medico_id=medico_id, fecha=fecha, estado__in=['pendiente', 'confirmada']
         ).values_list('hora', flat=True)
         ocupadas_str = [str(h)[:5] for h in ocupadas]
-        
         # Filtro de horas pasadas si es hoy
         from datetime import date
         hoy = timezone.localdate()

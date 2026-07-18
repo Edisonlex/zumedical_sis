@@ -93,7 +93,7 @@ _CENTRO_MEDICO = [
     {
         "categoria": "centro_medico",
         "pregunta": "¿Cuál es el horario de atención?",
-        "respuesta": "Nuestro horario es: Lunes a Viernes de 08:00 a 18:00, Sábados de 08:00 a 13:00. Para emergencias obstétricas contamos con atención las 24 horas.",
+        "respuesta": "Nuestro horario es: Lunes a Viernes de 08:30 a 17:00, Sábados y Domingos de 09:00 a 15:00. Para emergencias obstétricas contamos con atención las 24 horas.",
         "palabras_clave": "horario, cuando abren, atienden, horas, días",
     },
     {

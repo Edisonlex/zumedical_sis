@@ -18,7 +18,7 @@ urlpatterns = [
     path('mi-perfil/', views.mi_perfil, name='mi_perfil'),
 
     path('citas-medico/', views.citas_medico, name='citas_medico'),
-    # path('cambiar-estado/<int:cita_id>/', views.cambiar_estado_cita, name='cambiar_estado_cita'),  # FIXME: función no existe
+    path('cambiar-estado/<int:cita_id>/', views.cambiar_estado_cita, name='cambiar_estado_cita'),
     path('pacientes-medico/', views.pacientes_medico, name='pacientes_medico'),
     path('activar-embarazo/<int:paciente_id>/', views.activar_embarazo, name='activar_embarazo'),
     path('desactivar-embarazo/<int:paciente_id>/', views.desactivar_embarazo, name='desactivar_embarazo'),
@@ -48,6 +48,7 @@ urlpatterns = [
     path('editar-paciente-secretaria/<int:paciente_id>/', views.editar_paciente_secretaria, name='editar_paciente_secretaria'),
     path('agendar-cita-secretaria/', views.agendar_cita_secretaria, name='agendar_cita_secretaria'),
     path('reprogramar/<int:cita_id>/', views.reprogramar_cita, name='reprogramar_cita'),
+    path('cancelar-cita-secretaria/<int:cita_id>/', views.cancelar_cita_secretaria, name='cancelar_cita_secretaria'),
     path('citas-secretaria/', views.citas_secretaria, name='citas_secretaria'),
     path('horas-disponibles/', views.obtener_horas_disponibles, name='horas_disponibles'),
     path('datos-paciente/', views.datos_paciente, name='datos_paciente'),

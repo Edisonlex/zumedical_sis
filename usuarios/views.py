@@ -505,6 +505,8 @@ def mi_perfil(request):
             request.user.last_name = request.POST.get('last_name', '')
             request.user.email = request.POST.get('email', '')
             request.user.save()
+            registrar_log(request, 'UPDATE', 'Perfil',
+                'Paciente prenatal actualizó sus datos personales', 'INFO')
             messages.success(request, 'Datos actualizados correctamente.')
 
         elif action == 'password':
@@ -523,6 +525,8 @@ def mi_perfil(request):
                 request.user.set_password(password_nuevo)
                 request.user.save()
                 update_session_auth_hash(request, request.user)
+                registrar_log(request, 'UPDATE', 'Perfil',
+                    'Paciente prenatal cambió su contraseña', 'INFO')
                 messages.success(request, 'Contraseña actualizada correctamente.')
 
         return redirect('mi_perfil')
@@ -888,6 +892,8 @@ def activar_embarazo(request, paciente_id):
             paciente.medico_prenatal = request.user
 
     paciente.save()
+    registrar_log(request, 'UPDATE', 'Pacientes',
+        f'Expediente prenatal activado para {paciente.usuario.get_full_name()} por {request.user.rol}', 'INFO')
     
     messages.success(request, f'Expediente prenatal activado para {paciente.usuario.get_full_name()}.')
     referer = request.META.get('HTTP_REFERER')
@@ -1232,20 +1238,22 @@ def toggle_modulo_prenatal(request, paciente_id):
         perfil.save()
 
         if activar:
+            registrar_log(request, 'UPDATE', 'Pacientes',
+                f'Módulo prenatal ACTIVADO para {paciente_usuario.get_full_name()} por {request.user.rol}', 'INFO')
             messages.success(
                 request,
                 f'Módulo prenatal ACTIVADO para {paciente_usuario.get_full_name() or paciente_usuario.username}. '
                 f'Ahora puede acceder a controles prenatales, IA y chatbot.'
             )
         else:
+            registrar_log(request, 'UPDATE', 'Pacientes',
+                f'Módulo prenatal DESACTIVADO para {paciente_usuario.get_full_name()} por {request.user.rol}', 'INFO')
             messages.success(
                 request,
                 f'Módulo prenatal desactivado para {paciente_usuario.get_full_name() or paciente_usuario.username}.'
             )
 
     return redirect(request.POST.get('next', 'lista_pacientes_secretaria'))
-
- 
 @login_required
 def crear_historia_clinica(request, paciente_id):
     """Crea o edita la Historia Clínica Obstétrica de una paciente."""
@@ -1394,12 +1402,14 @@ def editar_perfil_paciente(request, paciente_id):
     return render(request, 'medico/editar_paciente.html', {'paciente': paciente})
  
 #HORARIOS DEFINIDOS
+# Lunes a Viernes: 8:30 AM - 5:00 PM
+# Sábados y Domingos: 9:00 AM - 3:00 PM
 HORAS_DISPONIBLES = [
     time(8,30), time(9,0), time(9,30), time(10,0),
     time(10,30), time(11,0), time(11,30),
-    time(12,0), time(12,30),
-    time(14,0), time(14,30), time(15,0),
-    time(15,30), time(16,0), time(16,30)
+    time(12,0), time(12,30), time(13,0), time(13,30),
+    time(14,0), time(14,30), time(15,0), time(15,30),
+    time(16,0), time(16,30), time(17,0)
 ]
  
 # AGENDAR CITA (SECRETARIA)
@@ -1531,6 +1541,27 @@ def reprogramar_cita(request, cita_id):
         'cita': cita,
         'hoy': timezone.now().date(),
     })
+
+@login_required
+@no_cache_view
+def cancelar_cita_secretaria(request, cita_id):
+    """Permite a la secretaria cancelar una cita con motivo."""
+    if request.user.rol != 'secretaria':
+        return redireccionar_por_rol(request.user)
+    
+    cita = get_object_or_404(Cita, id=cita_id)
+    
+    if request.method == 'POST':
+        motivo_cancelacion = request.POST.get('motivo_cancelacion', '').strip()
+        cita.estado = 'cancelada'
+        cita.motivo_cancelacion = motivo_cancelacion
+        cita.save()
+        registrar_log(request, 'UPDATE', 'Citas',
+            f'Cita #{cita.id} cancelada por secretaria. Paciente: {cita.paciente.get_full_name()}. Motivo: {motivo_cancelacion}', 'INFO')
+        messages.success(request, 'Cita cancelada correctamente.')
+        return redirect('citas_secretaria')
+    
+    return render(request, 'secretaria/cancelar_cita_modal.html', {'cita': cita})
  
 @login_required
 @no_cache_view
@@ -2359,6 +2390,8 @@ def registrar_consulta_general(request):
             proxima_cita             = request.POST.get('proxima_cita') or None,
             proxima_cita_hora        = request.POST.get('proxima_cita_hora') or None,
         )
+        registrar_log(request, 'CREATE', 'Consultas Generales',
+            f'Consulta registrada para paciente {paciente_obj.get_full_name()} por {request.user.rol}', 'INFO')
         messages.success(request, f'Consulta de {paciente_obj.get_full_name()} registrada correctamente.')
         return redirect('ver_consulta_general', consulta_id=consulta.id)
 
@@ -2507,6 +2540,8 @@ def programar_parto(request):
             indicaciones      = indicaciones,
             estado            = 'programado',
         )
+        registrar_log(request, 'CREATE', 'Programación de Partos',
+            f'{parto.get_tipo_display()} programado para {paciente_obj.get_full_name()} - Fecha: {fecha_programada} {hora_programada}', 'INFO')
         messages.success(
             request,
             f'{parto.get_tipo_display()} programado para {paciente_obj.get_full_name()} '
@@ -2536,12 +2571,14 @@ def editar_parto(request, parto_id):
         parto.hora_programada  = request.POST.get('hora_programada', str(parto.hora_programada))
         parto.lugar            = request.POST.get('lugar', parto.lugar).strip() or parto.lugar
         parto.indicaciones     = request.POST.get('indicaciones', parto.indicaciones).strip()
-        parto.estado           = request.POST.get('estado', parto.estado)
+        nuevo_estado           = request.POST.get('estado', parto.estado)
         sem = request.POST.get('semanas_gestacion')
         if sem:
             try: parto.semanas_gestacion = int(sem)
             except: pass
         parto.save()
+        registrar_log(request, 'UPDATE', 'Programación de Partos',
+            f'Programación de parto #{parto.id} actualizada - Nuevo estado: {nuevo_estado}', 'INFO')
         messages.success(request, 'Programación de parto actualizada.')
         return redirect('lista_programaciones_parto')
 
@@ -3079,3 +3116,39 @@ def reporte_usuarios_data(request):
             'en_linea':      u.id in ids_activos,
         })
     return JsonResponse({'rows': rows})
+
+
+@login_required
+@no_cache_view
+def cambiar_estado_cita(request, cita_id):
+    if request.method == 'POST':
+        cita = get_object_or_404(Cita, id=cita_id)
+        
+        # Validar permisos
+        if request.user.rol not in ['medico', 'administrador', 'secretaria'] or (request.user.rol == 'medico' and cita.medico != request.user):
+            messages.error(request, 'No tienes permiso para modificar esta cita.')
+            return redirect(request.META.get('HTTP_REFERER', '/'))
+            
+        nuevo_estado = request.POST.get('estado')
+        estados_validos = dict(Cita.ESTADO).keys()
+        
+        if nuevo_estado in estados_validos:
+            cita.estado = nuevo_estado
+            
+            # Si es cancelación, guardar motivo
+            if nuevo_estado == 'cancelado':
+                motivo_cancelacion = request.POST.get('motivo_cancelacion', '').strip()
+                cita.motivo_cancelacion = motivo_cancelacion
+                registrar_log(request, 'UPDATE', 'Citas',
+                    f'Cita #{cita.id} cancelada por {request.user.rol}. Motivo: {motivo_cancelacion}', 'INFO')
+            else:
+                registrar_log(request, 'UPDATE', 'Citas',
+                    f'Cita #{cita.id} estado actualizado a {nuevo_estado} por {request.user.rol}', 'INFO')
+            
+            cita.save()
+            messages.success(request, f'Estado de la cita actualizado a {cita.get_estado_display()}.')
+        else:
+            messages.error(request, 'Estado seleccionado no es válido.')
+            
+    return redirect(request.META.get('HTTP_REFERER', 'citas_medico'))
+

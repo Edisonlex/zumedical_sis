@@ -36,6 +36,7 @@ class Cita(models.Model):
     fecha = models.DateField()
     hora = models.TimeField()
     motivo = models.CharField(max_length=255)
+    motivo_cancelacion = models.TextField(blank=True, null=True, help_text="Motivo de cancelación de la cita")
 
     estado = models.CharField(
         max_length=20,
