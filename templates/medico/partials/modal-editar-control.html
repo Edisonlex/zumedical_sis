@@ -1,0 +1,139 @@
+<!-- Modal de Edición de Control Prenatal -->
+<div class="modal-overlay" id="modal-editar-overlay" onclick="cerrarEditarModal(event)">
+    <div class="modal-overlay-inner">
+        <div class="modal" id="modal-editar">
+            <div class="modal-header">
+                <div class="modal-header-top">
+                    <span class="modal-badge">Editar Control</span>
+                    <button class="modal-close" onclick="cerrarEditarModal()">
+                        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                </div>
+                <div class="modal-pac-row">
+                    <div class="modal-av" id="me-av">—</div>
+                    <div>
+                        <div class="modal-pac-name" id="me-nombre">—</div>
+                        <div class="modal-pac-sub">Paciente</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-body">
+                <form id="form-editar-control" onsubmit="guardarControl(event)">
+                    {% csrf_token %}
+                    <input type="hidden" name="control_id" id="me-control-id">
+
+                    <!-- Datos Obstétricos -->
+                    <div class="modal-section">
+                        <div class="modal-section-title">
+                            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            Datos obstétricos
+                        </div>
+                        <div class="modal-grid">
+                            <div class="modal-field">
+                                <label class="modal-field-label">Fecha del control *</label>
+                                <input type="date" name="fecha" id="me-fecha" required style="width:100%;padding:.65rem;border:1.5px solid var(--mg-border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;">
+                            </div>
+                            <div class="modal-field">
+                                <label class="modal-field-label">Semanas de gestación *</label>
+                                <input type="number" name="semanas_gestacion" id="me-semanas" min="1" max="42" required style="width:100%;padding:.65rem;border:1.5px solid var(--mg-border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;">
+                            </div>
+                            <div class="modal-field" style="grid-column:1/-1">
+                                <label class="modal-field-label">Presión arterial (ej: 120/80) *</label>
+                                <input type="text" name="presion_arterial" id="me-presion" placeholder="120/80" required style="width:100%;padding:.65rem;border:1.5px solid var(--mg-border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;">
+                            </div>
+                            <div class="modal-field">
+                                <label class="modal-field-label">Peso (kg) *</label>
+                                <input type="number" name="peso" id="me-peso" step="0.1" required style="width:100%;padding:.65rem;border:1.5px solid var(--mg-border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;">
+                            </div>
+                            <div class="modal-field">
+                                <label class="modal-field-label">Altura (m)</label>
+                                <input type="number" name="altura" id="me-altura" step="0.01" style="width:100%;padding:.65rem;border:1.5px solid var(--mg-border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Datos Clínicos -->
+                    <div class="modal-section">
+                        <div class="modal-section-title">
+                            <svg viewBox="0 0 24 24"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 1 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18"/></svg>
+                            Datos clínicos para IA
+                        </div>
+                        <div class="modal-grid">
+                            <div class="modal-field">
+                                <label class="modal-field-label">Glucosa (mg/dL)</label>
+                                <input type="number" name="glucosa" id="me-glucosa" step="0.1" style="width:100%;padding:.65rem;border:1.5px solid var(--mg-border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;">
+                            </div>
+                            <div class="modal-field">
+                                <label class="modal-field-label">Frecuencia cardíaca (lpm)</label>
+                                <input type="number" name="frecuencia_cardiaca" id="me-fc" style="width:100%;padding:.65rem;border:1.5px solid var(--mg-border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;">
+                            </div>
+                            <div class="modal-field">
+                                <label class="modal-field-label">Temperatura (°F)</label>
+                                <input type="number" name="temperatura" id="me-temp" step="0.1" style="width:100%;padding:.65rem;border:1.5px solid var(--mg-border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;">
+                            </div>
+                            <div class="modal-field">
+                                <label class="modal-field-label">Proteinuria</label>
+                                <select name="proteinuria" id="me-proteinuria" style="width:100%;padding:.65rem;border:1.5px solid var(--mg-border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;">
+                                    <option value="Negativa">Negativa</option>
+                                    <option value="Trazas">Trazas</option>
+                                    <option value="+1">+1</option>
+                                    <option value="+2">+2</option>
+                                    <option value="+3">+3</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Observaciones -->
+                    <div class="modal-section">
+                        <div class="modal-obs" style="background:transparent;border:none;padding:0">
+                            <label class="modal-obs-label">
+                                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                Observaciones clínicas
+                            </label>
+                            <textarea name="observaciones" id="me-obs" rows="3" style="width:100%;padding:.65rem;border:1.5px solid var(--mg-border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;margin-top:.5rem;"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Errores de validación -->
+                    <div id="me-errors" style="display:none;background:#fdf0f0;border:1px solid #f0b8b8;border-radius:8px;padding:.75rem;margin-top:.75rem;">
+                        <div style="font-size:.8rem;color:#b03030;font-weight:500;margin-bottom:.4rem;">Errores encontrados:</div>
+                        <ul id="me-errors-list" style="font-size:.8rem;color:#b03030;margin:0;padding-left:1.2rem;"></ul>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel" onclick="cerrarEditarModal()" style="display:inline-flex;align-items:center;gap:.4rem;padding:.65rem 1.2rem;background:var(--mg-bg);color:var(--mg);border:1.5px solid var(--mg-border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:500;cursor:pointer;transition:all .2s;">
+                    Cancelar
+                </button>
+                <button type="submit" class="btn-save" form="form-editar-control" style="display:inline-flex;align-items:center;gap:.4rem;padding:.65rem 1.2rem;background:linear-gradient(135deg,var(--mg-d),var(--mg-l));color:white;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:500;cursor:pointer;transition:all .2s;">
+                    <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:white;fill:none;stroke-width:2"><polyline points="20 6 9 17 4 12"/></svg>
+                    Guardar cambios
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    #modal-editar .modal-field label {
+        display: block;
+        margin-bottom: 0.4rem;
+    }
+    #modal-editar input[type="date"],
+    #modal-editar input[type="text"],
+    #modal-editar input[type="number"],
+    #modal-editar select,
+    #modal-editar textarea {
+        font-family: 'DM Sans', sans-serif;
+    }
+    #modal-editar input:focus,
+    #modal-editar select:focus,
+    #modal-editar textarea:focus {
+        outline: none;
+        border-color: var(--mg);
+        box-shadow: 0 0 0 3px rgba(176, 53, 128, 0.08);
+    }
+</style>
