@@ -87,7 +87,7 @@ _CENTRO_MEDICO = [
     {
         "categoria": "centro_medico",
         "pregunta": "¿Dónde están ubicados?",
-        "respuesta": "Estamos ubicados en [dirección del centro]. Puedes encontrarnos fácilmente en Google Maps buscando 'Zumedical Centro Médico'. Si necesitas indicaciones, llámanos al +593 99 000 0000.",
+        "respuesta": "Estamos ubicados en [dirección del centro]. Puedes encontrarnos fácilmente en Google Maps buscando 'Zumedical Centro Médico'. Si necesitas indicaciones, llámanos al +593 98 123 4567.",
         "palabras_clave": "ubicación, dirección, dónde, lugar, cómo llegar",
     },
     {
@@ -105,13 +105,13 @@ _CENTRO_MEDICO = [
     {
         "categoria": "centro_medico",
         "pregunta": "¿Atienden los domingos?",
-        "respuesta": "Los domingos no tenemos atención programada. Sin embargo, para emergencias obstétricas estamos disponibles las 24 horas. Llama al +593 99 000 0000 en caso de urgencia.",
+        "respuesta": "Los domingos no tenemos atención programada. Sin embargo, para emergencias obstétricas estamos disponibles las 24 horas. Llama al +593 98 123 4567 en caso de urgencia.",
         "palabras_clave": "domingo, fin de semana, atienden domingos",
     },
     {
         "categoria": "centro_medico",
         "pregunta": "¿Cómo puedo contactarlos?",
-        "respuesta": "Puedes contactarnos por: Teléfono/WhatsApp: +593 99 000 0000 | Correo: contacto@zumedical.ec | A través del sistema en la sección 'Mensajes' si ya tienes cuenta registrada.",
+        "respuesta": "Puedes contactarnos por: Teléfono/WhatsApp: +593 98 123 4567 | Correo: contacto@zumedical.ec | A través del sistema en la sección 'Mensajes' si ya tienes cuenta registrada.",
         "palabras_clave": "contactar, teléfono, whatsapp, correo, comunicarse",
     },
     {
@@ -123,13 +123,13 @@ _CENTRO_MEDICO = [
     {
         "categoria": "centro_medico",
         "pregunta": "¿Atienden emergencias obstétricas?",
-        "respuesta": "Sí, contamos con atención de emergencias obstétricas las 24 horas. Si presentas sangrado, dolor intenso, pérdida de líquido o cualquier signo de alarma, comunícate de inmediato al +593 99 000 0000.",
+        "respuesta": "Sí, contamos con atención de emergencias obstétricas las 24 horas. Si presentas sangrado, dolor intenso, pérdida de líquido o cualquier signo de alarma, comunícate de inmediato al +593 98 123 4567.",
         "palabras_clave": "emergencias, urgencia, 24 horas, obstétrica",
     },
     {
         "categoria": "centro_medico",
         "pregunta": "¿Aceptan seguros médicos?",
-        "respuesta": "Trabajamos con los principales seguros médicos del país. Te recomendamos consultar directamente con nuestro personal administrativo al +593 99 000 0000 para verificar la cobertura de tu seguro específico.",
+        "respuesta": "Trabajamos con los principales seguros médicos del país. Te recomendamos consultar directamente con nuestro personal administrativo al +593 98 123 4567 para verificar la cobertura de tu seguro específico.",
         "palabras_clave": "seguro, seguro médico, cobertura, IESS, privado",
     },
 ]
@@ -166,7 +166,7 @@ _CITAS_MEDICAS = [
     {
         "categoria": "citas_medicas",
         "pregunta": "¿Qué hago si llego tarde a mi cita?",
-        "respuesta": "Si vas a llegar tarde, comunícate al +593 99 000 0000 lo antes posible. Dependiendo del tiempo de retraso y la disponibilidad del médico, se evaluará si puedes ser atendida o se reagendará tu cita.",
+        "respuesta": "Si vas a llegar tarde, comunícate al +593 98 123 4567 lo antes posible. Dependiendo del tiempo de retraso y la disponibilidad del médico, se evaluará si puedes ser atendida o se reagendará tu cita.",
         "palabras_clave": "tarde, llegar tarde, retraso, puntualidad",
     },
     {
@@ -367,7 +367,7 @@ _SINTOMAS_ALARMAS = [
     {
         "categoria": "sintomas_alarmas",
         "pregunta": "¿Qué hago si tengo sangrado vaginal?",
-        "respuesta": "Cualquier sangrado vaginal durante el embarazo requiere evaluación médica. Llama inmediatamente al +593 99 000 0000 o acude a urgencias. No uses tampones. El sangrado puede tener varias causas, algunas graves y otras no, pero siempre debe ser evaluado.",
+        "respuesta": "Cualquier sangrado vaginal durante el embarazo requiere evaluación médica. Llama inmediatamente al +593 98 123 4567 o acude a urgencias. No uses tampones. El sangrado puede tener varias causas, algunas graves y otras no, pero siempre debe ser evaluado.",
         "palabras_clave": "sangrado, hemorragia, mancha, sangre",
     },
     {
@@ -391,7 +391,7 @@ _SINTOMAS_ALARMAS = [
     {
         "categoria": "sintomas_alarmas",
         "pregunta": "¿Qué hago si tengo visión borrosa?",
-        "respuesta": "La visión borrosa, ver destellos o manchas oscuras durante el embarazo puede ser un signo de preeclampsia. Es una emergencia. Ve a urgencias inmediatamente o llama al +593 99 000 0000.",
+        "respuesta": "La visión borrosa, ver destellos o manchas oscuras durante el embarazo puede ser un signo de preeclampsia. Es una emergencia. Ve a urgencias inmediatamente o llama al +593 98 123 4567.",
         "palabras_clave": "visión borrosa, ver mal, manchas, destellos, ojos",
     },
     {
@@ -433,7 +433,7 @@ _SINTOMAS_ALARMAS = [
     {
         "categoria": "sintomas_alarmas",
         "pregunta": "¿Cuándo debo llamar a emergencias?",
-        "respuesta": "Llama al +593 99 000 0000 o acude a urgencias si tienes: sangrado abundante, pérdida de líquido, contracciones antes de semana 37, ausencia de movimientos fetales, dolor intenso, presión mayor a 140/90, visión borrosa o fiebre mayor a 38°C.",
+        "respuesta": "Llama al +593 98 123 4567 o acude a urgencias si tienes: sangrado abundante, pérdida de líquido, contracciones antes de semana 37, ausencia de movimientos fetales, dolor intenso, presión mayor a 140/90, visión borrosa o fiebre mayor a 38°C.",
         "palabras_clave": "emergencias, llamar, urgencias, cuándo ir",
     },
     {
@@ -621,13 +621,13 @@ _USO_SISTEMA = [
     {
         "categoria": "uso_sistema",
         "pregunta": "¿Qué hago si el sistema presenta un error?",
-        "respuesta": "Si el sistema falla: 1) Refresca la página. 2) Limpia el caché del navegador. 3) Intenta con otro navegador. 4) Si persiste, comunícate al soporte técnico: +593 99 000 0000 o escribe a soporte@zumedical.ec.",
+        "respuesta": "Si el sistema falla: 1) Refresca la página. 2) Limpia el caché del navegador. 3) Intenta con otro navegador. 4) Si persiste, comunícate al soporte técnico: +593 98 123 4567 o escribe a soporte@zumedical.ec.",
         "palabras_clave": "error, sistema, falla, problema técnico, no carga",
     },
     {
         "categoria": "uso_sistema",
         "pregunta": "¿Cómo contactar al soporte técnico?",
-        "respuesta": "Puedes contactar al soporte técnico de Zumedical por: Teléfono/WhatsApp: +593 99 000 0000 | Correo: soporte@zumedical.ec | Horario de soporte: Lunes a Viernes de 08:00 a 17:00.",
+        "respuesta": "Puedes contactar al soporte técnico de Zumedical por: Teléfono/WhatsApp: +593 98 123 4567 | Correo: soporte@zumedical.ec | Horario de soporte: Lunes a Viernes de 08:00 a 17:00.",
         "palabras_clave": "soporte, ayuda técnica, contacto, soporte técnico",
     },
 ]
@@ -746,3 +746,4 @@ FAQ_CHATBOT = (
 
 # Alias de compatibilidad con código existente que aún importe PRENATAL_FAQS
 PRENATAL_FAQS = FAQ_CHATBOT
+

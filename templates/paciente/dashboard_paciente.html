@@ -1203,8 +1203,7 @@
           </div>
         </a>
 
-        {% if request.user.tipo_paciente == 'general' %}
-        <a href="{% url 'paciente_general_dashboard' %}" class="accion-card">
+        <a href="{% url 'paciente_general_dashboard' %}" class="accion-card" style="display:none;">
           <div class="accion-icon">
             <svg viewBox="0 0 24 24">
               <rect x="3" y="3" width="7" height="7" />
@@ -1221,7 +1220,6 @@
             <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6" /></svg>
           </div>
         </a>
-        {% endif %}
       </div>
 
       <!-- NOTA -->

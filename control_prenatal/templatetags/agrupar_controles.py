@@ -1,5 +1,4 @@
 from django import template
-from django.utils.dateformat import format_date
 from collections import defaultdict, OrderedDict
 
 register = template.Library()
@@ -27,8 +26,9 @@ def agrupar_por_mes(controles):
     for control in controles:
         mes_key = control.fecha.strftime('%Y-%m')
         if mes_key not in grupos:
+            # Usar strftime directamente en lugar de format_date (compatible con Django 5.2)
             grupos[mes_key] = {
-                'mes': format_date(control.fecha, 'F Y'),
+                'mes': control.fecha.strftime('%B %Y'),
                 'controles': []
             }
         grupos[mes_key]['controles'].append(control)

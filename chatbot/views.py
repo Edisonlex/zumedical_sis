@@ -36,7 +36,7 @@ MSG_NO_ENCONTRADO = (
 
 MSG_EMERGENCIA = (
     "🚨 <strong>En caso de emergencia</strong>, llama inmediatamente al "
-    "<strong>+593 99 000 0000</strong> o acude a urgencias más cercanas."
+    "<strong>+593 98 123 4567</strong> o acude a urgencias más cercanas."
 )
 
 
