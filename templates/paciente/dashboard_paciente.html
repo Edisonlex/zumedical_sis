@@ -4,10 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zumedical — Mi Panel</title>
+    <title>Zumedical - Mi Embarazo</title>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'css/sidebar_paciente.css' %}">
     <style>
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
         :root{
@@ -25,7 +24,6 @@
         @keyframes fadeIn{to{opacity:1}}
         @keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-        @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
 
         /* ── SIDEBAR ── */
         .sidebar{width:var(--sw);height:100vh;background:linear-gradient(175deg,#8A2563 0%,#B03580 55%,#CC4D99 100%);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:200;box-shadow:4px 0 24px rgba(138,37,99,.22);transition:transform .3s ease;overflow:hidden}
@@ -33,7 +31,7 @@
         .sb-logo{width:42px;height:42px;background:white;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden}
         .sb-logo img{width:38px;height:38px;object-fit:contain}
         .sb-brand-text h2{font-family:'Cormorant Garamond',serif;font-size:1.35rem;font-weight:600;color:white;line-height:1}
-        .sb-brand-text span{font-size:.7rem;color:rgba(255,255,255,.65);letter-spacing:.1em;text-transform:uppercase}
+        .sb-brand-text span{font-size:.7rem;color:rgba(255,255,255,.65);letter-spacing:.12em;text-transform:uppercase}
         .sb-user{padding:1rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:.7rem;text-decoration:none;transition:background .2s;cursor:pointer}
         .sb-user:hover{background:rgba(255,255,255,.1)}
         .sb-avatar{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:600;color:white;flex-shrink:0;text-transform:uppercase}
@@ -44,7 +42,7 @@
         .nav-item{display:flex;align-items:center;gap:.7rem;padding:.72rem 1rem;border-radius:10px;color:rgba(255,255,255,.82);text-decoration:none;font-size:.88rem;transition:all .2s;margin-bottom:.2rem}
         .nav-item:hover,.nav-item.active{background:rgba(255,255,255,.18);color:white}
         .nav-item i{width:18px;text-align:center;font-size:15px}
-        .nav-badge{margin-left:auto;background:#e74c3c;color:white;font-size:.68rem;font-weight:600;padding:.15rem .5rem;border-radius:999px;min-width:20px;text-align:center}
+        .nav-badge{margin-left:auto;background:#e74c3c;color:white;font-size:.68rem;font-weight:600;padding:.2rem .55rem;border-radius:999px;min-width:20px;text-align:center}
         .sb-footer{padding:1rem .75rem;border-top:1px solid rgba(255,255,255,.12)}
         .btn-logout{display:flex;align-items:center;gap:.7rem;padding:.72rem 1rem;border-radius:10px;color:rgba(255,255,255,.75);text-decoration:none;font-size:.88rem;transition:all .2s}
         .btn-logout:hover{background:rgba(255,255,255,.15);color:white}
@@ -78,15 +76,15 @@
         .live-dot{width:7px;height:7px;border-radius:50%;background:#4ade80;animation:pulse 2s infinite;flex-shrink:0}
 
         /* ── HERO BANNER ── */
-        .hero{background:linear-gradient(135deg,var(--mg-d) 0%,var(--mg) 60%,var(--mg-l) 100%);border-radius:20px;padding:2rem 2rem 2rem 2.5rem;color:white;margin-bottom:1.75rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;position:relative;overflow:hidden;animation:slideUp .4s ease .1s both}
-        .hero::before{content:'';position:absolute;right:-40px;top:-40px;width:200px;height:200px;background:rgba(255,255,255,.06);border-radius:50%}
-        .hero::after{content:'';position:absolute;right:60px;bottom:-60px;width:150px;height:150px;background:rgba(255,255,255,.04);border-radius:50%}
-        .hero-label{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;opacity:.75;margin-bottom:.5rem}
+        .hero{background:linear-gradient(135deg,#8A2563 0%,#B03580 50%,#CC4D99 100%);border-radius:20px;padding:2rem 2rem 2rem 2.5rem;color:white;margin-bottom:1.75rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;position:relative;overflow:hidden;animation:slideUp .4s ease .1s both}
+        .hero::before{content:'';position:absolute;right:-40px;top:-40px;width:200px;height:200px;background:rgba(255,255,255,.08);border-radius:50%}
+        .hero::after{content:'';position:absolute;right:60px;bottom:-60px;width:150px;height:150px;background:rgba(255,255,255,.05);border-radius:50%}
+        .hero-label{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;opacity:.8;margin-bottom:.5rem;display:flex;align-items:center;gap:.4rem}
         .hero-title{font-family:'Cormorant Garamond',serif;font-size:1.75rem;font-weight:600;line-height:1.2;margin-bottom:.5rem}
-        .hero-sub{font-size:.88rem;opacity:.8;margin-bottom:1.25rem}
-        .hero-btn{display:inline-flex;align-items:center;gap:.5rem;padding:.7rem 1.4rem;background:white;color:var(--mg-d);border-radius:999px;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;text-decoration:none;transition:all .2s;border:none;cursor:pointer}
-        .hero-btn:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(0,0,0,.15)}
-        .hero-icon{font-size:56px;opacity:.18;flex-shrink:0}
+        .hero-sub{font-size:.88rem;opacity:.85;margin-bottom:1.25rem}
+        .hero-btn{display:inline-flex;align-items:center;gap:.5rem;padding:.7rem 1.3rem;background:white;color:var(--mg-d);border-radius:999px;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;text-decoration:none;transition:all .2s;border:none;cursor:pointer}
+        .hero-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.18)}
+        .hero-icon{font-size:56px;opacity:.15;flex-shrink:0}
 
         /* ── STATS ── */
         .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.75rem}
@@ -123,9 +121,9 @@
         .card{background:var(--white);border-radius:16px;border:1px solid var(--mg-border);overflow:hidden;animation:slideUp .4s ease .25s both}
         .card-header{padding:1rem 1.4rem;border-bottom:1px solid var(--mg-border);display:flex;align-items:center;justify-content:space-between}
         .card-header-left{display:flex;align-items:center;gap:.65rem}
-        .card-header-icon{width:30px;height:30px;background:var(--mg-bg);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--mg);font-size:12px}
-        .card-header h3{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:600;color:var(--text)}
-        .card-badge{font-size:.72rem;background:var(--mg-bg);color:var(--mg);padding:.2rem .6rem;border-radius:999px;border:1px solid var(--mg-border)}
+        .card-header-icon{width:36px;height:36px;background:var(--mg-bg);border-radius:9px;display:flex;align-items:center;justify-content:center;color:var(--mg);font-size:14px}
+        .card-header h3{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:var(--text)}
+        .card-badge{font-size:.72rem;background:var(--mg-bg);color:var(--mg);padding:.2rem .6rem;border-radius:999px;border:1px solid var(--mg-border);text-decoration:none}
         .card-body{padding:1.1rem 1.4rem}
 
         /* ── CITAS LIST ── */
@@ -148,13 +146,13 @@
         .empty-state i{font-size:2rem;color:var(--mg-border);display:block;margin-bottom:.75rem}
 
         /* ── ACCIONES RÁPIDAS ── */
-        .acciones-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.85rem;margin-bottom:1.5rem}
+        .acciones-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.85rem;margin-bottom:0}
         .accion-btn{background:var(--white);border:1px solid var(--mg-border);border-radius:14px;padding:1.25rem 1rem;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.65rem;text-decoration:none;color:var(--text);transition:all .2s;text-align:center;animation:slideUp .4s ease both}
         .accion-btn:nth-child(1){animation-delay:.2s}
         .accion-btn:nth-child(2){animation-delay:.25s}
         .accion-btn:nth-child(3){animation-delay:.3s}
-        .accion-btn:hover{background:var(--mg-bg);border-color:var(--mg);transform:translateY(-2px);box-shadow:0 6px 18px rgba(176,53,128,.1)}
-        .accion-ico{width:44px;height:44px;background:var(--mg-bg);border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--mg);font-size:18px;transition:all .2s}
+        .accion-btn:hover{background:var(--mg-bg);border-color:var(--mg);transform:translateY(-3px);box-shadow:0 8px 24px rgba(176,53,128,.12)}
+        .accion-ico{width:46px;height:46px;background:var(--mg-bg);border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--mg);font-size:19px;transition:all .2s}
         .accion-btn:hover .accion-ico{background:var(--mg);color:white}
         .accion-lbl{font-size:.8rem;font-weight:500;color:var(--text)}
 
@@ -173,7 +171,7 @@
         .modal-body{padding:1.4rem}
         .modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
         .modal-field{background:var(--bg);border:1px solid var(--mg-border);border-radius:11px;padding:.85rem 1rem}
-        .modal-field-lbl{font-size:.67rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.3rem;font-weight:500}
+        .modal-field-label{font-size:.67rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.3rem;font-weight:500}
         .modal-field-val{font-size:.9rem;color:var(--text);font-weight:500}
         .modal-field.full{grid-column:1/-1}
         .modal-foot{padding:1rem 1.4rem;border-top:1px solid var(--mg-border);display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap}
@@ -210,698 +208,7 @@
             .stats-grid{grid-template-columns:1fr}
             .acciones-grid{grid-template-columns:1fr 1fr}
         }
-    /* ── SECTION TITLE ── */
-      .section-title {
-        display: flex;
-        align-items: center;
-        gap: 0.6rem;
-        margin-bottom: 1.1rem;
-      }
-      .section-title h2 {
-        font-family: "Cormorant Garamond", serif;
-        font-size: 1.35rem;
-        font-weight: 600;
-        color: var(--text);
-      }
-      .badge-ia {
-        background: linear-gradient(
-          135deg,
-          var(--magenta-dark),
-          var(--magenta-light)
-        );
-        color: white;
-        font-size: 0.68rem;
-        font-weight: 500;
-        padding: 0.2rem 0.6rem;
-        border-radius: 20px;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-      }
-
-      /* ── PERFIL CLÍNICO ── */
-      .perfil-card {
-        background: var(--white);
-        border-radius: 16px;
-        border: 1px solid var(--magenta-border);
-        overflow: hidden;
-        position: relative;
-        margin-bottom: 2.5rem;
-      }
-
-      .perfil-card::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 4px;
-        height: 100%;
-        background: linear-gradient(
-          180deg,
-          var(--magenta-dark),
-          var(--magenta-light)
-        );
-      }
-
-      .perfil-card-header {
-        padding: 1.25rem 1.75rem;
-        border-bottom: 1px solid var(--magenta-border);
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-      }
-
-      .perfil-card-header-icon {
-        width: 36px;
-        height: 36px;
-        background: var(--magenta-bg);
-        border-radius: 9px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-      }
-
-      .perfil-card-header-icon svg {
-        width: 18px;
-        height: 18px;
-        stroke: var(--magenta);
-        fill: none;
-        stroke-width: 1.8;
-      }
-
-      .perfil-card-header h3 {
-        font-family: "Cormorant Garamond", serif;
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: var(--text);
-      }
-
-      .perfil-card-header p {
-        font-size: 0.8rem;
-        color: var(--text-muted);
-        font-weight: 300;
-      }
-
-      .perfil-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 0;
-      }
-
-      .perfil-item {
-        padding: 1.25rem 1.75rem;
-        border-right: 1px solid var(--magenta-border);
-      }
-
-      .perfil-item:last-child {
-        border-right: none;
-      }
-
-      .perfil-item-label {
-        display: flex;
-        align-items: center;
-        gap: 0.35rem;
-        font-size: 0.72rem;
-        font-weight: 500;
-        color: var(--text-muted);
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        margin-bottom: 0.5rem;
-      }
-
-      .perfil-item-label svg {
-        width: 12px;
-        height: 12px;
-        stroke: var(--magenta-light);
-        fill: none;
-        stroke-width: 2;
-      }
-
-      .perfil-item-valor {
-        font-size: 1rem;
-        font-weight: 500;
-        color: var(--text);
-      }
-
-      .perfil-item-valor.sin-dato {
-        font-size: 0.875rem;
-        font-weight: 300;
-        color: var(--text-muted);
-        font-style: italic;
-      }
-
-      /* semanas destacadas */
-      .perfil-item.destacado {
-        background: var(--magenta-bg);
-      }
-
-      .perfil-item.destacado .perfil-item-valor {
-        font-family: "Cormorant Garamond", serif;
-        font-size: 1.6rem;
-        font-weight: 700;
-        color: var(--magenta-dark);
-        line-height: 1;
-      }
-
-      .perfil-item.destacado .perfil-item-valor small {
-        font-family: "DM Sans", sans-serif;
-        font-size: 0.8rem;
-        font-weight: 400;
-        color: var(--text-muted);
-        margin-left: 0.2rem;
-      }
-
-      /* banner cuando no hay perfil */
-      .perfil-vacio {
-        padding: 1.5rem 1.75rem;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-      }
-
-      .perfil-vacio svg {
-        width: 16px;
-        height: 16px;
-        stroke: var(--magenta);
-        fill: none;
-        stroke-width: 2;
-        flex-shrink: 0;
-      }
-
-      .perfil-vacio p {
-        font-size: 0.875rem;
-        color: var(--text-muted);
-        font-weight: 300;
-      }
-
-      /* ── IA GRID ── */
-      .ia-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1.25rem;
-        margin-bottom: 2.5rem;
-      }
-
-      .ia-card {
-        background: var(--white);
-        border-radius: 18px;
-        padding: 2rem;
-        border: 1px solid var(--magenta-border);
-        position: relative;
-        overflow: hidden;
-        transition: all 0.3s ease;
-        cursor: pointer;
-        text-decoration: none;
-        display: block;
-      }
-      .ia-card::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: linear-gradient(
-          90deg,
-          var(--magenta-dark),
-          var(--magenta-light)
-        );
-      }
-      .ia-card::after {
-        content: "";
-        position: absolute;
-        top: -60px;
-        right: -60px;
-        width: 180px;
-        height: 180px;
-        border-radius: 50%;
-        background: radial-gradient(
-          circle,
-          rgba(176, 53, 128, 0.07) 0%,
-          transparent 70%
-        );
-        pointer-events: none;
-      }
-      .ia-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 16px 40px rgba(176, 53, 128, 0.14);
-        border-color: var(--magenta);
-      }
-
-      .ia-card-icon {
-        width: 56px;
-        height: 56px;
-        border-radius: 14px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 1.25rem;
-      }
-      .ia-card-icon svg {
-        width: 28px;
-        height: 28px;
-        fill: none;
-        stroke-width: 1.6;
-      }
-      .icon-asistente {
-        background: linear-gradient(135deg, #f3e0ff, #e8aad4);
-      }
-      .icon-asistente svg {
-        stroke: var(--magenta-dark);
-      }
-      .icon-prediccion {
-        background: linear-gradient(135deg, #ffe0f0, #f5aacc);
-      }
-      .icon-prediccion svg {
-        stroke: #8a2563;
-      }
-
-      .ia-card h3 {
-        font-family: "Cormorant Garamond", serif;
-        font-size: 1.3rem;
-        font-weight: 600;
-        color: var(--text);
-        margin-bottom: 0.5rem;
-      }
-      .ia-card p {
-        font-size: 0.875rem;
-        color: var(--text-muted);
-        font-weight: 300;
-        line-height: 1.6;
-        margin-bottom: 1.5rem;
-      }
-
-      .ia-card-footer {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-      }
-
-      .tag-ia {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.3rem;
-        background: var(--magenta-bg);
-        border: 1px solid var(--magenta-border);
-        color: var(--magenta-dark);
-        font-size: 0.75rem;
-        font-weight: 500;
-        padding: 0.3rem 0.7rem;
-        border-radius: 20px;
-      }
-      .tag-ia svg {
-        width: 11px;
-        height: 11px;
-        stroke: var(--magenta);
-        fill: none;
-        stroke-width: 2;
-      }
-
-      .ia-arrow {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        background: var(--magenta-bg);
-        border: 1px solid var(--magenta-border);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.2s;
-      }
-      .ia-card:hover .ia-arrow {
-        background: var(--magenta);
-        border-color: var(--magenta);
-      }
-      .ia-arrow svg {
-        width: 14px;
-        height: 14px;
-        stroke: var(--magenta-dark);
-        fill: none;
-        stroke-width: 2;
-        transition: stroke 0.2s;
-      }
-      .ia-card:hover .ia-arrow svg {
-        stroke: white;
-      }
-
-      .coming-soon {
-        position: absolute;
-        top: 1rem;
-        right: 1rem;
-        background: var(--magenta-bg);
-        border: 1px solid var(--magenta-border);
-        color: var(--magenta-dark);
-        font-size: 0.68rem;
-        font-weight: 500;
-        padding: 0.2rem 0.55rem;
-        border-radius: 20px;
-        letter-spacing: 0.05em;
-      }
-
-      /* ── ACCIONES ── */
-      .acciones-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 1.1rem;
-        margin-bottom: 2rem;
-      }
-
-      .accion-card {
-        background: var(--white);
-        border-radius: 14px;
-        padding: 1.5rem;
-        border: 1px solid var(--magenta-border);
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        text-decoration: none;
-        transition: all 0.22s ease;
-        position: relative;
-        overflow: hidden;
-      }
-      .accion-card::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 4px;
-        height: 100%;
-        background: linear-gradient(
-          180deg,
-          var(--magenta-dark),
-          var(--magenta-light)
-        );
-      }
-      .accion-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 10px 24px rgba(176, 53, 128, 0.1);
-        border-color: var(--magenta);
-      }
-
-      .accion-icon {
-        width: 44px;
-        height: 44px;
-        background: var(--magenta-bg);
-        border-radius: 11px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-      }
-      .accion-icon svg {
-        width: 22px;
-        height: 22px;
-        stroke: var(--magenta);
-        fill: none;
-        stroke-width: 1.8;
-      }
-
-      .accion-info h3 {
-        font-size: 0.95rem;
-        font-weight: 500;
-        color: var(--text);
-        margin-bottom: 0.2rem;
-      }
-      .accion-info p {
-        font-size: 0.8rem;
-        color: var(--text-muted);
-        font-weight: 300;
-      }
-
-      .accion-chevron {
-        margin-left: auto;
-        flex-shrink: 0;
-      }
-      .accion-chevron svg {
-        width: 16px;
-        height: 16px;
-        stroke: var(--magenta-border);
-        fill: none;
-        stroke-width: 2;
-        transition: stroke 0.2s;
-      }
-      .accion-card:hover .accion-chevron svg {
-        stroke: var(--magenta);
-      }
-
-      /* ── NOTA ── */
-      .nota {
-        display: flex;
-        align-items: flex-start;
-        gap: 0.7rem;
-        background: var(--magenta-bg);
-        border: 1px solid var(--magenta-border);
-        border-radius: 10px;
-        padding: 0.9rem 1.1rem;
-        max-width: 780px;
-      }
-      .nota svg {
-        width: 16px;
-        height: 16px;
-        stroke: var(--magenta);
-        fill: none;
-        stroke-width: 2;
-        flex-shrink: 0;
-        margin-top: 0.1rem;
-      }
-      .nota p {
-        font-size: 0.85rem;
-        color: var(--magenta-dark);
-        font-weight: 400;
-        line-height: 1.5;
-      }
-
-      /* ── ANIMACIONES DE ENTRADA ── */
-      @keyframes fadeUp {
-        from {
-          opacity: 0;
-          transform: translateY(22px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-        }
-        to {
-          opacity: 1;
-        }
-      }
-      @keyframes slideInLeft {
-        from {
-          opacity: 0;
-          transform: translateX(-18px);
-        }
-        to {
-          opacity: 1;
-          transform: translateX(0);
-        }
-      }
-
-      /* Sidebar */
-      .sidebar {
-        animation: slideInLeft 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
-      }
-
-      /* Nav items stagger */
-      .nav-item {
-        opacity: 0;
-        animation: fadeIn 0.4s ease forwards;
-        position: relative;
-      }
-      .nav-item:nth-child(1) {
-        animation-delay: 0.15s;
-      }
-      .nav-item:nth-child(2) {
-        animation-delay: 0.22s;
-      }
-      .nav-item:nth-child(3) {
-        animation-delay: 0.29s;
-      }
-      .nav-item:nth-child(4) {
-        animation-delay: 0.36s;
-      }
-      .nav-item:nth-child(5) {
-        animation-delay: 0.43s;
-      }
-
-      /* Indicador lateral en nav */
-      .nav-item::after {
-        content: "";
-        position: absolute;
-        left: 0;
-        top: 50%;
-        transform: translateY(-50%) scaleY(0);
-        width: 3px;
-        height: 60%;
-        background: white;
-        border-radius: 0 3px 3px 0;
-        transition: transform 0.2s ease;
-      }
-      .nav-item:hover::after,
-      .nav-item.active::after {
-        transform: translateY(-50%) scaleY(1);
-      }
-
-      /* Contenido principal */
-      .page-header {
-        animation: fadeUp 0.55s 0.1s ease both;
-      }
-      .section-title {
-        animation: fadeUp 0.5s 0.2s ease both;
-      }
-      .perfil-card {
-        animation: fadeUp 0.55s 0.25s ease both;
-      }
-
-      /* Perfil items stagger */
-      .perfil-item {
-        opacity: 0;
-        animation: fadeUp 0.45s ease forwards;
-      }
-      .perfil-item:nth-child(1) {
-        animation-delay: 0.35s;
-      }
-      .perfil-item:nth-child(2) {
-        animation-delay: 0.45s;
-      }
-      .perfil-item:nth-child(3) {
-        animation-delay: 0.55s;
-      }
-      .perfil-item:nth-child(4) {
-        animation-delay: 0.65s;
-      }
-      .perfil-item:not(.destacado):hover {
-        background: var(--magenta-bg);
-      }
-
-      /* Fecha de parto con shimmer */
-      .perfil-item.destacado .perfil-item-valor {
-        background: linear-gradient(
-          90deg,
-          var(--magenta-dark) 0%,
-          var(--magenta-light) 50%,
-          var(--magenta-dark) 100%
-        );
-        background-size: 200% auto;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        animation: shimmer 3s linear infinite 1s;
-      }
-      @keyframes shimmer {
-        0% {
-          background-position: 200% center;
-        }
-        100% {
-          background-position: -200% center;
-        }
-      }
-
-      /* IA cards stagger */
-      .ia-card {
-        opacity: 0;
-        animation: fadeUp 0.5s ease forwards;
-      }
-      .ia-card:nth-child(1) {
-        animation-delay: 0.4s;
-      }
-      .ia-card:nth-child(2) {
-        animation-delay: 0.52s;
-      }
-
-      /* IA card icon rebote al hover */
-      .ia-card-icon {
-        transition: transform 0.3s ease;
-      }
-      .ia-card:hover .ia-card-icon {
-        transform: scale(1.1) rotate(-4deg);
-        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-      }
-
-      /* Badge IA pulso */
-      .badge-ia {
-        animation: pulseBadge 2.5s ease-in-out infinite;
-      }
-      @keyframes pulseBadge {
-        0%,
-        100% {
-          box-shadow: 0 0 0 0 rgba(176, 53, 128, 0.4);
-        }
-        50% {
-          box-shadow: 0 0 0 6px rgba(176, 53, 128, 0);
-        }
-      }
-
-      /* Coming soon parpadeo */
-      .coming-soon {
-        animation: blink 2.2s ease-in-out infinite;
-      }
-      @keyframes blink {
-        0%,
-        100% {
-          opacity: 1;
-        }
-        50% {
-          opacity: 0.55;
-        }
-      }
-
-      /* Acciones stagger */
-      .accion-card {
-        opacity: 0;
-        animation: fadeUp 0.48s ease forwards;
-      }
-      .accion-card:nth-child(1) {
-        animation-delay: 0.55s;
-      }
-      .accion-card:nth-child(2) {
-        animation-delay: 0.65s;
-      }
-
-      /* Ícono acción rebote */
-      .accion-icon {
-        transition:
-          transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
-          background 0.25s;
-      }
-      .accion-card:hover .accion-icon {
-        transform: scale(1.12);
-        background: var(--magenta-border);
-      }
-
-      /* Chevron se desliza */
-      .accion-chevron svg {
-        transition:
-          stroke 0.2s,
-          transform 0.2s ease;
-      }
-      .accion-card:hover .accion-chevron svg {
-        transform: translateX(4px);
-      }
-
-      /* Nota */
-      .nota {
-        animation: fadeUp 0.45s 0.7s ease both;
-        opacity: 0;
-      }
-
-      /* Avatar hover */
-      .sidebar-avatar {
-        transition:
-          transform 0.2s ease,
-          box-shadow 0.2s;
-      }
-      .sidebar-user:hover .sidebar-avatar {
-        transform: scale(1.08);
-        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.35);
-      }
-
-      
-</style>
+    </style>
 </head>
 <body>
 
@@ -923,7 +230,7 @@
 <aside class="sidebar" id="sidebar">
     <div class="sb-brand">
         <div class="sb-logo"><img src="{% static 'img/Logo.png' %}" alt="Zumedical"></div>
-        <div class="sb-brand-text"><h2>Zumedical</h2><span>Paciente</span></div>
+        <div class="sb-brand-text"><h2>Zumedical</h2><span>Embarazo</span></div>
     </div>
     <a href="{% url 'paciente_general_perfil' %}" class="sb-user">
         <div class="sb-avatar">{{ user.first_name|first }}{{ user.last_name|first }}</div>
@@ -933,22 +240,31 @@
         </div>
     </a>
     <nav class="sb-nav">
-        <div class="nav-lbl">Menú</div>
-        <a href="{% url 'paciente_general_dashboard' %}" class="nav-item">
-            <i class="fa-solid fa-house"></i> Inicio
+        <div class="nav-lbl">Embarazo</div>
+        <a href="{% url 'paciente_dashboard' %}" class="nav-item active">
+            <i class="fa-solid fa-house"></i> Inicio Embarazo
         </a>
-        <a href="{% url 'paciente_general_agendar' %}" class="nav-item">
+        <a href="{% url 'agendar_cita' %}" class="nav-item">
             <i class="fa-regular fa-calendar-plus"></i> Agendar Cita
         </a>
-        <a href="{% url 'paciente_general_citas' %}" class="nav-item">
+        <a href="{% url 'mis_citas' %}" class="nav-item">
             <i class="fa-regular fa-calendar-check"></i> Mis Citas
             {% if citas_pendientes %}<span class="nav-badge">{{ citas_pendientes }}</span>{% endif %}
         </a>
-        {% if request.user.paciente.estado_embarazo == 'ACTIVO' %}
-        <a href="{% url 'paciente_dashboard' %}" class="nav-item active" style="margin-top: 1.5rem;">
-            <i class="fa-solid fa-person-pregnant"></i> Mi embarazo
+        <a href="{% url 'controles' %}" class="nav-item">
+            <i class="fa-solid fa-heart-pulse"></i> Controles Prenatales
         </a>
-        {% endif %}
+        <div class="nav-lbl">Inteligencia Artificial</div>
+        <a href="{% url 'chatbot_page' %}" class="nav-item">
+            <i class="fa-solid fa-comments"></i> Asistente Virtual
+        </a>
+        <a href="{% url 'evaluar_riesgo' %}" class="nav-item">
+            <i class="fa-solid fa-dna"></i> Evaluación de Riesgo
+        </a>
+        <div class="nav-lbl" style="margin-top:1.2rem">General</div>
+        <a href="{% url 'paciente_general_dashboard' %}" class="nav-item">
+            <i class="fa-solid fa-user"></i> Inicio General
+        </a>
     </nav>
     <div class="sb-footer">
         <a href="{% url 'logout' %}" class="btn-logout">
@@ -960,7 +276,7 @@
 <!-- MAIN -->
 <main class="main">
 
-<!-- TOPBAR -->
+    <!-- TOPBAR -->
     <div class="topbar">
         <div class="topbar-left">
             <div class="greeting">
@@ -976,7 +292,7 @@
                 &nbsp;•&nbsp;
                 <i class="fa-regular fa-clock" style="color:var(--mg)"></i>
                 <span id="reloj">--:--</span>
-                &nbsp;•&nbsp; Zumedical
+                &nbsp;•&nbsp; Zumedical Embarazo
             </p>
         </div>
         <div class="topbar-right">
@@ -991,252 +307,184 @@
         </div>
     </div>
 
-    
-<!-- MENSAJES DJANGO -->
-      {% if messages %}
-      <div style="margin-bottom: 1.5rem">
-        {% for message in messages %}
-        <div
-          class="msg-alert {% if message.tags == 'success' %}msg-success{% elif message.tags == 'error' %}msg-error{% else %}msg-info{% endif %}"
-        >
-          {% if message.tags == 'success' %}
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
-          {% else %}
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="8" x2="12" y2="12" />
-            <line x1="12" y1="16" x2="12.01" y2="16" />
-          </svg>
-          {% endif %} {{ message }}
+    <!-- HERO BANNER -->
+    <div class="hero">
+        <div>
+            <div class="hero-label"><i class="fa-solid fa-baby"></i> &nbsp;Embarazo Saludable</div>
+            <div class="hero-title">Tu camino<br>hacia la maternidad</div>
+            <div class="hero-sub">Gestiona tu embarazo, agenda citas y recibe consejos personalizados</div>
+            <a href="{% url 'agendar_cita' %}" class="hero-btn">
+                <i class="fa-regular fa-calendar-plus"></i> Agendar Control
+            </a>
         </div>
-        {% endfor %}
-      </div>
-      {% endif %}
+        <i class="fa-solid fa-person-pregnant hero-icon"></i>
+    </div>
 
-      <!-- NOTIFICACIÓN DE CITAS CONFIRMADAS -->
-      {% load citas %}
-      {% citas_confirmadas_recientes user as citas_confirmadas %}
-      {% if citas_confirmadas %}
-      <div style="margin-bottom: 1.5rem">
-        {% for cita in citas_confirmadas %}
-        <div class="msg-alert msg-info" style="background: #e8f4fd; color: #1565c0; border: 1px solid #90caf9;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="16 12 12 8 8 12"/></svg>
-          Tu cita con {{ cita.medico.get_full_name|default:cita.medico }} ha sido <strong>confirmada</strong> para el {{ cita.fecha|date:"d/m/Y" }} a las {{ cita.hora }}
+    <!-- STATS -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-top">
+                <div class="stat-icon"><i class="fa-regular fa-calendar-check"></i></div>
+                <span class="stat-chip chip-blue">Total</span>
+            </div>
+            <div class="stat-val">{{ total_citas }}</div>
+            <div class="stat-lbl">Citas Totales</div>
         </div>
-        {% endfor %}
-      </div>
-      {% endif %}
+        <div class="stat-card">
+            <div class="stat-top">
+                <div class="stat-icon"><i class="fa-regular fa-clock"></i></div>
+                <span class="stat-chip chip-amber">Próximas</span>
+            </div>
+            <div class="stat-val">{{ citas_pendientes }}</div>
+            <div class="stat-lbl">Citas Pendientes</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-top">
+                <div class="stat-icon"><i class="fa-solid fa-heart"></i></div>
+                <span class="stat-chip chip-green">Salud</span>
+            </div>
+            <div class="stat-val" style="font-size:1.5rem;padding-top:.35rem">Embarazo Activo</div>
+            <div class="stat-lbl">Estado</div>
+        </div>
+    </div>
 
-      <!-- ── PERFIL CLÍNICO ── -->
-      <div class="section-title">
-        <h2>Mi embarazo</h2>
-      </div>
+    <!-- DOS COLUMNAS: PRÓXIMA CITA + ACCIONES -->
+    <div class="two-col">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-header-left">
+                    <div class="card-header-icon"><i class="fa-solid fa-bolt"></i></div>
+                    <h3>Próximo Control</h3>
+                </div>
+            </div>
+            <div class="card-body" style="padding:1rem 1.4rem">
+                {% if proxima_cita %}
+                <div class="proxima-card">
+                    <div class="proxima-lbl"><i class="fa-regular fa-clock"></i> &nbsp;Próxima cita</div>
+                    <div class="proxima-time">{{ proxima_cita.hora|time:"H:i" }}</div>
+                    <div class="proxima-pac"><i class="fa-solid fa-user-doctor"></i> &nbsp;{{ proxima_cita.medico.get_full_name|default:proxima_cita.medico }}</div>
+                    <div class="proxima-esp">{{ proxima_cita.fecha|date:"d/m/Y" }} &nbsp;•&nbsp; {{ proxima_cita.especialidad|default:"Control Prenatal" }}</div>
+                </div>
+                {% else %}
+                <div class="no-proxima">
+                    <i class="fa-regular fa-calendar-xmark"></i>
+                    <span style="font-size:.85rem">Sin controles próximos</span>
+                    <a href="{% url 'agendar_cita' %}" style="font-size:.8rem;color:var(--mg);font-weight:500;text-decoration:none">+ Agendar ahora</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
 
-      {% if parto_programado %}
-      <!-- ── PARTO PROGRAMADO ── -->
-      <div style="background:linear-gradient(135deg,#8a2563,#b03580);border-radius:18px;padding:1.5rem 1.75rem;margin-bottom:1.5rem;color:white;position:relative;overflow:hidden;">
-        <div style="position:absolute;top:-20px;right:-20px;width:120px;height:120px;background:rgba(255,255,255,.08);border-radius:50%;"></div>
-        <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1rem;">
-          <span style="font-size:1.5rem">🤰</span>
-          <div>
-            <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.7)">Programación de {{ parto_programado.get_tipo_display }}</div>
-            <div style="font-size:1.2rem;font-weight:600;font-family:'Cormorant Garamond',serif;">{{ parto_programado.get_tipo_display }}</div>
-          </div>
-          <span style="margin-left:auto;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:.25rem .75rem;font-size:.75rem;font-weight:600;">{{ parto_programado.get_estado_display }}</span>
+        <div class="card">
+            <div class="card-header">
+                <div class="card-header-left">
+                    <div class="card-header-icon"><i class="fa-solid fa-star"></i></div>
+                    <h3>Acciones Rápidas</h3>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="acciones-grid">
+                    <a href="{% url 'agendar_cita' %}" class="accion-btn">
+                        <div class="accion-ico"><i class="fa-regular fa-calendar-plus"></i></div>
+                        <span class="accion-lbl">Agendar Cita</span>
+                    </a>
+                    <a href="{% url 'mis_citas' %}" class="accion-btn">
+                        <div class="accion-ico"><i class="fa-regular fa-calendar-check"></i></div>
+                        <span class="accion-lbl">Mis Citas</span>
+                    </a>
+                    <a href="{% url 'controles' %}" class="accion-btn">
+                        <div class="accion-ico"><i class="fa-solid fa-heart-pulse"></i></div>
+                        <span class="accion-lbl">Controles</span>
+                    </a>
+                </div>
+            </div>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:{% if parto_programado.indicaciones %}1rem{% else %}0{% endif %}">
-          <div style="background:rgba(255,255,255,.12);border-radius:10px;padding:.75rem 1rem;">
-            <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.7);margin-bottom:.2rem;">Fecha programada</div>
-            <div style="font-size:1.1rem;font-weight:600;">{{ parto_programado.fecha_programada|date:"d 'de' F 'de' Y" }}</div>
-          </div>
-          <div style="background:rgba(255,255,255,.12);border-radius:10px;padding:.75rem 1rem;">
-            <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.7);margin-bottom:.2rem;">Hora</div>
-            <div style="font-size:1.1rem;font-weight:600;">{{ parto_programado.hora_programada|time:"H:i" }} hrs</div>
-          </div>
-          <div style="background:rgba(255,255,255,.12);border-radius:10px;padding:.75rem 1rem;">
-            <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.7);margin-bottom:.2rem;">Lugar</div>
-            <div style="font-size:.9rem;font-weight:500;">{{ parto_programado.lugar }}</div>
-          </div>
-          {% if parto_programado.semanas_gestacion %}
-          <div style="background:rgba(255,255,255,.12);border-radius:10px;padding:.75rem 1rem;">
-            <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.7);margin-bottom:.2rem;">Semanas</div>
-            <div style="font-size:.9rem;font-weight:500;">Semana {{ parto_programado.semanas_gestacion }}</div>
-          </div>
-          {% endif %}
+    </div>
+
+    <!-- ÚLTIMAS CITAS -->
+    <div class="citas-card">
+        <div class="card-header">
+            <div class="card-header-left">
+                <div class="card-header-icon"><i class="fa-regular fa-clock-rotate-left"></i></div>
+                <h3>Últimas Citas</h3>
+            </div>
+            <a href="{% url 'mis_citas' %}" class="card-badge">Ver todas →</a>
         </div>
-        {% if parto_programado.indicaciones %}
-        <div style="background:rgba(255,255,255,.1);border-radius:10px;padding:.85rem 1rem;border-left:3px solid rgba(255,255,255,.5);">
-          <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.7);margin-bottom:.3rem;">📋 Indicaciones de tu médico</div>
-          <div style="font-size:.88rem;line-height:1.6;color:rgba(255,255,255,.95);">{{ parto_programado.indicaciones }}</div>
+
+        {% if ultimas_citas %}
+            {% for cita in ultimas_citas %}
+            <div class="cita-item"
+                data-esp="{{ cita.especialidad|default:'Control Prenatal' }}"
+                data-fecha="{{ cita.fecha|date:'d/m/Y' }}"
+                data-hora="{{ cita.hora|time:'H:i' }}"
+                data-medico="{{ cita.medico.get_full_name|default:cita.medico }}"
+                data-estado="{{ cita.estado }}"
+                data-motivo="{{ cita.motivo|default:'Sin motivo especificado' }}">
+                <div class="cita-fecha-box">
+                    <span class="dia">{{ cita.fecha|date:"d" }}</span>
+                    <span class="mes">{{ cita.fecha|date:"M" }}</span>
+                </div>
+                <div class="cita-info">
+                    <div class="cita-esp">{{ cita.especialidad|default:"Control Prenatal" }}</div>
+                    <div class="cita-meta">Dr(a). {{ cita.medico.get_full_name|default:cita.medico }} &nbsp;•&nbsp; {{ cita.hora|time:"H:i" }}</div>
+                </div>
+                <span class="badge badge-{{ cita.estado }}">{{ cita.get_estado_display|default:cita.estado }}</span>
+            </div>
+            {% endfor %}
+        {% else %}
+        <div class="empty-state">
+            <i class="fa-regular fa-calendar-xmark"></i>
+            <p>No tienes citas registradas aún.</p>
         </div>
         {% endif %}
-      </div>
-      {% endif %}
+    </div>
 
-      <!-- ── IA SECCIÓN PRINCIPAL ── -->
-      <div class="section-title">
-        <h2>Herramientas con IA</h2>
-        <span class="badge-ia">Nuevo</span>
-      </div>
-
-      <div class="ia-grid">
-        <a href="{% url 'chatbot_page' %}" class="ia-card">
-          <div class="ia-card-icon icon-asistente">
-            <svg viewBox="0 0 24 24">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-              <line x1="9" y1="10" x2="15" y2="10" />
-              <line x1="9" y1="14" x2="13" y2="14" />
-            </svg>
-          </div>
-          <h3>Asistente Virtual</h3>
-          <p>
-            Consulta tus dudas sobre el embarazo en cualquier momento. Nuestro
-            asistente con IA está disponible para orientarte de forma segura y
-            personalizada.
-          </p>
-          <div class="ia-card-footer">
-            <span class="tag-ia">
-              <svg viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10" />
-                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-                <line x1="12" y1="17" x2="12.01" y2="17" />
-              </svg>
-              Chat inteligente
-            </span>
-            <div class="ia-arrow">
-              <svg viewBox="0 0 24 24">
-                <line x1="5" y1="12" x2="19" y2="12" />
-                <polyline points="12 5 19 12 12 19" />
-              </svg>
-            </div>
-          </div>
-        </a>
-
-        <a href="{% url 'evaluar_riesgo' %}" class="ia-card">
-          <div class="ia-card-icon icon-prediccion">
-            <svg viewBox="0 0 24 24">
-              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-            </svg>
-          </div>
-          <h3>Evaluación de Riesgo</h3>
-          <p>
-            Analiza tus datos clínicos con inteligencia artificial para
-            identificar posibles factores de riesgo durante tu embarazo y
-            recibir recomendaciones a tiempo.
-          </p>
-          <div class="ia-card-footer">
-            <span class="tag-ia">
-              <svg viewBox="0 0 24 24">
-                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-              </svg>
-              Predicción clínica
-            </span>
-            <div class="ia-arrow">
-              <svg viewBox="0 0 24 24">
-                <line x1="5" y1="12" x2="19" y2="12" />
-                <polyline points="12 5 19 12 12 19" />
-              </svg>
-            </div>
-          </div>
-        </a>
-      </div>
-
-      <!-- ── ACCIONES ── -->
-      <div class="section-title">
-        <h2>Mis opciones</h2>
-      </div>
-
-      <div class="acciones-grid">
-        <a href="{% url 'paciente_general_agendar' %}" class="accion-card">
-          <div class="accion-icon">
-            <svg viewBox="0 0 24 24">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-              <line x1="16" y1="2" x2="16" y2="6" />
-              <line x1="8" y1="2" x2="8" y2="6" />
-              <line x1="3" y1="10" x2="21" y2="10" />
-              <line x1="12" y1="14" x2="12" y2="18" />
-              <line x1="10" y1="16" x2="14" y2="16" />
-            </svg>
-          </div>
-          <div class="accion-info">
-            <h3>Agendar cita</h3>
-            <p>Reserva tu próxima consulta</p>
-          </div>
-          <div class="accion-chevron">
-            <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6" /></svg>
-          </div>
-        </a>
-
-        <a href="{% url 'paciente_general_citas' %}" class="accion-card">
-          <div class="accion-icon">
-            <svg viewBox="0 0 24 24">
-              <path
-                d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
-              />
-              <polyline points="14 2 14 8 20 8" />
-              <line x1="16" y1="13" x2="8" y2="13" />
-              <line x1="16" y1="17" x2="8" y2="17" />
-            </svg>
-          </div>
-          <div class="accion-info">
-            <h3>Ver mis citas</h3>
-            <p>Consulta y gestiona tus citas</p>
-          </div>
-          <div class="accion-chevron">
-            <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6" /></svg>
-          </div>
-        </a>
-
-        <a href="{% url 'paciente_general_dashboard' %}" class="accion-card" style="display:none;">
-          <div class="accion-icon">
-            <svg viewBox="0 0 24 24">
-              <rect x="3" y="3" width="7" height="7" />
-              <rect x="14" y="3" width="7" height="7" />
-              <rect x="3" y="14" width="7" height="7" />
-              <rect x="14" y="14" width="7" height="7" />
-            </svg>
-          </div>
-          <div class="accion-info">
-            <h3>Panel general</h3>
-            <p>Consulta tus citas y servicios generales</p>
-          </div>
-          <div class="accion-chevron">
-            <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6" /></svg>
-          </div>
-        </a>
-      </div>
-
-      <!-- NOTA -->
-      <div class="nota">
-        <svg viewBox="0 0 24 24">
-          <circle cx="12" cy="12" r="10" />
-          <line x1="12" y1="8" x2="12" y2="12" />
-          <line x1="12" y1="16" x2="12.01" y2="16" />
-        </svg>
-        <p>
-          Tu historial clínico completo y los controles prenatales son
-          gestionados directamente por tu médico tratante. Los datos de tu
-          perfil se actualizan después de cada consulta.
-        </p>
-      </div>
-    
 </main>
+
+<!-- MODAL DETALLE CITA -->
+<div class="modal-ov" id="modalOv" onclick="closeModalOut(event)">
+    <div class="modal">
+        <div class="modal-head">
+            <div>
+                <div class="modal-head-tag"><i class="fa-regular fa-calendar-check"></i> &nbsp;Detalle de cita</div>
+                <div class="modal-head-title" id="m-esp">—</div>
+                <div class="modal-head-sub" id="m-fecha-sub">—</div>
+            </div>
+            <button class="modal-close" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="modal-grid">
+                <div class="modal-field">
+                    <div class="modal-field-label"><i class="fa-regular fa-calendar"></i> Fecha</div>
+                    <div class="modal-field-val" id="m-fecha">—</div>
+                </div>
+                <div class="modal-field">
+                    <div class="modal-field-label"><i class="fa-regular fa-clock"></i> Hora</div>
+                    <div class="modal-field-val" id="m-hora">—</div>
+                </div>
+                <div class="modal-field">
+                    <div class="modal-field-label"><i class="fa-solid fa-user-doctor"></i> Médico</div>
+                    <div class="modal-field-val" id="m-medico">—</div>
+                </div>
+                <div class="modal-field">
+                    <div class="modal-field-label"><i class="fa-solid fa-circle-dot"></i> Estado</div>
+                    <div class="modal-field-val" id="m-estado">—</div>
+                </div>
+                <div class="modal-field full">
+                    <div class="modal-field-label"><i class="fa-regular fa-comment"></i> Motivo</div>
+                    <div class="modal-field-val" id="m-motivo">—</div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-foot">
+            <button class="btn-cerrar" onclick="closeModal()">Cerrar</button>
+            <a href="{% url 'mis_citas' %}" class="btn-agendar">
+                <i class="fa-regular fa-calendar-check"></i> Ver todas
+            </a>
+        </div>
+    </div>
+</div>
+
 <script>
 // ── RELOJ + SALUDO (zona horaria Ecuador) ──
 function tick() {
@@ -1282,7 +530,7 @@ document.querySelectorAll('.cita-item').forEach(function(item) {
     item.addEventListener('click', function() {
         const d = item.dataset;
         document.getElementById('m-esp').textContent       = d.esp;
-        document.getElementById('m-fecha-sub').textContent = d.fecha + ' · ' + d.hora;
+        document.getElementById('m-fecha-sub').textContent = d.fecha + ' • ' + d.hora;
         document.getElementById('m-fecha').textContent     = d.fecha;
         document.getElementById('m-hora').textContent      = d.hora;
         document.getElementById('m-medico').textContent    = 'Dr(a). ' + d.medico;

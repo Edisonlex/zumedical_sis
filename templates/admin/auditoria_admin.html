@@ -1,4 +1,4 @@
-﻿{% load static %}
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -532,6 +532,7 @@
                         <option value="CREATE" {% if request.GET.accion == "CREATE" %}selected{% endif %}>Creación</option>
                         <option value="UPDATE" {% if request.GET.accion == "UPDATE" %}selected{% endif %}>Actualización</option>
                         <option value="DELETE" {% if request.GET.accion == "DELETE" %}selected{% endif %}>Eliminación</option>
+                        <option value="CANCELACION" {% if request.GET.accion == "CANCELACION" %}selected{% endif %}>Cancelación</option>
                         <option value="VIEW" {% if request.GET.accion == "VIEW" %}selected{% endif %}>Visualización</option>
                         <option value="ERROR" {% if request.GET.accion == "ERROR" %}selected{% endif %}>Error</option>
                     </select>
@@ -794,13 +795,14 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModalDi
     const DATA_URL = "{% url 'auditoria_admin_data' %}";
 
     const ACCION_BADGES = {
-        LOGIN:  ['badge-login',  'fa-arrow-right-to-bracket', 'Login'],
-        LOGOUT: ['badge-logout', 'fa-arrow-right-from-bracket', 'Logout'],
-        CREATE: ['badge-create', 'fa-plus', 'Creación'],
-        UPDATE: ['badge-update', 'fa-pen', 'Edición'],
-        DELETE: ['badge-delete', 'fa-trash', 'Eliminación'],
-        VIEW:   ['badge-view',   'fa-eye', 'Vista'],
-        ERROR:  ['badge-error',  'fa-xmark', 'Error'],
+        LOGIN:       ['badge-login',  'fa-arrow-right-to-bracket', 'Login'],
+        LOGOUT:      ['badge-logout', 'fa-arrow-right-from-bracket', 'Logout'],
+        CREATE:      ['badge-create', 'fa-plus', 'Creación'],
+        UPDATE:      ['badge-update', 'fa-pen', 'Edición'],
+        DELETE:      ['badge-delete', 'fa-trash', 'Eliminación'],
+        CANCELACION: ['badge-cancelado', 'fa-calendar-xmark', 'Cancelación'],
+        VIEW:        ['badge-view',   'fa-eye', 'Vista'],
+        ERROR:       ['badge-error',  'fa-xmark', 'Error'],
     };
     const SEV_CLASS = { CRITICAL: 'sev-critical', WARNING: 'sev-warning', INFO: 'sev-info' };
     const SEV_LABEL = { CRITICAL: 'Crítico', WARNING: 'Advertencia', INFO: 'Info' };

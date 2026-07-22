@@ -410,15 +410,30 @@ def paciente_dashboard(request):
     except Paciente.DoesNotExist:
         perfil = None
 
+    # ── Citas y estadísticas ─────────────────────────────────────────────
+    proxima_cita = Cita.objects.filter(
+        paciente=request.user, fecha__gte=hoy, estado__in=['pendiente', 'confirmada']
+    ).order_by('fecha', 'hora').first()
+    total_citas = Cita.objects.filter(paciente=request.user).count()
+    citas_pendientes = Cita.objects.filter(
+        paciente=request.user, estado__in=['pendiente', 'confirmada'], fecha__gte=hoy
+    ).count()
+    ultimas_citas = Cita.objects.filter(paciente=request.user).order_by('-fecha', 'hora')[:3]
+
     # ── Programación de parto próxima ─────────────────────────────────────
     parto_programado = ProgramacionParto.objects.filter(
         paciente=request.user,
         estado__in=['programado', 'confirmado'],
-        fecha_programada__gte=hoy,
-    ).order_by('fecha_programada').first()
+    ).first()
 
     response = render(request, 'paciente/dashboard_paciente.html', {
+        'user': request.user,
         'perfil': perfil,
+        'proxima_cita': proxima_cita,
+        'total_citas': total_citas,
+        'citas_pendientes': citas_pendientes,
+        'ultimas_citas': ultimas_citas,
+        'hoy': hoy,
         'parto_programado': parto_programado,
     })
     response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
@@ -808,7 +823,10 @@ def descargar_pdf_consulta_general(request, consulta_id):
         if nuevo_estado in ['pendiente', 'confirmada', 'atendido', 'cancelado']:
             cita.estado = nuevo_estado
             cita.save()
-            registrar_log(request, 'UPDATE', 'Citas', f"Cambió estado de la cita {cita.id} a {nuevo_estado}", 'INFO')
+            if nuevo_estado in ['cancelado', 'cancelada']:
+                registrar_log(request, 'CANCELACION', 'Citas', f"Cambió estado de la cita {cita.id} a {nuevo_estado}", 'WARNING')
+            else:
+                registrar_log(request, 'UPDATE', 'Citas', f"Cambió estado de la cita {cita.id} a {nuevo_estado}", 'INFO')
             labels = {'confirmada': 'aceptada', 'cancelado': 'rechazada', 'atendido': 'marcada como atendida', 'pendiente': 'vuelta a pendiente'}
             messages.success(request, f'Cita {labels.get(nuevo_estado, "actualizada")} correctamente.')
 
@@ -1784,11 +1802,11 @@ def todas_citas(request):
     hoy = timezone.now().date()
 
     citas_prenatales = Cita.objects.filter(
-        medico__medico__especialidad__tipo='prenatal'
+        q_citas_con_acceso_prenatal()
     ).select_related('paciente', 'medico', 'especialidad').distinct().order_by('-fecha', 'hora')
 
     citas_generales = Cita.objects.exclude(
-        medico__medico__especialidad__tipo='prenatal'
+        q_citas_con_acceso_prenatal()
     ).select_related('paciente', 'medico', 'especialidad').order_by('-fecha', 'hora')
 
     return render(request, 'admin/todas_citas.html', {
@@ -3154,11 +3172,11 @@ def cambiar_estado_cita(request, cita_id):
             cita.estado = nuevo_estado
             
             # Si es cancelación, guardar motivo
-            if nuevo_estado == 'cancelado':
+            if nuevo_estado in ['cancelado', 'cancelada']:
                 motivo_cancelacion = request.POST.get('motivo_cancelacion', '').strip()
                 cita.motivo_cancelacion = motivo_cancelacion
-                registrar_log(request, 'UPDATE', 'Citas',
-                    f'Cita #{cita.id} cancelada por {request.user.rol}. Motivo: {motivo_cancelacion}', 'INFO')
+                registrar_log(request, 'CANCELACION', 'Citas',
+                    f'Cita #{cita.id} cancelada por {request.user.rol}. Motivo: {motivo_cancelacion}', 'WARNING')
             else:
                 registrar_log(request, 'UPDATE', 'Citas',
                     f'Cita #{cita.id} estado actualizado a {nuevo_estado} por {request.user.rol}', 'INFO')
