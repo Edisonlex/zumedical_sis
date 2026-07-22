@@ -55,7 +55,7 @@ def cargar_usuarios(apps, schema_editor):
             'first_name': 'Vicenta',
             'last_name': 'Arana',
             'email': '',
-            'rol': 'secretaria',
+            'rol': 'enfermera',
             'tipo_paciente': None,
             'is_superuser': False,
             'is_staff': False,

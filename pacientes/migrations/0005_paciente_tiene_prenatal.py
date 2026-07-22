@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='paciente',
             name='tiene_prenatal',
-            field=models.BooleanField(default=False, help_text='Activado por la secretaria cuando la paciente general inicia control prenatal', verbose_name='Módulo prenatal activo'),
+            field=models.BooleanField(default=False, help_text='Activado por la enfermera cuando la paciente general inicia control prenatal', verbose_name='Módulo prenatal activo'),
         ),
     ]

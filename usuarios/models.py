@@ -10,7 +10,7 @@ class Usuario(AbstractUser):
     ROLES = (
         ('admin', 'Administrador'),
         ('medico', 'Medico'),
-        ('secretaria', 'Secretaria'),
+        ('enfermera', 'Enfermera'),
         ('paciente', 'Paciente'),
     )
 
@@ -60,13 +60,14 @@ def crear_perfil_paciente(sender, instance, created, **kwargs):
 
 class LogAuditoria(models.Model):
     ACCIONES = [
-        ('LOGIN',   'Inicio de sesión'),
-        ('LOGOUT',  'Cierre de sesión'),
-        ('CREATE',  'Creación'),
-        ('UPDATE',  'Actualización'),
-        ('DELETE',  'Eliminación'),
-        ('VIEW',    'Visualización'),
-        ('ERROR',   'Error'),
+        ('LOGIN',        'Inicio de sesión'),
+        ('LOGOUT',       'Cierre de sesión'),
+        ('CREATE',       'Creación'),
+        ('UPDATE',       'Actualización'),
+        ('DELETE',       'Eliminación'),
+        ('CANCELACION',  'Cancelación'),
+        ('VIEW',         'Visualización'),
+        ('ERROR',        'Error'),
     ]
     SEVERIDADES = [
         ('INFO',     'Información'),
@@ -86,6 +87,11 @@ class LogAuditoria(models.Model):
         ordering = ['-fecha']
         verbose_name = 'Log de Auditoría'
         verbose_name_plural = 'Logs de Auditoría'
+        indexes = [
+            models.Index(fields=['-fecha']),
+            models.Index(fields=['usuario', '-fecha']),
+            models.Index(fields=['accion', '-fecha']),
+        ]
 
     def __str__(self):
         return f"[{self.severidad}] {self.accion} — {self.usuario} — {self.fecha:%d/%m/%Y %H:%M}"

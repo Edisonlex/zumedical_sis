@@ -66,7 +66,7 @@ class CitaForm(forms.ModelForm):
         }
 
 
-class CitaSecretariaForm(forms.ModelForm):
+class CitaEnfermeraForm(forms.ModelForm):
     class Meta:
         model = Cita
         fields = ['paciente', 'medico', 'fecha', 'hora', 'motivo']
@@ -85,7 +85,7 @@ class CitaSecretariaForm(forms.ModelForm):
         self.fields['medico'].label_from_instance = lambda u: u.get_full_name() or u.username
         self.fields['paciente'].label_from_instance = lambda u: u.get_full_name() or u.username
 
-class EditarPacienteSecretariaForm(forms.ModelForm):
+class EditarPacienteEnfermeraForm(forms.ModelForm):
     first_name = forms.CharField(max_length=100, label='Nombre')
     last_name  = forms.CharField(max_length=100, label='Apellidos')
     cedula     = forms.CharField(max_length=10, label='Cédula')

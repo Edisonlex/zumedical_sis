@@ -163,7 +163,7 @@ def cancelar_cita(request, cita_id):
         cita.estado = 'cancelada'
         cita.motivo_cancelacion = motivo_cancelacion
         cita.save()
-        registrar_log(request, 'UPDATE', 'Citas',
+        registrar_log(request, 'CANCELACION', 'Citas',
             f'Cita #{cita.id} cancelada por el paciente. Motivo: {motivo_cancelacion}', 'INFO')
         messages.success(request, 'Cita cancelada correctamente.')
     return redirect('paciente_general_citas')
@@ -297,26 +297,39 @@ def medicos_disponibles(request):
 
 
 def horas_disponibles(request):
+    from datetime import date, time
     medico_id = request.GET.get('medico_id')
     fecha = request.GET.get('fecha')
-    todas_horas = [
+    
+    # Horarios según día de la semana
+    # Lunes a Viernes: 8:30 - 17:00
+    horas_semana = [
         '08:30', '09:00', '09:30', '10:00', '10:30',
         '11:00', '11:30', '12:00', '12:30', '13:00', '13:30',
         '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00',
     ]
+    # Sábados y Domingos: 9:00 - 15:00
+    horas_finde = [
+        '09:00', '09:30', '10:00', '10:30',
+        '11:00', '11:30', '12:00', '12:30',
+        '13:00', '13:30', '14:00', '14:30', '15:00',
+    ]
+    
     if medico_id and fecha:
+        fecha_obj = date.fromisoformat(fecha)
+        es_finde = fecha_obj.weekday() in [5, 6]  # 5=sábado, 6=domingo
+        todas_horas = horas_finde if es_finde else horas_semana
+        
         ocupadas = Cita.objects.filter(
             medico_id=medico_id, fecha=fecha, estado__in=['pendiente', 'confirmada']
         ).values_list('hora', flat=True)
         ocupadas_str = [str(h)[:5] for h in ocupadas]
+        
         # Filtro de horas pasadas si es hoy
-        from datetime import date
         hoy = timezone.localdate()
-        fecha_obj = date.fromisoformat(fecha)
         
         if fecha_obj == hoy:
             hora_actual = timezone.localtime().time()
-            # Formateamos hora_actual a 'HH:MM' para comparar strings
             hora_actual_str = f"{hora_actual.hour:02d}:{hora_actual.minute:02d}"
             disponibles = [h for h in todas_horas if h not in ocupadas_str and h > hora_actual_str]
         elif fecha_obj < hoy:
@@ -324,7 +337,7 @@ def horas_disponibles(request):
         else:
             disponibles = [h for h in todas_horas if h not in ocupadas_str]
     else:
-        disponibles = todas_horas
+        disponibles = horas_semana
     return JsonResponse({'horas': disponibles})
 
 

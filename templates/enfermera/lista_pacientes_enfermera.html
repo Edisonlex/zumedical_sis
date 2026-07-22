@@ -165,23 +165,23 @@
         <div class="sb-logo"><img src="{% static 'img/Logo.png' %}" alt="Zumedical"></div>
         <div class="sb-brand-text"><h2>Zumedical</h2><span>Secretaría</span></div>
     </div>
-    <a href="{% url 'perfil_secretaria' %}" class="sb-user">
+    <a href="{% url 'perfil_enfermera' %}" class="sb-user">
         <div class="sb-avatar">{% if request.user.first_name %}{{ request.user.first_name|slice:":1" }}{{ request.user.last_name|slice:":1" }}{% else %}{{ request.user.username|slice:":1"|upper }}{% endif %}</div>
         <div class="sb-user-info"><p>Mi perfil</p><h3>{{ request.user.get_full_name|default:request.user.username }}</h3></div>
         <div class="sb-user-chevron"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
     </a>
     <nav class="sb-nav">
         <div class="nav-lbl">Menú</div>
-        <a href="{% url 'secretaria_dashboard' %}" class="nav-item">
+        <a href="{% url 'enfermera_dashboard' %}" class="nav-item">
             <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Inicio
         </a>
-        <a href="{% url 'lista_pacientes_secretaria' %}" class="nav-item active">
+        <a href="{% url 'lista_pacientes_enfermera' %}" class="nav-item active">
             <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Ver Pacientes
         </a>
-        <a href="{% url 'agendar_cita_secretaria' %}" class="nav-item">
+        <a href="{% url 'agendar_cita_enfermera' %}" class="nav-item">
             <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Agendar Cita
         </a>
-        <a href="{% url 'citas_secretaria' %}" class="nav-item">
+        <a href="{% url 'citas_enfermera' %}" class="nav-item">
             <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Ver Citas
         </a>
     </nav>
@@ -217,7 +217,7 @@
                 <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 Nuevo paciente general
             </a>
-            <a href="{% url 'secretaria_dashboard' %}" class="btn-back">
+            <a href="{% url 'enfermera_dashboard' %}" class="btn-back">
                 <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
                 Volver
             </a>
@@ -270,7 +270,7 @@
                     data-telefono="{{ p.telefono|default:'' }}"
                     data-edad="{{ p.edad|default:'' }}"
                     data-direccion="{{ p.direccion|default:'' }}"
-                    data-editar="{% url 'editar_paciente_secretaria' p.usuario.id %}">
+                    data-editar="{% url 'editar_paciente_enfermera' p.usuario.id %}">
                     <td>
                         <div class="pac-cell">
                             <div class="pac-avatar">{{ p.usuario.first_name|slice:":1" }}{{ p.usuario.last_name|slice:":1" }}</div>
@@ -291,7 +291,7 @@
                     <td>{{ p.telefono|default:"—" }}</td>
                     <td>
                         <div class="td-actions">
-                            <a href="{% url 'editar_paciente_secretaria' p.usuario.id %}" class="btn-sm btn-secondary" onclick="event.stopPropagation()">Editar</a>
+                            <a href="{% url 'editar_paciente_enfermera' p.usuario.id %}" class="btn-sm btn-secondary" onclick="event.stopPropagation()">Editar</a>
                         </div>
                     </td>
                 </tr>
@@ -339,7 +339,7 @@
                     data-telefono="{{ p.telefono|default:'' }}"
                     data-edad="{{ p.edad|default:'' }}"
                     data-direccion="{{ p.direccion|default:'' }}"
-                    data-editar="{% url 'editar_paciente_secretaria' p.usuario.id %}">
+                    data-editar="{% url 'editar_paciente_enfermera' p.usuario.id %}">
                     <td>
                         <div class="pac-cell">
                             <div class="pac-avatar" style="background:linear-gradient(135deg,#5b3a8a22,#7c6fc422);color:#5b3a8a;border-color:#c4b5fd;">{{ p.usuario.first_name|slice:":1" }}{{ p.usuario.last_name|slice:":1" }}</div>
@@ -360,10 +360,10 @@
                     <td>{{ p.usuario.email|default:"—" }}</td>
                     <td>
                         <div class="td-actions">
-                            <a href="{% url 'editar_paciente_secretaria' p.usuario.id %}" class="btn-sm btn-secondary" onclick="event.stopPropagation()">Editar</a>
+                            <a href="{% url 'editar_paciente_enfermera' p.usuario.id %}" class="btn-sm btn-secondary" onclick="event.stopPropagation()">Editar</a>
                             <form method="post" action="{% url 'toggle_modulo_prenatal' p.usuario.id %}" onclick="event.stopPropagation()" style="display:inline;">
                                 {% csrf_token %}
-                                <input type="hidden" name="next" value="{% url 'lista_pacientes_secretaria' %}">
+                                <input type="hidden" name="next" value="{% url 'lista_pacientes_enfermera' %}">
                                 <input type="hidden" name="activar" value="{% if p.tiene_prenatal %}0{% else %}1{% endif %}">
                                 <button type="submit" class="btn-sm btn-toggle {% if not p.tiene_prenatal %}off{% endif %}">
                                     {% if p.tiene_prenatal %}Desactivar prenatal{% else %}Activar prenatal{% endif %}

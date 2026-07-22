@@ -1,10 +1,10 @@
-{% load static %}
+﻿{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zumedical — Editar Paciente</title>
+    <title>Zumedical — Registrar Paciente</title>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -17,18 +17,18 @@
             --err: #C0392B; --err-bg: #fdf0f0; --err-border: #f5aaaa;
         }
         
-        /* CORRECCIÓN: Fijamos la altura del body y ocultamos su scroll global en escritorio */
+        /* SOLUCIÓN: Congela la ventana global en escritorio */
         body { 
-            font-family:'DM Sans',sans-serif; 
-            background:var(--bg); 
+            font-family: 'DM Sans', sans-serif; 
+            background: var(--bg); 
             height: 100vh;
             max-height: 100vh;
-            display:flex; 
+            display: flex; 
             overflow: hidden; 
-            opacity:0; 
-            animation:pageIn .35s ease .05s forwards; 
+            opacity: 0; 
+            animation: pageIn .35s ease .05s forwards; 
         }
-        
+
         @keyframes pageIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
         @keyframes fadeUp { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
         @keyframes toastIn { from{opacity:0;transform:translateY(16px) scale(.95)} to{opacity:1;transform:translateY(0) scale(1)} }
@@ -36,7 +36,7 @@
         @keyframes spin { to{transform:rotate(360deg)} }
         @keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-5px)} 40%,80%{transform:translateX(5px)} }
 
-        /* SIDEBAR */
+        /* SIDEBAR SOLUCIÓN: Fijado con límites absolutos de arriba a abajo */
         .sidebar {
             width: var(--sw);
             background: linear-gradient(175deg,#8A2563 0%,#B03580 55%,#CC4D99 100%);
@@ -44,82 +44,41 @@
             flex-direction: column;
             position: fixed;
             top: 0;
-            left: 0;
             bottom: 0;
+            left: 0;
             z-index: 200;
-            height: 100vh;
             overflow-y: auto;
-            scrollbar-width: thin;
         }
+        .sb-brand{padding:1.75rem 1.5rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:.75rem}
+        .sb-logo{width:42px;height:42px;background:white;border-radius:50%;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+        .sb-logo img{width:38px;height:38px;object-fit:contain}
+        .sb-brand-text h2{font-family:'Cormorant Garamond',serif;font-size:1.35rem;font-weight:600;color:white;line-height:1}
+        .sb-brand-text span{font-size:.7rem;color:rgba(255,255,255,.65);letter-spacing:.1em;text-transform:uppercase}
+        .sb-user{padding:1.2rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:.75rem;transition:background .2s;text-decoration:none}
+        .sb-user:hover{background:rgba(255,255,255,.1)}
+        .sb-avatar{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:500;color:white;flex-shrink:0;text-transform:uppercase}
+        .sb-user-info{flex:1;min-width:0}
+        .sb-user-info p{font-size:.72rem;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.1rem}
+        .sb-user-info h3{font-size:.88rem;font-weight:500;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .sb-user-chevron svg{width:14px;height:14px;stroke:rgba(255,255,255,.5);fill:none;stroke-width:2}
+        .sb-nav{flex:1;padding:1rem .75rem;overflow-y:auto}
+        .nav-lbl{font-size:.68rem;color:rgba(255,255,255,.45);letter-spacing:.1em;text-transform:uppercase;padding:.5rem .75rem;margin-top:.75rem}
+        .nav-item{display:flex;align-items:center;gap:.7rem;padding:.7rem 1rem;border-radius:10px;color:rgba(255,255,255,.82);text-decoration:none;font-size:.88rem;transition:all .2s;margin-bottom:.2rem}
+        .nav-item:hover,.nav-item.active{background:rgba(255,255,255,.18);color:white}
+        .nav-item svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8;flex-shrink:0}
+        .sb-footer{padding:1rem .75rem;border-top:1px solid rgba(255,255,255,.12);flex-shrink:0;margin-top:auto}
+        .btn-logout{display:flex;align-items:center;gap:.7rem;padding:.7rem 1rem;border-radius:10px;color:rgba(255,255,255,.75);text-decoration:none;font-size:.88rem;transition:all .2s}
+        .btn-logout:hover{background:rgba(255,255,255,.15);color:white}
+        .btn-logout svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8}
 
-        .sidebar::-webkit-scrollbar {
-            width: 4px;
-        }
-        .sidebar::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.25);
-            border-radius: 4px;
-        }
-        .sidebar::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .sb-brand {
-            padding: 1.75rem 1.5rem 1.25rem;
-            border-bottom: 1px solid rgba(255,255,255,.12);
-            display: flex;
-            align-items: center;
-            gap: .75rem;
-            flex-shrink: 0;
-        }
-        .sb-logo { width:42px; height:42px; background:white; border-radius:50%; overflow:hidden; flex-shrink:0; display:flex; align-items:center; justify-content:center }
-        .sb-logo img { width:38px; height:38px; object-fit:contain }
-        .sb-brand-text h2 { font-family:'Cormorant Garamond',serif; font-size:1.35rem; font-weight:600; color:white; line-height:1 }
-        .sb-brand-text span { font-size:.7rem; color:rgba(255,255,255,.65); letter-spacing:.1em; text-transform:uppercase }
-        
-        .sb-user {
-            padding: 1.2rem 1.5rem;
-            border-bottom: 1px solid rgba(255,255,255,.12);
-            display: flex;
-            align-items: center;
-            gap: .75rem;
-            transition: background .2s;
-            text-decoration: none;
-            flex-shrink: 0;
-        }
-        .sb-user:hover { background:rgba(255,255,255,.1) }
-        .sb-avatar { width:38px; height:38px; border-radius:50%; background:rgba(255,255,255,.2); border:1px solid rgba(255,255,255,.3); display:flex; align-items:center; justify-content:center; font-size:.85rem; font-weight:500; color:white; flex-shrink:0; text-transform:uppercase }
-        .sb-user-info { flex:1; min-width:0 }
-        .sb-user-info p { font-size:.72rem; color:rgba(255,255,255,.6); text-transform:uppercase; letter-spacing:.08em; margin-bottom:.1rem }
-        .sb-user-info h3 { font-size:.88rem; font-weight:500; color:white; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
-        .sb-user-chevron svg { width:14px; height:14px; stroke:rgba(255,255,255,.5); fill:none; stroke-width:2 }
-        
-        .sb-nav {
-            flex: 1;
-            padding: 1rem .75rem;
-            overflow-y: visible;
-        }
-        .nav-lbl { font-size:.68rem; color:rgba(255,255,255,.45); letter-spacing:.1em; text-transform:uppercase; padding:.5rem .75rem; margin-top:.75rem }
-        .nav-item { display:flex; align-items:center; gap:.7rem; padding:.7rem 1rem; border-radius:10px; color:rgba(255,255,255,.82); text-decoration:none; font-size:.88rem; transition:all .2s; margin-bottom:.2rem }
-        .nav-item:hover, .nav-item.active { background:rgba(255,255,255,.18); color:white }
-        .nav-item svg { width:17px; height:17px; stroke:currentColor; fill:none; stroke-width:1.8; flex-shrink:0 }
-        
-        .sb-footer {
-            padding: 1rem .75rem;
-            border-top: 1px solid rgba(255,255,255,.12);
-            flex-shrink: 0;
-            margin-top: auto;
-        }
-        .btn-logout { display:flex; align-items:center; gap:.7rem; padding:.7rem 1rem; border-radius:10px; color:rgba(255,255,255,.75); text-decoration:none; font-size:.88rem; transition:all .2s }
-        .btn-logout:hover { background:rgba(255,255,255,.15); color:white }
-        .btn-logout svg { width:17px; height:17px; stroke:currentColor; fill:none; stroke-width:1.8 }
-
-        /* MAIN CORREGIDO: Añadido scroll vertical autónomo e independiente */
+        /* MAIN SOLUCIÓN: Recibe la altura máxima de pantalla y su propio scroll */
         .main { 
             flex: 1; 
             padding: 2.5rem; 
-            height: 100vh; 
+            height: 100vh;
             overflow-y: auto;
             margin-left: var(--sw);
+            background: var(--bg);
             position: relative;
         }
         .page-header { margin-bottom:2rem; }
@@ -167,13 +126,16 @@
         .input-wrap input.ok  { border-color:#34c47a; box-shadow:0 0 0 3px rgba(26,122,74,.07); }
         .input-wrap input.err { border-color:var(--err); box-shadow:0 0 0 3px rgba(192,57,43,.07); }
 
-        /* ICON RIGHT */
+        /* ICON RIGHT (eye / check / x) */
         .ico-right { position:absolute; right:.75rem; top:50%; transform:translateY(-50%); display:flex; align-items:center; gap:.3rem; }
         .ico-right svg { width:15px; height:15px; fill:none; stroke-width:2; }
         .ico-status { transition:opacity .2s; opacity:0; }
         .ico-status.show { opacity:1; }
         .ico-status.ok svg { stroke:var(--green); }
         .ico-status.err svg { stroke:var(--err); }
+        .toggle-pw { background:none; border:none; cursor:pointer; padding:2px; display:flex; align-items:center; }
+        .toggle-pw svg { width:15px; height:15px; stroke:var(--muted); fill:none; stroke-width:1.8; transition:stroke .15s; }
+        .toggle-pw:hover svg { stroke:var(--mg); }
 
         /* FEEDBACK TEXTS */
         .field-msg { font-size:.75rem; margin-top:.2rem; display:flex; align-items:center; gap:.3rem; min-height:1rem; }
@@ -187,6 +149,19 @@
         .char-count.warn { color:#f59e0b; }
         .char-count.max  { color:var(--err); font-weight:500; }
 
+        /* STRENGTH BAR */
+        .strength-wrap { margin-top:.45rem; }
+        .strength-bar { height:4px; border-radius:4px; background:var(--mg-border); overflow:hidden; margin-bottom:.3rem; }
+        .strength-fill { height:100%; border-radius:4px; transition:width .35s,background .35s; width:0; }
+        .strength-lbl { font-size:.72rem; font-weight:500; }
+
+        /* MATCH */
+        .pw-match { font-size:.75rem; margin-top:.3rem; display:flex; align-items:center; gap:.3rem; opacity:0; transition:opacity .2s; }
+        .pw-match.show { opacity:1; }
+        .pw-match svg { width:12px; height:12px; fill:none; stroke-width:2.5; }
+        .pw-match.ok  { color:var(--green); } .pw-match.ok svg  { stroke:var(--green); }
+        .pw-match.err { color:var(--err);   } .pw-match.err svg { stroke:var(--err);   }
+
         /* ACTIONS */
         .form-actions { margin-top:1.75rem; padding-top:1.5rem; border-top:1px solid var(--mg-border); display:flex; align-items:center; gap:1rem; flex-wrap:wrap; }
         .btn-primary { display:inline-flex; align-items:center; gap:.5rem; padding:.78rem 2rem; background:linear-gradient(135deg,var(--mg-d),var(--mg-l)); color:white; border:none; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:.9rem; font-weight:500; cursor:pointer; transition:opacity .2s,transform .15s,box-shadow .2s; box-shadow:0 4px 14px rgba(176,53,128,.25); }
@@ -197,6 +172,7 @@
         .btn-primary.loading .spinner { display:block; }
         .btn-primary.loading .btn-ico { display:none; }
         .btn-primary.loading { opacity:.75; pointer-events:none; }
+        .btn-primary:disabled { opacity:.5; pointer-events:none; }
         .btn-back { display:inline-flex; align-items:center; gap:.35rem; color:var(--muted); text-decoration:none; font-size:.875rem; transition:color .2s; }
         .btn-back:hover { color:var(--mg); }
         .btn-back svg { width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:2; }
@@ -221,7 +197,7 @@
         .preview-name { font-size:.95rem; font-weight:500; color:var(--text); }
         .preview-meta { font-size:.78rem; color:var(--muted); margin-top:.15rem; }
 
-        /* MOBILE TOPBAR & RESPONSIVE CORREGIDO */
+        /* MOBILE TOPBAR & RESPONSIVE CONSTRAINTS */
         .mobile-topbar{display:none;position:fixed;top:0;left:0;right:0;height:56px;background:linear-gradient(90deg,#8A2563,#B03580);align-items:center;justify-content:space-between;padding:0 1rem;z-index:300;}
         .mobile-topbar-brand{display:flex;align-items:center;gap:.6rem;}
         .mobile-topbar-brand img{width:32px;height:32px;border-radius:50%;object-fit:contain;background:white;padding:2px;}
@@ -233,7 +209,7 @@
         .hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
         .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:150;}
         .sidebar-overlay.active{display:block;}
-        
+
         @media(max-width:768px){
             body {
                 overflow: auto;
@@ -241,16 +217,9 @@
                 max-height: none;
             }
             .mobile-topbar{display:flex;}
-            .sidebar{transform:translateX(-100%);transition:transform .28s ease;top:56px;height:calc(100vh - 56px);}
+            .sidebar{transform:translateX(-100%);transition:transform .28s ease;top:56px;height:calc(100vh - 56px);position:fixed;}
             .sidebar.open{transform:translateX(0);}
-            .main{
-                margin-left:0!important;
-                padding:1.25rem;
-                padding-top:calc(56px + 1.25rem);
-                height:auto;
-                min-height:100vh;
-                overflow-y:visible;
-            }
+            .main{margin-left:0!important;padding:1.25rem;padding-top:calc(56px + 1.25rem);height:auto;min-height:100vh;overflow-y:visible;}
             .form-grid{grid-template-columns:1fr;}
             .form-card{padding:1.25rem;}
         }
@@ -265,6 +234,11 @@
         <img src="{% static 'img/Logo.png' %}" alt="Zumedical">
         <span>Zumedical</span>
     </div>
+    <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
 </div>
 
 <div class="toast-ct" id="toast-ct"></div>
@@ -274,23 +248,23 @@
         <div class="sb-logo"><img src="{% static 'img/Logo.png' %}" alt="Zumedical"></div>
         <div class="sb-brand-text"><h2>Zumedical</h2><span>Secretaría</span></div>
     </div>
-    <a href="{% url 'perfil_secretaria' %}" class="sb-user">
+    <a href="{% url 'perfil_enfermera' %}" class="sb-user">
         <div class="sb-avatar">{% if request.user.first_name %}{{ request.user.first_name|slice:":1" }}{{ request.user.last_name|slice:":1" }}{% else %}{{ request.user.username|slice:":1"|upper }}{% endif %}</div>
         <div class="sb-user-info"><p>Mi perfil</p><h3>{{ request.user.get_full_name|default:request.user.username }}</h3></div>
         <div class="sb-user-chevron"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
     </a>
     <nav class="sb-nav">
         <div class="nav-lbl">Menú</div>
-        <a href="{% url 'secretaria_dashboard' %}" class="nav-item">
+        <a href="{% url 'enfermera_dashboard' %}" class="nav-item">
             <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Inicio
         </a>
-        <a href="{% url 'lista_pacientes_secretaria' %}" class="nav-item active">
+        <a href="{% url 'lista_pacientes_enfermera' %}" class="nav-item active">
             <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Ver Pacientes
         </a>
-        <a href="{% url 'agendar_cita_secretaria' %}" class="nav-item">
+        <a href="{% url 'agendar_cita_enfermera' %}" class="nav-item">
             <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Agendar Cita
         </a>
-        <a href="{% url 'citas_secretaria' %}" class="nav-item">
+        <a href="{% url 'citas_enfermera' %}" class="nav-item">
             <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Ver Citas
         </a>
     </nav>
@@ -304,27 +278,43 @@
 <main class="main">
     <div class="page-header" style="display:flex;align-items:flex-end;gap:1.25rem;flex-wrap:wrap;margin-bottom:2rem">
         <div>
-            <h1>Editar paciente</h1>
-            <p>Modifica la información general de la cuenta del paciente</p>
+            <h1>Registrar paciente</h1>
+            <p>Crea una nueva cuenta de paciente en el sistema</p>
+            {% if tipo == 'prenatal' %}
+            <span style="display:inline-flex;align-items:center;gap:.4rem;margin-top:.5rem;padding:.3rem .9rem;background:#FBF0F7;color:#8A2563;border:1px solid #E8AAD4;border-radius:20px;font-size:.78rem;font-weight:500">
+                <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2"><circle cx="12" cy="12" r="10"/><path d="M8 12s1 4 4 4 4-4 4-4"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                Paciente Prenatal
+            </span>
+            {% elif tipo == 'general' %}
+            <span style="display:inline-flex;align-items:center;gap:.4rem;margin-top:.5rem;padding:.3rem .9rem;background:#EDE7F6;color:#5b3a8a;border:1px solid #b39ddb;border-radius:20px;font-size:.78rem;font-weight:500">
+                <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                Paciente General
+            </span>
+            {% endif %}
         </div>
-        <a href="{% url 'lista_pacientes_secretaria' %}" style="display:inline-flex;align-items:center;gap:.4rem;padding:.6rem 1.2rem;background:#fff;color:var(--mg);border:1.5px solid var(--mg-border);border-radius:10px;text-decoration:none;font-size:.85rem;font-weight:500;transition:all .2s">
+        <a href="{% url 'lista_pacientes_enfermera' %}" style="display:inline-flex;align-items:center;gap:.4rem;padding:.6rem 1.2rem;background:#fff;color:var(--mg);border:1.5px solid var(--mg-border);border-radius:10px;text-decoration:none;font-size:.85rem;font-weight:500;transition:all .2s">
             <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
             Volver
         </a>
     </div>
 
-    <div class="form-progress">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--mg)" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-        {% if messages %}
-        {% for msg in messages %}
-        <div class="alert {% if msg.tags == 'error' %}alert-error{% else %}alert-success{% endif %}" style="margin-bottom:1rem;max-width:none;">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            {{ msg }}
+    {% if messages %}
+        {% for message in messages %}
+        <div class="alert {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">
+            {% if message.tags == 'error' %}
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            {% else %}
+                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            {% endif %}
+            {{ message }}
         </div>
         {% endfor %}
-        {% endif %}
+    {% endif %}
+
+    <div class="form-progress">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--mg)" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
         <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
-        <div class="progress-label"><strong id="prog-text">0</strong> / 6 campos</div>
+        <div class="progress-label"><strong id="prog-text">0</strong> / 8 campos</div>
     </div>
 
     <div class="preview-card" id="preview-card">
@@ -342,58 +332,73 @@
             <div class="form-section">
                 <div class="section-label">
                     <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                    Datos personales modificables
+                    Datos personales
                 </div>
                 <div class="form-grid">
+
                     <div class="form-group">
                         <label for="first_name">Nombre <span class="label-right char-count" id="cc-fn">0/20</span></label>
                         <div class="input-wrap">
                             <svg class="ico" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                            <input type="text" name="first_name" id="first_name" placeholder="Nombre" maxlength="20" value="{{ form.first_name.value|default:'' }}" autocomplete="off">
+                            <input type="text" name="first_name" id="first_name" placeholder="Nombre de la paciente" maxlength="20" value="{{ form.first_name.value|default:'' }}" autocomplete="off">
                             <div class="ico-right"><span class="ico-status" id="st-fn"><svg viewBox="0 0 24 24"></svg></span></div>
                         </div>
                         <div class="field-msg hint" id="msg-fn">Solo letras, máx. 20 caracteres</div>
+                        {% if form.first_name.errors %}<div class="field-msg err"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>{{ form.first_name.errors.0 }}</div>{% endif %}
                     </div>
 
                     <div class="form-group">
                         <label for="last_name">Apellidos <span class="label-right char-count" id="cc-ln">0/20</span></label>
                         <div class="input-wrap">
                             <svg class="ico" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                            <input type="text" name="last_name" id="last_name" placeholder="Apellidos" maxlength="20" value="{{ form.last_name.value|default:'' }}" autocomplete="off">
+                            <input type="text" name="last_name" id="last_name" placeholder="Apellidos de la paciente" maxlength="20" value="{{ form.last_name.value|default:'' }}" autocomplete="off">
                             <div class="ico-right"><span class="ico-status" id="st-ln"><svg viewBox="0 0 24 24"></svg></span></div>
                         </div>
                         <div class="field-msg hint" id="msg-ln">Solo letras, máx. 20 caracteres</div>
+                        {% if form.last_name.errors %}<div class="field-msg err"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>{{ form.last_name.errors.0 }}</div>{% endif %}
                     </div>
 
                     <div class="form-group">
-                        <label for="cedula">Cédula <span class="label-right char-count" id="cc-ced">{% with v=paciente.paciente.cedula|default:"" %}{{ v|length }}{% endwith %}/10</span></label>
+                        <label for="cedula">Cédula <span class="label-right char-count" id="cc-ced">0/10</span></label>
                         <div class="input-wrap">
                             <svg class="ico" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-                            <input type="text" name="cedula" id="cedula" placeholder="0000000000" maxlength="10" inputmode="numeric" value="{{ paciente.paciente.cedula|default:'' }}" autocomplete="off">
-                            {% if error_cedula %}<span style="color:#b03030;font-size:.78rem;display:flex;align-items:center;gap:.3rem;margin-top:.3rem;"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Cédula ya registrada en otro paciente</span>{% endif %}
+                            <input type="text" name="cedula" id="cedula" placeholder="0000000000" maxlength="10" inputmode="numeric" value="{{ form.cedula.value|default:'' }}" autocomplete="off">
                             <div class="ico-right"><span class="ico-status" id="st-ced"><svg viewBox="0 0 24 24"></svg></span></div>
                         </div>
                         <div class="field-msg hint" id="msg-ced">10 dígitos numéricos</div>
+                        {% if form.cedula.errors %}<div class="field-msg err"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>{{ form.cedula.errors.0 }}</div>{% endif %}
                     </div>
 
                     <div class="form-group">
-                        <label for="telefono">Teléfono <span class="label-right char-count" id="cc-tel">{% with v=paciente.paciente.telefono|default:"" %}{{ v|length }}{% endwith %}/10</span></label>
+                        <label for="telefono">Teléfono <span class="label-right char-count" id="cc-tel">0/10</span></label>
                         <div class="input-wrap">
                             <svg class="ico" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.18 6.18l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                            <input type="tel" name="telefono" id="telefono" placeholder="09XXXXXXXX" maxlength="10" inputmode="numeric" value="{{ paciente.paciente.telefono|default:'' }}" autocomplete="off">
+                            <input type="tel" name="telefono" id="telefono" placeholder="09XXXXXXXX" maxlength="10" inputmode="numeric" value="{{ form.telefono.value|default:'' }}" autocomplete="off">
                             <div class="ico-right"><span class="ico-status" id="st-tel"><svg viewBox="0 0 24 24"></svg></span></div>
                         </div>
                         <div class="field-msg hint" id="msg-tel">10 dígitos (ej: 0987654321)</div>
+                        {% if form.telefono.errors %}<div class="field-msg err"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>{{ form.telefono.errors.0 }}</div>{% endif %}
                     </div>
+
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="section-label">
+                    <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    Datos de acceso
+                </div>
+                <div class="form-grid">
 
                     <div class="form-group full">
                         <label for="username">Usuario</label>
                         <div class="input-wrap">
                             <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-                            <input type="text" name="username" id="username" placeholder="Nombre de usuario" value="{{ form.username.value|default:'' }}" autocomplete="off">
+                            <input type="text" name="username" id="username" placeholder="Elige un nombre de usuario" value="{{ form.username.value|default:'' }}" autocomplete="off">
                             <div class="ico-right"><span class="ico-status" id="st-usr"><svg viewBox="0 0 24 24"></svg></span></div>
                         </div>
                         <div class="field-msg hint" id="msg-usr">Letras, números y _ (mín. 4 caracteres)</div>
+                        {% if form.username.errors %}<div class="field-msg err"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>{{ form.username.errors.0 }}</div>{% endif %}
                     </div>
 
                     <div class="form-group full">
@@ -404,19 +409,57 @@
                             <div class="ico-right"><span class="ico-status" id="st-email"><svg viewBox="0 0 24 24"></svg></span></div>
                         </div>
                         <div class="field-msg hint" id="msg-email">ejemplo@dominio.com</div>
+                        {% if form.email.errors %}<div class="field-msg err"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>{{ form.email.errors.0 }}</div>{% endif %}
                     </div>
+
+                    <div class="form-group">
+                        <label for="password1">Contraseña</label>
+                        <div class="input-wrap">
+                            <svg class="ico" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                            <input type="password" name="password1" id="password1" placeholder="Crea una contraseña" autocomplete="new-password">
+                            <div class="ico-right">
+                                <button type="button" class="toggle-pw" onclick="togglePw('password1',this)" tabindex="-1">
+                                    <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="strength-wrap" id="sw-wrap" style="display:none">
+                            <div class="strength-bar"><div class="strength-fill" id="sw-fill"></div></div>
+                            <span class="strength-lbl" id="sw-lbl"></span>
+                        </div>
+                        {% if form.password1.errors %}<div class="field-msg err"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>{{ form.password1.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password2">Confirmar contraseña</label>
+                        <div class="input-wrap">
+                            <svg class="ico" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                            <input type="password" name="password2" id="password2" placeholder="Repite la contraseña" autocomplete="new-password">
+                            <div class="ico-right">
+                                <button type="button" class="toggle-pw" onclick="togglePw('password2',this)" tabindex="-1">
+                                    <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="pw-match" id="pw-match">
+                            <svg id="pm-ico" viewBox="0 0 24 24"></svg>
+                            <span id="pm-txt"></span>
+                        </div>
+                        {% if form.password2.errors %}<div class="field-msg err"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>{{ form.password2.errors.0 }}</div>{% endif %}
+                    </div>
+
                 </div>
             </div>
 
             <div class="form-actions">
                 <button type="submit" class="btn-primary" id="btn-reg">
                     <div class="spinner"></div>
-                    <svg class="btn-ico" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-                    Guardar cambios
+                    <svg class="btn-ico" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/></svg>
+                    Registrar paciente
                 </button>
-                <a href="{% url 'lista_pacientes_secretaria' %}" class="btn-back">
+                <a href="{% url 'enfermera_dashboard' %}" class="btn-back">
                     <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-                    Cancelar y regresar
+                    Volver al panel
                 </a>
             </div>
         </form>
@@ -424,48 +467,64 @@
 </main>
 
 <script>
+// ══════════════════════════════════════
+//  ZUMEDICAL — REGISTRAR PACIENTE (JS)
+// ══════════════════════════════════════
+
 var ICO_OK  = '<polyline points="20 6 9 17 4 12"/>';
 var ICO_ERR = '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>';
 
+// ── TOAST ──
 function toast(msg, type){
     var ct = document.getElementById('toast-ct');
     var t = document.createElement('div');
     t.className = 'toast t-' + (type||'inf');
     var icons = {
         ok:  '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>',
-        err: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>'
+        err: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+        inf: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
     };
-    t.innerHTML = (icons[type]||'') + msg;
+    t.innerHTML = (icons[type]||icons.inf) + msg;
     ct.appendChild(t);
     setTimeout(function(){ t.classList.add('out'); setTimeout(function(){ t.remove(); }, 200); }, 3200);
 }
 
-function setStatus(id, state){
+// ── STATUS ICON ──
+function setStatus(id, state){ // state: 'ok'|'err'|''
     var el = document.getElementById('st-' + id);
     if(!el) return;
     el.className = 'ico-status' + (state ? ' show ' + state : '');
     el.querySelector('svg').innerHTML = state === 'ok' ? ICO_OK : state === 'err' ? ICO_ERR : '';
 }
 
-function setMsg(id, txt, cls){
+// ── FIELD MSG ──
+function setMsg(id, txt, cls){ // cls: 'ok'|'err'|'hint'
     var el = document.getElementById('msg-' + id);
     if(!el) return;
     el.className = 'field-msg ' + (cls||'hint');
-    el.innerHTML = txt ? (cls === 'ok' ? '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>' + txt : cls === 'err' ? '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>' + txt : txt) : '';
+    el.innerHTML = txt ? (cls === 'ok'
+        ? '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>' + txt
+        : cls === 'err'
+        ? '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>' + txt
+        : txt) : '';
 }
 
-function setInputState(inputEl, state){
+// ── INPUT STATE ──
+function setInputState(inputEl, state){ // state: 'ok'|'err'|''
     inputEl.classList.remove('ok','err');
     if(state) inputEl.classList.add(state);
 }
 
+// ── CHAR COUNTER ──
 function updateCC(id, len, max){
     var el = document.getElementById('cc-' + id);
     if(!el) return;
     el.textContent = len + '/' + max;
+    el.className = 'label-right char-count' + (len >= max ? ' max' : len >= max * 0.75 ? ' warn' : '');
 }
 
-var TOTAL_FIELDS = 6;
+// ── PROGRESS ──
+var TOTAL_FIELDS = 8;
 var fieldValid = {};
 function updateProgress(){
     var count = Object.values(fieldValid).filter(Boolean).length;
@@ -478,56 +537,140 @@ function setValid(key, val){
     updateProgress();
 }
 
+// ── PREVIEW CARD ──
 function updatePreview(){
     var fn = (document.getElementById('first_name').value||'').trim();
     var ln = (document.getElementById('last_name').value||'').trim();
+    var ced = (document.getElementById('cedula').value||'').trim();
+    var tel = (document.getElementById('telefono').value||'').trim();
     var card = document.getElementById('preview-card');
     if(!fn && !ln){ card.classList.remove('show'); return; }
     card.classList.add('show');
-    document.getElementById('prev-name').textContent = fn + ' ' + ln;
-    document.getElementById('prev-av').textContent = (fn.slice(0,1) + ln.slice(0,1)).toUpperCase();
+    var full = (fn + ' ' + ln).trim();
+    var ini = (fn.slice(0,1) + (ln.slice(0,1)||'')).toUpperCase() || '?';
+    document.getElementById('prev-av').textContent = ini;
+    document.getElementById('prev-name').textContent = full || '—';
+    var meta = [];
+    if(ced) meta.push('CI: ' + ced);
+    if(tel) meta.push('Tel: ' + tel);
+    document.getElementById('prev-meta').textContent = meta.join('  ·  ') || 'Completa los datos para ver el resumen';
 }
 
+// ── SOLO LETRAS ──
 function validarLetras(input, key, ccId){
     var val = input.value;
     var clean = val.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ \-]/g, '');
-    if(clean !== val) input.value = clean;
+    if(clean !== val){ input.value = clean; input.style.animation='shake .3s ease'; setTimeout(function(){ input.style.animation=''; }, 300); }
     updateCC(ccId, clean.length, 20);
     var ok = clean.trim().length >= 2;
-    setInputState(input, ok ? 'ok' : 'err');
-    setStatus(key, ok ? 'ok' : 'err');
-    setMsg(key, ok ? 'Válido' : 'Mínimo 2 letras', ok ? 'ok' : 'err');
+    setInputState(input, clean.length > 0 ? (ok ? 'ok' : 'err') : '');
+    setStatus(key, clean.length > 0 ? (ok ? 'ok' : 'err') : '');
+    setMsg(key, clean.length > 0 ? (ok ? 'Nombre válido' : 'Mínimo 2 letras') : 'Solo letras, máx. 20 caracteres', clean.length > 0 ? (ok ? 'ok' : 'err') : 'hint');
     setValid(key, ok);
     updatePreview();
 }
 
-function validarDigitos(input, key, ccId, exactLen){
+// ── SOLO DÍGITOS (cédula / tel) ──
+function validarDigitos(input, key, ccId, exactLen, label){
     var clean = input.value.replace(/\D/g, '').slice(0, exactLen);
     if(input.value !== clean) input.value = clean;
     updateCC(ccId, clean.length, exactLen);
     var ok = clean.length === exactLen;
-    setInputState(input, ok ? 'ok' : 'err');
-    setStatus(key, ok ? 'ok' : 'err');
-    setMsg(key, ok ? 'Válido' : 'Faltan dígitos', ok ? 'ok' : 'err');
+    setInputState(input, clean.length > 0 ? (ok ? 'ok' : 'err') : '');
+    setStatus(key, clean.length > 0 ? (ok ? 'ok' : 'err') : '');
+    var msg = clean.length === 0 ? (exactLen + ' dígitos numéricos') : ok ? (label + ' válido') : ('Faltan ' + (exactLen - clean.length) + ' dígito' + (exactLen - clean.length !== 1 ? 's' : ''));
+    setMsg(key, msg, clean.length === 0 ? 'hint' : ok ? 'ok' : 'err');
     setValid(key, ok);
+    updatePreview();
 }
 
+// ── USUARIO ──
 function validarUsuario(input){
     var val = input.value.trim();
-    var ok = val.length >= 4;
-    setInputState(input, ok ? 'ok' : 'err');
-    setStatus('usr', ok ? 'ok' : 'err');
+    var clean = val.replace(/[^a-zA-Z0-9_]/g, '');
+    if(val !== clean) input.value = clean;
+    var ok = clean.length >= 4 && /^[a-zA-Z0-9_]+$/.test(clean);
+    setInputState(input, clean.length > 0 ? (ok ? 'ok' : 'err') : '');
+    setStatus('usr', clean.length > 0 ? (ok ? 'ok' : 'err') : '');
+    var msg = clean.length === 0 ? 'Letras, números y _ (mín. 4 caracteres)'
+        : clean.length < 4 ? 'Mínimo 4 caracteres'
+        : ok ? 'Usuario válido' : 'Solo letras, números y guion bajo';
+    setMsg('usr', msg, clean.length === 0 ? 'hint' : ok ? 'ok' : 'err');
     setValid('usr', ok);
 }
 
+// ── EMAIL ──
 function validarEmail(input){
     var val = input.value.trim();
     var ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
-    setInputState(input, ok ? 'ok' : 'err');
-    setStatus('email', ok ? 'ok' : 'err');
+    setInputState(input, val.length > 0 ? (ok ? 'ok' : 'err') : '');
+    setStatus('email', val.length > 0 ? (ok ? 'ok' : 'err') : '');
+    setMsg('email', val.length === 0 ? 'ejemplo@dominio.com' : ok ? 'Correo válido' : 'Formato incorrecto (ej: nombre@correo.com)', val.length === 0 ? 'hint' : ok ? 'ok' : 'err');
     setValid('email', ok);
 }
 
+// ── TOGGLE OJO ──
+function togglePw(id, btn){
+    var inp = document.getElementById(id);
+    var svg = btn.querySelector('svg');
+    if(inp.type === 'password'){
+        inp.type = 'text';
+        svg.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+    } else {
+        inp.type = 'password';
+        svg.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+    }
+}
+
+// ── FORTALEZA ──
+function checkStrength(val){
+    var s = 0;
+    if(val.length >= 8)  s++;
+    if(val.length >= 12) s++;
+    if(/[A-Z]/.test(val)) s++;
+    if(/[0-9]/.test(val)) s++;
+    if(/[^a-zA-Z0-9]/.test(val)) s++;
+    return s;
+}
+function updateStrength(val){
+    var wrap = document.getElementById('sw-wrap');
+    var fill = document.getElementById('sw-fill');
+    var lbl  = document.getElementById('sw-lbl');
+    if(!val){ wrap.style.display='none'; setValid('pw1',false); return; }
+    wrap.style.display = 'block';
+    var s = checkStrength(val);
+    var cfgs = [
+        {w:'15%', bg:'#ef4444', txt:'Muy débil',  col:'#ef4444'},
+        {w:'32%', bg:'#f97316', txt:'Débil',       col:'#f97316'},
+        {w:'55%', bg:'#f59e0b', txt:'Regular',     col:'#92400e'},
+        {w:'78%', bg:'#84cc16', txt:'Buena',       col:'#365314'},
+        {w:'100%',bg:'#22c55e', txt:'Muy segura',  col:'#14532d'}
+    ];
+    var c = cfgs[Math.max(0,Math.min(s-1,4))];
+    fill.style.width = c.w; fill.style.background = c.bg;
+    lbl.textContent = c.txt; lbl.style.color = c.col;
+    setValid('pw1', val.length >= 8);
+    checkMatch();
+}
+
+// ── MATCH ──
+function checkMatch(){
+    var p1 = document.getElementById('password1').value;
+    var p2 = document.getElementById('password2').value;
+    var el  = document.getElementById('pw-match');
+    var ico = document.getElementById('pm-ico');
+    var txt = document.getElementById('pm-txt');
+    var p2inp = document.getElementById('password2');
+    if(!p2){ el.className='pw-match'; setValid('pw2',false); return; }
+    var ok = p1 === p2;
+    el.className = 'pw-match show ' + (ok ? 'ok' : 'err');
+    ico.innerHTML = ok ? ICO_OK : ICO_ERR;
+    txt.textContent = ok ? 'Las contraseñas coinciden' : 'Las contraseñas no coinciden';
+    setInputState(p2inp, ok ? 'ok' : 'err');
+    setValid('pw2', ok);
+}
+
+// ── WIRING ──
 document.addEventListener('DOMContentLoaded', function(){
     var fn  = document.getElementById('first_name');
     var ln  = document.getElementById('last_name');
@@ -535,28 +678,59 @@ document.addEventListener('DOMContentLoaded', function(){
     var tel = document.getElementById('telefono');
     var usr = document.getElementById('username');
     var em  = document.getElementById('email');
+    var p1  = document.getElementById('password1');
+    var p2  = document.getElementById('password2');
 
     fn.addEventListener('input',  function(){ validarLetras(this,'fn','fn'); });
     ln.addEventListener('input',  function(){ validarLetras(this,'ln','ln'); });
-    ced.addEventListener('input', function(){ validarDigitos(this,'ced','ced',10); });
-    tel.addEventListener('input', function(){ validarDigitos(this,'tel','tel',10); });
+    ced.addEventListener('input', function(){ validarDigitos(this,'ced','ced',10,'Cédula'); });
+    tel.addEventListener('input', function(){ validarDigitos(this,'tel','tel',10,'Teléfono'); });
     usr.addEventListener('input', function(){ validarUsuario(this); });
     em.addEventListener('input',  function(){ validarEmail(this); });
+    p1.addEventListener('input',  function(){ updateStrength(this.value); });
+    p2.addEventListener('input',  checkMatch);
 
-    validarLetras(fn,'fn','fn');
-    validarLetras(ln,'ln','ln');
-    validarDigitos(ced,'ced','ced',10);
-    validarDigitos(tel,'tel','tel',10);
-    validarUsuario(usr);
-    validarEmail(em);
+    // init si hay valores previos (error Django)
+    if(fn.value)  validarLetras(fn,'fn','fn');
+    if(ln.value)  validarLetras(ln,'ln','ln');
+    if(ced.value) validarDigitos(ced,'ced','ced',10,'Cédula');
+    if(tel.value) validarDigitos(tel,'tel','tel',10,'Teléfono');
+    if(usr.value) validarUsuario(usr);
+    if(em.value)  validarEmail(em);
 
+    // ── SUBMIT ──
     document.getElementById('reg-form').addEventListener('submit', function(e){
-        if(Object.values(fieldValid).filter(Boolean).length < TOTAL_FIELDS){
+        var errs = [];
+        if(!fieldValid.fn)    errs.push('Nombre inválido');
+        if(!fieldValid.ln)    errs.push('Apellidos inválidos');
+        if(!fieldValid.ced)   errs.push('Cédula inválida (10 dígitos)');
+        if(!fieldValid.tel)   errs.push('Teléfono inválido (10 dígitos)');
+        if(!fieldValid.usr)   errs.push('Usuario inválido');
+        if(!fieldValid.email) errs.push('Correo inválido');
+        if(!fieldValid.pw1)   errs.push('Contraseña muy corta');
+        if(!fieldValid.pw2)   errs.push('Las contraseñas no coinciden');
+
+        if(errs.length > 0){
             e.preventDefault();
-            toast('Por favor, verifique los campos incorrectos antes de guardar', 'err');
-        } else {
-            document.getElementById('btn-reg').classList.add('loading');
+            toast(errs[0], 'err');
+            // shake invalid inputs
+            ['first_name','last_name','cedula','telefono','username','email','password1','password2'].forEach(function(id){
+                var inp = document.getElementById(id);
+                if(inp && inp.classList.contains('err')){
+                    inp.style.animation = 'shake .3s ease';
+                    setTimeout(function(){ inp.style.animation=''; }, 350);
+                }
+            });
+            return;
         }
+        var btn = document.getElementById('btn-reg');
+        btn.classList.add('loading');
+    });
+
+    // Toast for Django messages
+    document.querySelectorAll('.alert').forEach(function(a){
+        var isErr = a.classList.contains('alert-error');
+        toast(a.innerText.trim(), isErr ? 'err' : 'ok');
     });
 });
 </script>

@@ -126,7 +126,7 @@ tbody tr.inactivo td{opacity:0.55}
 .badge::before{content:'';width:5px;height:5px;border-radius:50%;flex-shrink:0}
 .badge-admin{background:#FBF0F7;color:#8A2563;border:1px solid #E8AAD4}.badge-admin::before{background:#8A2563}
 .badge-medico{background:#E8F5E9;color:#2E7D32;border:1px solid #A5D6A7}.badge-medico::before{background:#2E7D32}
-.badge-secretaria{background:#E3F2FD;color:#1565C0;border:1px solid #90CAF9}.badge-secretaria::before{background:#1565C0}
+.badge-enfermera{background:#E3F2FD;color:#1565C0;border:1px solid #90CAF9}.badge-enfermera::before{background:#1565C0}
 .badge-paciente{background:#FFF3E0;color:#E65100;border:1px solid #FFCC80}.badge-paciente::before{background:#E65100}
 .badge-other{background:#F5F5F5;color:#616161;border:1px solid #E0E0E0}.badge-other::before{background:#9E9E9E}
 
@@ -318,7 +318,7 @@ tbody tr.inactivo td{opacity:0.55}
       <button class="filter-btn active" data-filter="todos">Todos</button>
       <button class="filter-btn" data-filter="admin">Admin</button>
       <button class="filter-btn" data-filter="medico">Médico</button>
-      <button class="filter-btn" data-filter="secretaria">Secretaria</button>
+      <button class="filter-btn" data-filter="enfermera">Enfermera</button>
       <button class="filter-btn" data-filter="paciente">Paciente</button>
       <span class="table-count-pill" id="countPill">{{ usuarios|length }} usuarios</span>
     </div>
@@ -361,7 +361,7 @@ tbody tr.inactivo td{opacity:0.55}
             <td>
               {% if u.rol == 'admin' %}<span class="badge badge-admin">Admin</span>
               {% elif u.rol == 'medico' %}<span class="badge badge-medico">Médico</span>
-              {% elif u.rol == 'secretaria' %}<span class="badge badge-secretaria">Secretaria</span>
+              {% elif u.rol == 'enfermera' %}<span class="badge badge-enfermera">Enfermera</span>
               {% elif u.rol == 'paciente' %}<span class="badge badge-paciente">Paciente</span>
               {% else %}<span class="badge badge-other">{{ u.rol|default:"—" }}</span>{% endif %}
             </td>
@@ -508,7 +508,7 @@ function closeSidebar() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-  var ROLES = {admin:'Administrador',medico:'Médico',secretaria:'Secretaria',paciente:'Paciente'};
+  var ROLES = {admin:'Administrador',medico:'Médico',enfermera:'Enfermera',paciente:'Paciente'};
 
   // STATS dinámicos
   var rows = document.querySelectorAll('#usersTable tbody tr');

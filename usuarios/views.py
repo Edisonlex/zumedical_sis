@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth import get_user_model
-from .forms import RegistroPacienteForm, CitaForm, CitaSecretariaForm, ControlPrenatalForm, EditarPacienteSecretariaForm
+from .forms import RegistroPacienteForm, CitaForm, CitaEnfermeraForm, ControlPrenatalForm, EditarPacienteEnfermeraForm
 from .models import Usuario, LogAuditoria
 from citas.models import Cita
 from datetime import time, timedelta
@@ -152,13 +152,13 @@ def admin_required(view_func):
     return wrapper
 
 
-def secretaria_required(view_func):
-    """Decorator: solo secretarias pueden acceder."""
+def enfermera_required(view_func):
+    """Decorator: solo enfermeras pueden acceder."""
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated:
             return redirect('login')
-        if request.user.rol != 'secretaria':
+        if request.user.rol != 'enfermera':
             return redireccionar_por_rol(request.user)
         return view_func(request, *args, **kwargs)
     return wrapper
@@ -211,7 +211,7 @@ def login_view(request):
             # Si es paciente, check tipo esperado
             if user.rol == 'paciente':
                 if tipo_esperado == 'prenatal' and not user.puede_prenatal:
-                    messages.info(request, 'Tu cuenta no tiene el módulo prenatal activo. Solicita a la secretaria que lo active.')
+                    messages.info(request, 'Tu cuenta no tiene el módulo prenatal activo. Solicita a la enfermera que lo active.')
             
             return redireccionar_por_rol(user)
         else:
@@ -254,8 +254,8 @@ def redireccionar_por_rol(user):
         return redirect('admin_dashboard')
     elif user.rol == 'medico':
         return redirect('medico_dashboard')
-    elif user.rol == 'secretaria':
-        return redirect('secretaria_dashboard')
+    elif user.rol == 'enfermera':
+        return redirect('enfermera_dashboard')
     elif user.rol == 'paciente':
         # Si es general pura, va al dashboard general
         # Si tiene módulo prenatal activo (sea general o prenatal), va al dashboard prenatal
@@ -376,8 +376,8 @@ def medico_dashboard(request):
  
 @login_required
 @no_cache_view
-def secretaria_dashboard(request):
-    if request.user.rol != 'secretaria':
+def enfermera_dashboard(request):
+    if request.user.rol != 'enfermera':
         return redireccionar_por_rol(request.user)
 
     # ── AUTO-CANCELAR citas pendientes (30 min de margen) ──
@@ -385,7 +385,7 @@ def secretaria_dashboard(request):
     hoy = timezone.now().date()
 
     from pacientes.models import Paciente
-    return render(request, 'secretaria/dashboard_secretaria.html', {
+    return render(request, 'enfermera/dashboard_enfermera.html', {
         'total_citas':      Cita.objects.count(),
         'citas_pendientes': Cita.objects.filter(estado='pendiente').count(),
         'citas_atendidas':  Cita.objects.filter(estado='atendido').count(),
@@ -537,6 +537,7 @@ def mi_perfil(request):
 @paciente_prenatal_required
 @no_cache_view
 def agendar_cita(request):
+    from datetime import datetime
     # paciente_prenatal_required ya valida rol y tipo_paciente
 
     from medicos.models import Medico
@@ -598,16 +599,15 @@ def agendar_cita(request):
         for e in errores:
             messages.error(request, e)
 
-    # Horas disponibles para precarga (todas)
-    horas = [
-        '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
-        '12:00', '12:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30',
-    ]
+    # Horas disponibles default (se actualizan via AJAX según día seleccionado)
+    horas_semana = [h.strftime("%H:%M") for h in HORAS_DISPONIBLES_SEMANA]
+    horas_finde = [h.strftime("%H:%M") for h in HORAS_DISPONIBLES_FINDE]
 
     return render(request, 'paciente/agendar_cita.html', {
         'medicos': medicos_prenatales,
         'especialidades': especialidades_prenatales,
-        'horas': horas,
+        'horas_semana': horas_semana,
+        'horas_finde': horas_finde,
     })
  
 @paciente_prenatal_required
@@ -874,7 +874,7 @@ def pacientes_medico(request):
 
 @login_required
 def activar_embarazo(request, paciente_id):
-    if request.user.rol not in ['medico', 'secretaria', 'admin']:
+    if request.user.rol not in ['medico', 'enfermera', 'admin']:
         return redirect('landing')
     
     from pacientes.models import Paciente
@@ -904,7 +904,7 @@ def activar_embarazo(request, paciente_id):
 
 @login_required
 def desactivar_embarazo(request, paciente_id):
-    if request.user.rol not in ['medico', 'secretaria', 'admin']:
+    if request.user.rol not in ['medico', 'enfermera', 'admin']:
         return redirect('landing')
 
     from pacientes.models import Paciente
@@ -1153,7 +1153,7 @@ def historial_prenatal(request):
  
 @login_required
 def registrar_paciente(request, tipo='prenatal'):
-    if request.user.rol != 'secretaria':
+    if request.user.rol != 'enfermera':
         return redireccionar_por_rol(request.user)
 
     # Validar tipo
@@ -1168,7 +1168,7 @@ def registrar_paciente(request, tipo='prenatal'):
             # Verifica si el usuario ya existe
             if User.objects.filter(username=username).exists():
                 messages.error(request, f'Ya existe una paciente con el usuario "{username}". Por favor elige otro.')
-                return render(request, 'secretaria/registrar_paciente.html', {'form': form, 'tipo': tipo})
+                return render(request, 'enfermera/registrar_paciente.html', {'form': form, 'tipo': tipo})
 
             user = form.save(commit=False)
             user.rol = 'paciente'
@@ -1184,17 +1184,17 @@ def registrar_paciente(request, tipo='prenatal'):
             paciente.save()
 
             messages.success(request, f'Paciente {user.get_full_name()} registrada correctamente como paciente {tipo}.')
-            return redirect('lista_pacientes_secretaria')
+            return redirect('lista_pacientes_enfermera')
     else:
         form = RegistroPacienteForm()
 
-    return render(request, 'secretaria/registrar_paciente.html', {'form': form, 'tipo': tipo})
+    return render(request, 'enfermera/registrar_paciente.html', {'form': form, 'tipo': tipo})
 
 
 @login_required
 @no_cache_view
-def lista_pacientes_secretaria(request):
-    if request.user.rol != 'secretaria':
+def lista_pacientes_enfermera(request):
+    if request.user.rol != 'enfermera':
         return redireccionar_por_rol(request.user)
 
     from pacientes.models import Paciente
@@ -1206,7 +1206,7 @@ def lista_pacientes_secretaria(request):
         q_pacientes_con_acceso_prenatal()
     ).select_related('usuario').distinct()
 
-    return render(request, 'secretaria/lista_pacientes_secretaria.html', {
+    return render(request, 'enfermera/lista_pacientes_enfermera.html', {
         'pacientes_prenatales': pacientes_prenatales,
         'pacientes_generales':  pacientes_generales,
     })
@@ -1215,12 +1215,12 @@ def lista_pacientes_secretaria(request):
 @login_required
 def toggle_modulo_prenatal(request, paciente_id):
     """
-    La secretaria activa o desactiva el módulo prenatal para una paciente general.
-    Solo POST. Solo accesible por secretaria o admin.
+    La enfermera activa o desactiva el módulo prenatal para una paciente general.
+    Solo POST. Solo accesible por enfermera o admin.
     """
     from pacientes.models import Paciente
 
-    if request.user.rol not in ('secretaria', 'admin'):
+    if request.user.rol not in ('enfermera', 'admin'):
         return redireccionar_por_rol(request.user)
 
     paciente_usuario = get_object_or_404(Usuario, id=paciente_id, rol='paciente')
@@ -1230,10 +1230,10 @@ def toggle_modulo_prenatal(request, paciente_id):
         activar = request.POST.get('activar') == '1'
         if paciente_usuario.paciente.estado_embarazo == 'ACTIVO':
             messages.error(request, 'Solo las pacientes generales usan activación de módulo prenatal.')
-            return redirect(request.POST.get('next', 'lista_pacientes_secretaria'))
+            return redirect(request.POST.get('next', 'lista_pacientes_enfermera'))
         if activar and paciente_usuario.genero != 'femenino':
             messages.error(request, 'Solo las pacientes registradas como femeninas pueden activar el módulo prenatal.')
-            return redirect(request.POST.get('next', 'lista_pacientes_secretaria'))
+            return redirect(request.POST.get('next', 'lista_pacientes_enfermera'))
         perfil.tiene_prenatal = activar
         perfil.save()
 
@@ -1253,7 +1253,7 @@ def toggle_modulo_prenatal(request, paciente_id):
                 f'Módulo prenatal desactivado para {paciente_usuario.get_full_name() or paciente_usuario.username}.'
             )
 
-    return redirect(request.POST.get('next', 'lista_pacientes_secretaria'))
+    return redirect(request.POST.get('next', 'lista_pacientes_enfermera'))
 @login_required
 def crear_historia_clinica(request, paciente_id):
     """Crea o edita la Historia Clínica Obstétrica de una paciente."""
@@ -1403,22 +1403,28 @@ def editar_perfil_paciente(request, paciente_id):
  
 #HORARIOS DEFINIDOS
 # Lunes a Viernes: 8:30 AM - 5:00 PM
-# Sábados y Domingos: 9:00 AM - 3:00 PM
-HORAS_DISPONIBLES = [
+HORAS_DISPONIBLES_SEMANA = [
     time(8,30), time(9,0), time(9,30), time(10,0),
     time(10,30), time(11,0), time(11,30),
     time(12,0), time(12,30), time(13,0), time(13,30),
     time(14,0), time(14,30), time(15,0), time(15,30),
     time(16,0), time(16,30), time(17,0)
 ]
+
+# Sábados y Domingos: 9:00 AM - 3:00 PM
+HORAS_DISPONIBLES_FINDE = [
+    time(9,0), time(9,30), time(10,0), time(10,30),
+    time(11,0), time(11,30), time(12,0), time(12,30),
+    time(13,0), time(13,30), time(14,0), time(14,30), time(15,0)
+]
  
-# AGENDAR CITA (SECRETARIA)
+# AGENDAR CITA (Enfermera)
 @login_required
-def agendar_cita_secretaria(request):
-    if request.user.rol != 'secretaria':
+def agendar_cita_enfermera(request):
+    if request.user.rol != 'enfermera':
         return redireccionar_por_rol(request.user)
 
-    form = CitaSecretariaForm(request.POST or None)
+    form = CitaEnfermeraForm(request.POST or None)
 
     if request.method == 'POST':
         if form.is_valid():
@@ -1443,7 +1449,7 @@ def agendar_cita_secretaria(request):
                 messages.success(request, 'Cita agendada correctamente.')
                 registrar_log(request, 'CREATE', 'Citas',
                     f'Cita agendada para {cita.paciente.get_full_name()} el {cita.fecha} a las {cita.hora}', 'INFO')
-                return redirect('citas_secretaria')
+                return redirect('citas_enfermera')
 
     # Pasar médicos con sus especialidades para el JS del template
     from medicos.models import Medico
@@ -1456,7 +1462,7 @@ def agendar_cita_secretaria(request):
         for m in medicos_qs
     ]
 
-    return render(request, 'secretaria/agendar_cita.html', {
+    return render(request, 'enfermera/agendar_cita.html', {
         'form': form,
         'medicos_especialidades': medicos_data,
     })
@@ -1465,30 +1471,40 @@ def agendar_cita_secretaria(request):
 # OBTENER HORAS DISPONIBLES
 @login_required
 def obtener_horas_disponibles(request):
+    from datetime import datetime
     fecha = request.GET.get('fecha')
     medico = request.GET.get('medico')
  
     if not fecha or not medico:
         return JsonResponse({'horas': []})
+    
+    # Determinar si es fin de semana
+    try:
+        fecha_obj = datetime.strptime(fecha, '%Y-%m-%d').date()
+        es_finde = fecha_obj.weekday() in [5, 6]  # 5=sábado, 6=domingo
+        horas_base = HORAS_DISPONIBLES_FINDE if es_finde else HORAS_DISPONIBLES_SEMANA
+    except:
+        horas_base = HORAS_DISPONIBLES_SEMANA
  
     horas_ocupadas = Cita.objects.filter(
         fecha=fecha,
-        medico_id=medico
+        medico_id=medico,
+        estado__in=['pendiente', 'confirmada']
     ).values_list('hora', flat=True)
  
     horas_libres = [
         h.strftime("%H:%M")
-        for h in HORAS_DISPONIBLES if h not in horas_ocupadas
+        for h in horas_base if h not in horas_ocupadas
     ]
  
     return JsonResponse({'horas': horas_libres})
 @login_required
-def editar_paciente_secretaria(request, paciente_id):
-    if request.user.rol != 'secretaria':
+def editar_paciente_enfermera(request, paciente_id):
+    if request.user.rol != 'enfermera':
         return redireccionar_por_rol(request.user)
     paciente = get_object_or_404(Usuario, id=paciente_id)
     if request.method == 'POST':
-        form = EditarPacienteSecretariaForm(request.POST, instance=paciente)
+        form = EditarPacienteEnfermeraForm(request.POST, instance=paciente)
         if form.is_valid():
             # Validar cédula duplicada (excluir el propio paciente)
             from pacientes.models import Paciente
@@ -1497,7 +1513,7 @@ def editar_paciente_secretaria(request, paciente_id):
                 duplicado = Paciente.objects.filter(cedula=cedula_nueva).exclude(usuario=paciente).first()
                 if duplicado:
                     messages.error(request, f"¡La cédula {cedula_nueva} ya está registrada para otro paciente ({duplicado.usuario.get_full_name()}).")
-                    return render(request, 'secretaria/editar_paciente_secretaria.html', {
+                    return render(request, 'enfermera/editar_paciente_enfermera.html', {
                         'form': form, 'paciente': paciente, 'error_cedula': True
                     })
             form.save()
@@ -1512,20 +1528,20 @@ def editar_paciente_secretaria(request, paciente_id):
             perfil.save()
             registrar_log(request, 'UPDATE', 'Secretaría', f"Se editó el paciente {paciente.get_full_name()} (ID: {paciente.id})", 'INFO')
             messages.success(request, f"Paciente {paciente.get_full_name()} actualizado correctamente.")
-            return redirect('lista_pacientes_secretaria')
+            return redirect('lista_pacientes_enfermera')
         else:
             messages.error(request, "Por favor corrige los errores del formulario.")
     else:
-        form = EditarPacienteSecretariaForm(instance=paciente)
+        form = EditarPacienteEnfermeraForm(instance=paciente)
     
-    return render(request, 'secretaria/editar_paciente_secretaria.html', {
+    return render(request, 'enfermera/editar_paciente_enfermera.html', {
         'form': form,
         'paciente': paciente
     })
 
 @login_required
 def reprogramar_cita(request, cita_id):
-    if request.user.rol != 'secretaria':
+    if request.user.rol != 'enfermera':
         return redireccionar_por_rol(request.user)
  
     cita = Cita.objects.get(id=cita_id)
@@ -1534,19 +1550,20 @@ def reprogramar_cita(request, cita_id):
         cita.fecha = request.POST.get('fecha')
         cita.hora = request.POST.get('hora')
         cita.save()
-        registrar_log(request, 'UPDATE', 'Citas', f"Secretaria reprogramó cita {cita.id} a {cita.fecha} {cita.hora}", 'INFO')
-        return redirect('citas_secretaria')
+        registrar_log(request, 'UPDATE', 'Citas', f"Enfermera reprogramó cita {cita.id} a {cita.fecha} {cita.hora}", 'INFO')
+        return redirect('citas_enfermera')
  
-    return render(request, 'secretaria/reprogramar.html', {
+    return render(request, 'enfermera/reprogramar.html', {
         'cita': cita,
         'hoy': timezone.now().date(),
     })
 
 @login_required
+@login_required
 @no_cache_view
-def cancelar_cita_secretaria(request, cita_id):
-    """Permite a la secretaria cancelar una cita con motivo."""
-    if request.user.rol != 'secretaria':
+def cancelar_cita_enfermera(request, cita_id):
+    """Permite a la enfermera cancelar una cita con motivo."""
+    if request.user.rol != 'enfermera':
         return redireccionar_por_rol(request.user)
     
     cita = get_object_or_404(Cita, id=cita_id)
@@ -1556,17 +1573,17 @@ def cancelar_cita_secretaria(request, cita_id):
         cita.estado = 'cancelada'
         cita.motivo_cancelacion = motivo_cancelacion
         cita.save()
-        registrar_log(request, 'UPDATE', 'Citas',
-            f'Cita #{cita.id} cancelada por secretaria. Paciente: {cita.paciente.get_full_name()}. Motivo: {motivo_cancelacion}', 'INFO')
+        registrar_log(request, 'CANCELACION', 'Citas',
+            f'Cita #{cita.id} cancelada por enfermera. Paciente: {cita.paciente.get_full_name()}. Motivo: {motivo_cancelacion}', 'INFO')
         messages.success(request, 'Cita cancelada correctamente.')
-        return redirect('citas_secretaria')
+        return redirect('citas_enfermera')
     
-    return render(request, 'secretaria/cancelar_cita_modal.html', {'cita': cita})
+    return render(request, 'enfermera/cancelar_cita_modal.html', {'cita': cita})
  
 @login_required
 @no_cache_view
-def citas_secretaria(request):
-    if request.user.rol != 'secretaria':
+def citas_enfermera(request):
+    if request.user.rol != 'enfermera':
         return redireccionar_por_rol(request.user)
 
     # ── AUTO-CANCELAR citas pendientes (30 min de margen) ──
@@ -1581,7 +1598,7 @@ def citas_secretaria(request):
         medico__medico__especialidad__tipo='prenatal'
     ).select_related('paciente', 'medico', 'especialidad').order_by('-fecha', 'hora')
 
-    return render(request, 'secretaria/citas.html', {
+    return render(request, 'enfermera/citas.html', {
         'citas_prenatales': citas_prenatales,
         'citas_generales': citas_generales,
         'total_prenatales': citas_prenatales.count(),
@@ -1613,7 +1630,7 @@ def buscar_pacientes(request):
     Busca por nombre, apellido o cédula.
     Retorna: {"pacientes": [{"id": ..., "nombre": ..., "cedula": ..., "email": ...}]}
     """
-    if request.user.rol not in ('secretaria', 'admin'):
+    if request.user.rol not in ('enfermera', 'admin'):
         return JsonResponse({'pacientes': []}, status=403)
  
     q = request.GET.get('q', '').strip()
@@ -1812,7 +1829,7 @@ def admin_crear_usuario(request):
         if User.objects.filter(username=username).exists():
             messages.error(request, f'El usuario "{username}" ya existe.')
             return render(request, 'admin/crear_usuario.html', {
-                'roles': ['admin','medico','secretaria','paciente'],
+                'roles': ['admin','medico','enfermera','paciente'],
                 'form_data': request.POST,
                 'citas_pendientes': Cita.objects.filter(estado='pendiente').count(),
             })
@@ -1843,7 +1860,7 @@ def admin_crear_usuario(request):
         return redirect('lista_usuarios')
 
     return render(request, 'admin/crear_usuario.html', {
-        'roles': ['admin', 'medico', 'secretaria', 'paciente'],
+        'roles': ['admin', 'medico', 'enfermera', 'paciente'],
         'citas_pendientes': Cita.objects.filter(estado='pendiente').count(),
     })
 
@@ -1889,7 +1906,7 @@ def admin_editar_usuario(request, usuario_id):
 
     return render(request, 'admin/editar_usuario.html', {
         'usuario': usuario,
-        'roles': ['admin', 'medico', 'secretaria', 'paciente'],
+        'roles': ['admin', 'medico', 'enfermera', 'paciente'],
         'medico_perfil': medico_perfil,
         'citas_pendientes': Cita.objects.filter(estado='pendiente').count(),
     })
@@ -2250,8 +2267,8 @@ def admin_crear_paciente_general(request):
 @login_required
 @login_required
 @no_cache_view
-def perfil_secretaria(request):
-    if request.user.rol != 'secretaria':
+def perfil_enfermera(request):
+    if request.user.rol != 'enfermera':
         return redireccionar_por_rol(request.user)
  
     if request.method == 'POST':
@@ -2282,9 +2299,9 @@ def perfil_secretaria(request):
                 update_session_auth_hash(request, request.user)
                 messages.success(request, 'Contraseña actualizada correctamente.')
  
-        return redirect('perfil_secretaria')
+        return redirect('perfil_enfermera')
  
-    return render(request, 'secretaria/perfil_secretaria.html')
+    return render(request, 'enfermera/perfil_enfermera.html')
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -2470,6 +2487,7 @@ def historial_consultas_generales(request):
 
 
 @login_required
+@no_cache_view
 def ver_consulta_general(request, consulta_id):
     """Muestra el detalle completo de una consulta general."""
     from paciente_general.models import ConsultaGeneral
@@ -3125,7 +3143,7 @@ def cambiar_estado_cita(request, cita_id):
         cita = get_object_or_404(Cita, id=cita_id)
         
         # Validar permisos
-        if request.user.rol not in ['medico', 'administrador', 'secretaria'] or (request.user.rol == 'medico' and cita.medico != request.user):
+        if request.user.rol not in ['medico', 'administrador', 'enfermera'] or (request.user.rol == 'medico' and cita.medico != request.user):
             messages.error(request, 'No tienes permiso para modificar esta cita.')
             return redirect(request.META.get('HTTP_REFERER', '/'))
             

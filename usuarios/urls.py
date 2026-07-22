@@ -7,7 +7,7 @@ urlpatterns = [
 
     path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('medico-dashboard/', views.medico_dashboard, name='medico_dashboard'),
-    path('secretaria-dashboard/', views.secretaria_dashboard, name='secretaria_dashboard'),
+    path('enfermera-dashboard/', views.enfermera_dashboard, name='enfermera_dashboard'),
     
     #PACIENTE
     path('paciente-dashboard/', views.paciente_dashboard, name='paciente_dashboard'),
@@ -43,20 +43,20 @@ urlpatterns = [
     path('programar-parto/<int:parto_id>/editar/', views.editar_parto, name='editar_parto'),
     path('programaciones-parto/', views.lista_programaciones_parto, name='lista_programaciones_parto'),
     
-    #SECRETARIA
+    #ENFERMERIA
     path('registrar-paciente/', views.registrar_paciente, name='registrar_paciente'),
-    path('editar-paciente-secretaria/<int:paciente_id>/', views.editar_paciente_secretaria, name='editar_paciente_secretaria'),
-    path('agendar-cita-secretaria/', views.agendar_cita_secretaria, name='agendar_cita_secretaria'),
+    path('editar-paciente-enfermera/<int:paciente_id>/', views.editar_paciente_enfermera, name='editar_paciente_enfermera'),
+    path('agendar-cita-enfermera/', views.agendar_cita_enfermera, name='agendar_cita_enfermera'),
     path('reprogramar/<int:cita_id>/', views.reprogramar_cita, name='reprogramar_cita'),
-    path('cancelar-cita-secretaria/<int:cita_id>/', views.cancelar_cita_secretaria, name='cancelar_cita_secretaria'),
-    path('citas-secretaria/', views.citas_secretaria, name='citas_secretaria'),
+    path('cancelar-cita-enfermera/<int:cita_id>/', views.cancelar_cita_enfermera, name='cancelar_cita_enfermera'),
+    path('citas-enfermera/', views.citas_enfermera, name='citas_enfermera'),
     path('horas-disponibles/', views.obtener_horas_disponibles, name='horas_disponibles'),
     path('datos-paciente/', views.datos_paciente, name='datos_paciente'),
     path('buscar-pacientes/', views.buscar_pacientes, name='buscar_pacientes'),
-    path('mi-perfil-secretaria/', views.perfil_secretaria, name='perfil_secretaria'),
-    path('secretaria/pacientes/', views.lista_pacientes_secretaria, name='lista_pacientes_secretaria'),
-    path('secretaria/registrar/<str:tipo>/', views.registrar_paciente, name='registrar_paciente'),
-    path('secretaria/toggle-prenatal/<int:paciente_id>/', views.toggle_modulo_prenatal, name='toggle_modulo_prenatal'),
+    path('mi-perfil-enfermera/', views.perfil_enfermera, name='perfil_enfermera'),
+    path('enfermera/pacientes/', views.lista_pacientes_enfermera, name='lista_pacientes_enfermera'),
+    path('enfermera/registrar/<str:tipo>/', views.registrar_paciente, name='registrar_paciente'),
+    path('enfermera/toggle-prenatal/<int:paciente_id>/', views.toggle_modulo_prenatal, name='toggle_modulo_prenatal'),
 
     #ADMIN
     path('panel/usuarios/', views.lista_usuarios, name='lista_usuarios'),
