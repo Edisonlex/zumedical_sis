@@ -93,24 +93,36 @@ def crear_control(request, paciente_id=None):
     if request.method == 'POST':
         form = ControlPrenatalForm(request.POST, medico=request.user)
         if form.is_valid():
-            control = form.save(commit=False)
-            control.medico = request.user
-            control.save()
-            
-            # Activar modo prenatal automáticamente si estaba en NINGUNO
-            if hasattr(control.paciente, 'paciente'):
-                perfil_pac = control.paciente.paciente
-                if perfil_pac.estado_embarazo == 'NINGUNO':
-                    perfil_pac.estado_embarazo = 'ACTIVO'
-                    perfil_pac.save()
-                    
-            messages.success(request, 'Control prenatal registrado exitosamente.')
-            # Redirigir a la historia clínica del paciente
             try:
-                historia = HistoriaClinica.objects.get(paciente=control.paciente)
-                return redirect('detalle_historia', historia_id=historia.id)
-            except HistoriaClinica.DoesNotExist:
-                return redirect('lista_historias')
+                control = form.save(commit=False)
+                control.medico = request.user
+                control.save()
+                
+                # Activar modo prenatal automáticamente si estaba en NINGUNO
+                try:
+                    from pacientes.models import Paciente
+                    if hasattr(control.paciente, 'paciente'):
+                        perfil_pac = control.paciente.paciente
+                        if perfil_pac.estado_embarazo == 'NINGUNO':
+                            perfil_pac.estado_embarazo = 'ACTIVO'
+                            perfil_pac.save()
+                except Paciente.DoesNotExist:
+                    pass
+                        
+                messages.success(request, 'Control prenatal registrado exitosamente.')
+                # Redirigir a la historia clínica del paciente
+                try:
+                    historia = HistoriaClinica.objects.get(paciente=control.paciente)
+                    return redirect('detalle_historia', historia_id=historia.id)
+                except HistoriaClinica.DoesNotExist:
+                    return redirect('lista_historias')
+            except Exception as e:
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"Error al guardar control prenatal: {str(e)}", exc_info=True)
+                messages.error(request, f'Error al registrar el control: {str(e)}')
+        else:
+            messages.error(request, 'Hay errores en el formulario. Revisa los campos marcados.')
     else:
         initial = {'paciente': paciente} if paciente else {}
         form = ControlPrenatalForm(initial=initial, medico=request.user)

@@ -150,6 +150,32 @@
     {% endfor %}
   {% endif %}
 
+  <!-- FILTROS -->
+  <div style="background:white;border-radius:12px;border:1px solid var(--mg-border);padding:1.25rem;margin-bottom:1.5rem;">
+    <form method="get" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;align-items:flex-end;">
+      <div>
+        <label style="display:block;font-size:.85rem;font-weight:600;color:var(--text);margin-bottom:.4rem;">Estado</label>
+        <select name="estado" style="width:100%;padding:.6rem;border:1px solid var(--mg-border);border-radius:8px;font-size:.9rem;background:white;color:var(--text);">
+          <option value="">Todos los estados</option>
+          <option value="atendida" {% if filtro_estado == 'atendida' %}selected{% endif %}>Atendida</option>
+          <option value="no_atendida" {% if filtro_estado == 'no_atendida' %}selected{% endif %}>No atendida</option>
+        </select>
+      </div>
+      <div>
+        <label style="display:block;font-size:.85rem;font-weight:600;color:var(--text);margin-bottom:.4rem;">Desde</label>
+        <input type="date" name="fecha_inicio" value="{{ filtro_fecha_inicio }}" style="width:100%;padding:.6rem;border:1px solid var(--mg-border);border-radius:8px;font-size:.9rem;">
+      </div>
+      <div>
+        <label style="display:block;font-size:.85rem;font-weight:600;color:var(--text);margin-bottom:.4rem;">Hasta</label>
+        <input type="date" name="fecha_fin" value="{{ filtro_fecha_fin }}" style="width:100%;padding:.6rem;border:1px solid var(--mg-border);border-radius:8px;font-size:.9rem;">
+      </div>
+      <div style="display:flex;gap:.75rem;">
+        <button type="submit" style="background:var(--mg);color:white;border:none;padding:.6rem 1.2rem;border-radius:8px;font-size:.9rem;font-weight:500;cursor:pointer;flex:1;">Filtrar</button>
+        <a href="{% url 'lista_programaciones_parto' %}" style="background:var(--mg-bg);color:var(--mg);border:1px solid var(--mg-border);padding:.6rem 1.2rem;border-radius:8px;font-size:.9rem;font-weight:500;cursor:pointer;text-decoration:none;text-align:center;flex:1;">Limpiar</a>
+      </div>
+    </form>
+  </div>
+
   {% if programaciones %}
   {% if activas %}
   <div class="section-title">Próximas programaciones <span class="pill">{{ activas|length }}</span></div>

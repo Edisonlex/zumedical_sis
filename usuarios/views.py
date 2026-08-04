@@ -2712,8 +2712,7 @@ def programar_parto(request):
         
         # Solo pacientes con embarazo y panel prenatal activos
         ids_embarazo_activo = Paciente.objects.filter(
-            estado_embarazo='ACTIVO',
-            tiene_prenatal=True,
+            estado_embarazo='ACTIVO'
         ).values_list('usuario_id', flat=True)
         
         ids_asignadas = Paciente.objects.filter(
@@ -2764,8 +2763,8 @@ def programar_parto(request):
                 
                 # Verificar que tenga embarazo y panel prenatal activos
                 paciente_perfil = Paciente.objects.get(usuario=paciente_obj)
-                if paciente_perfil.estado_embarazo != 'ACTIVO' or not paciente_perfil.tiene_prenatal:
-                    messages.error(request, 'La paciente debe tener embarazo y panel prenatal activos para programar el parto.')
+                if paciente_perfil.estado_embarazo != 'ACTIVO':
+                    messages.error(request, 'La paciente debe tener embarazo activo para programar el parto.')
                     return render(request, 'medico/programar_parto.html',
                                   {'pacientes': pacientes_prenatales, 'pacientes_json': pacientes_json})
                     
@@ -2859,7 +2858,7 @@ def editar_parto(request, parto_id):
                 messages.error(request, f'Error al actualizar la programación: {str(e)}')
 
         pacientes_prenatales = Usuario.objects.filter(
-            rol='paciente', is_active=True, paciente__estado_embarazo='ACTIVO', paciente__tiene_prenatal=True
+            rol='paciente', is_active=True, paciente__estado_embarazo='ACTIVO'
         ).distinct().order_by('first_name')
         
         # Preparar JSON de pacientes para búsqueda en tiempo real
@@ -2914,10 +2913,10 @@ def eliminar_parto(request, parto_id):
 @login_required
 @no_cache_view
 def lista_programaciones_parto(request):
-    """Lista todas las programaciones de parto del médico."""
+    """Lista todas las programaciones de parto del médico con filtros por estado y fecha."""
     import logging
     from django.utils import timezone
-    from datetime import datetime
+    from datetime import datetime, timedelta
     
     logger = logging.getLogger(__name__)
     
@@ -2928,9 +2927,36 @@ def lista_programaciones_parto(request):
             return redireccionar_por_rol(request.user)
 
         ahora = timezone.localtime()
-        programaciones = list(ProgramacionParto.objects.select_related(
+        
+        # Obtener filtros del request
+        filtro_estado = request.GET.get('estado', '')
+        filtro_fecha_inicio = request.GET.get('fecha_inicio', '')
+        filtro_fecha_fin = request.GET.get('fecha_fin', '')
+        
+        # Obtener todas las programaciones
+        programaciones_query = ProgramacionParto.objects.select_related(
             'paciente', 'medico'
-        ).order_by('fecha_programada', 'hora_programada'))
+        )
+        
+        # Aplicar filtros
+        if filtro_estado:
+            programaciones_query = programaciones_query.filter(estado=filtro_estado)
+        
+        if filtro_fecha_inicio:
+            try:
+                fecha_inicio = datetime.strptime(filtro_fecha_inicio, "%Y-%m-%d").date()
+                programaciones_query = programaciones_query.filter(fecha_programada__gte=fecha_inicio)
+            except:
+                pass
+        
+        if filtro_fecha_fin:
+            try:
+                fecha_fin = datetime.strptime(filtro_fecha_fin, "%Y-%m-%d").date()
+                programaciones_query = programaciones_query.filter(fecha_programada__lte=fecha_fin)
+            except:
+                pass
+        
+        programaciones = list(programaciones_query.order_by('fecha_programada', 'hora_programada'))
 
         activas, historial = [], []
         for p in programaciones:
@@ -2952,7 +2978,14 @@ def lista_programaciones_parto(request):
                 activas.append(p)
 
         return render(request, 'medico/lista_programaciones_parto.html',
-                      {'programaciones': programaciones, 'activas': activas, 'historial': historial})
+                      {
+                          'programaciones': programaciones, 
+                          'activas': activas, 
+                          'historial': historial,
+                          'filtro_estado': filtro_estado,
+                          'filtro_fecha_inicio': filtro_fecha_inicio,
+                          'filtro_fecha_fin': filtro_fecha_fin,
+                      })
     except Exception as e:
         logger.error(f"Error en lista_programaciones_parto: {str(e)}", exc_info=True)
         messages.error(request, f'Error al cargar las programaciones: {str(e)}')
